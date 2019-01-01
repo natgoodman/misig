@@ -1,0 +1,12 @@
+Package: pregr
+Title: Effect Size Estimation
+Version: 0.00
+Authors@R: person("Nathan", "Goodman", email = "natg@shore.net", role = c("aut", "cre"))
+Description: A collection of R scripts and documents exploring effect size estimation. Use simulation to work backwards from samples to population.
+Depends: R (>= 3.4.3)
+Imports: 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/natgoodman/effit
+BugReports: https://github.com/natgoodman/effit/issues
