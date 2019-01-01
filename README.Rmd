@@ -1,5 +1,5 @@
 ---
-title: "Preregistration as a Means to Improve Science"
+title: "Effect Size Estimation"
 author: "Nathan (Nat) Goodman"
 date: "January 1, 2019"
 output:
@@ -13,18 +13,12 @@ urlcolor: blue
 ---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-*A collection of R scripts and documents exploring the usefulness of preregistration as a means of improving science.*
+*A collection of R scripts and documents exploring effect size estimation. I use simulation to work backwards from samples to population. This better mimics real world practice than the usual forward simulation from population to samples.*
 
-The current version contains just a single document "Preregistration: Hold the Bus!" kindly posted by Bob Reed on The Replication Network (TRN).
-
-- [TRN blog post](https://replicationnetwork.com/2019/01/01/goodman-hold-the-bus/)
-- My posted version: [html](https://natgoodman.github.io/pregr/holdit.stable.html), [pdf](https://natgoodman.github.io/pregr/holdit.stable.pdf)
-- [RMarkdown source file](holdit.Rmd) in this repo
-
-There is no code or data yet.
+The current version is just a placeholder.
 
 ## Comments Please!
 
-Please post comments using the [GitHub Issue Tracker](https://github.com/natgoodman/pregr/issues).
+Please post comments using the [GitHub Issue Tracker](https://github.com/natgoodman/effit/issues).
 
 
