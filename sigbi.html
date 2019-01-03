@@ -109,10 +109,26 @@ $(document).ready(function () {
 </div>
 
 
-<p><em>Just a stub obviously.</em></p>
+<p><em>Significance testing overstimates effect size when sample and true effect sizes are small, in other words, when power is low. The overstimate can be considerable: more than 2x under conditions typical in social science research. The bias is inherent in the math; it’s not due to p-hacking or other investigator malfeasance. The only solutions are to increase sample size, switch to problems with bigger true effect size, or abandon significance testing.</em></p>
+<p>The basic argument is simple. The p-value you get when you do a study depends on the observed effect size, not the true effect size. Limiting attention to non-negative effect sizes, bigger observed effect sizes give better p-values. With a dollop of math, it follows that there’s a smallest observed effect size with a significant p-value. Further, this minimum significant effect size is a critical value that cleanly separates non-signifant and signifant observed effect sizes. For <span class="math inline">\(n=20\)</span>, the critical observed effect size is about 0.64. To get a significant p-value, your must observe an effect size bigger than (or equal to) this. The true effect size doesn’t matter.</p>
 <div id="comments-please" class="section level2">
 <h2>Comments Please!</h2>
 <p>Please post comments using the <a href="https://github.com/natgoodman/pregr/issues">GitHub Issue Tracker</a>.</p>
+</div>
+<div id="test-footnotes" class="section level2">
+<h2>Test footnotes</h2>
+<p>Here is a footnote reference,<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> and another.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a></p>
+<p>This paragraph won’t be part of the note, because it isn’t indented.</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Here is the footnote.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>Here’s one with multiple blocks.</p>
+<p>Subsequent paragraphs are indented to show that they belong to the previous footnote.</p>
+<pre><code>{ some.code }</code></pre>
+<p>The whole paragraph can be indented, or just the first line. In this way, multi-paragraph footnotes work like multi-paragraph list items.<a href="#fnref2">↩</a></p></li>
+</ol>
 </div>
 
 
