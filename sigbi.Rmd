@@ -1,7 +1,7 @@
 ---
 title: "Significance Testing Overestimates Effect Size When Power is Low"
 author: "Nathan (Nat) Goodman"
-date: "January 1, 2019"
+date: "January 7, 2019"
 output:
   html_document:
     css: css/html_document.css
@@ -12,30 +12,31 @@ citecolor: green
 urlcolor: blue
 ---
 
-*Significance testing overstimates effect size when sample and true effect sizes are small, in other words, when power is low. The overstimate can be considerable: more than 2x under conditions typical in social science research. The bias is inherent in the math; it's not due to p-hacking or other investigator malfeasance. The only solutions are to increase sample size, switch to problems with bigger true effect size, or abandon significance testing.*
+*Replication researchers cite low power and inflated effect size estimates as major causes of replication failure. It turns out these are two sides of the same coin linked by significance testing. Requiring significant p-values forces underpowered studies to overestimate effect size. The overstimate is large, more than 2x, under conditions typical in social science research. The bias is inherent in the math; it's not due to p-hacking or other malfeasance. One solution is to increase power. A cheaper and easier solution is to abandon significance testing.*
 
-The basic argument is simple. The p-value you get when you do a study depends on the observed effect size, not the true effect size.  Limiting attention to non-negative effect sizes, bigger observed effect sizes give better p-values. With a dollop of math, it follows that there's a smallest observed effect size with a significant p-value. Further, this minimum significant effect size is a critical value that cleanly separates non-signifant and signifant observed effect sizes. For $n=20$, the critical observed effect size is about 0.64. To get a significant p-value, your must observe an effect size bigger than (or equal to) this. The true effect size doesn't matter.
+The basic argument is simple (the [Supplement]() has the gory details). (1) The p-value you get when you do a study depends on the effect size you observe; the true effect size plays no role. (2) Bigger[^1] observed effect sizes give better p-values. (3) There's a smallest observed effect size with significant p-value (since an effect size of 0 is never significant). (4) This minimum significant effect size is a *critical* value that cleanly separates nonsignificant and significant observed effect sizes (see the [Supplement]() for explanation). (5) When the critical effect size exceeds the true effect size, significance testing must overestimate the effect size, since to get a significant p-value, the observed effect size must be even larger.
+
+[^1]: In the text, I assume effect sizes *>0* so I can use terms like "bigger" and "smaller" rather than "more extreme" and "less extreme" or keep saying "absolute value".
+
+For a sample size of 20, the critical observed effect size is about 0.64. From what I read in the blogosphere, the typical true effect size in social science research is 0.3. For this effect size, the overestimate is at least 2.13x (0.64/0.3).
+
+Figures 1a-b plot true vs. observed effect size for simulated data with points color-coded by p-value.  The first plot shows the full dataset. The general pattern is clear: bigger effect sizes have better p-values. The second plot zooms in to the region around the critical value (0.64) to show the sharp boundary between nonsignificant and significant effect sizes.
+
+Power is very low for this scenario, about 15%. I used to think this meant there was a 15% chance of observing a significant effect of 0.3 but now know this is incorrect. With *n=20*, an effect of 0.3 is always nonsignificant (*p=0.35*). The 15% power is the probability of observing an effect size greater than 0.64.
+
+What sample size is enough? At a bare minimum, it should be big enough for the expected true effect size to be significant: 87 in this case. This raises power to about 50%. That's still not good enough for my taste. Call me a cautious old coot, but if I'm going to go to all the trouble of running a study, I'd like better than 50:50 odds of success. I'd set power to 95%. This requires a sample of 289.
+
+Another way to increase power is to increase the true effect size.  Good empiricists excel at finding study conditions that amplify the phenomenon of interest. This may sound like cheating, but it's an essential part of empirical research in many scientific disciplines. For example, in biology, basic researchers work with "model systems" such as mice, rather than people, to more readily study phenomena of interest.
+
+Leaving the sample size at 20 would require a big leap in effect size to hit my 95% power target but a modest increase would help the sample size a lot: pushing the effect size from 0.3 to 0.5 (still "medium" in the Cohen's d vernacular) would move the sample size from 289 to 105.
+
+I'm not recommending that social science researchers reshape their studies this way. Bigger studies are more expensive, which will inevitably reduce the number of studies that can be done. They're also harder to run and may require more study personnel and study days, which may increase variability and indirectly reduce the effect size. Increasing effect size may require more artifical study scenarios further reducing ability to generalize from lab to real world. 
+
+All in all, it's not obvious that the net effect is positive.
+
+A cheaper and easier solution is to abandon significance testing. The entire problem is a consequence of this timeworn statistical method. Looking back at Figure 1, observed effect size tracks true effect size pretty well. There's a lot uncertainty, of course, but that seems an acceptable tradeoff for gaining unbiased effect size estimates at reasonable cost.
 
 ## Comments Please!
 
 Please post comments using the [GitHub Issue Tracker](https://github.com/natgoodman/pregr/issues).
 
-## Test footnotes
-
-Here is a footnote reference,[^1] and another.[^longnote]
-
-[^1]: Here is the footnote.
-
-[^longnote]: Here's one with multiple blocks.
-
-    Subsequent paragraphs are indented to show that they
-belong to the previous footnote.
-
-        { some.code }
-
-    The whole paragraph can be indented, or just the first
-    line.  In this way, multi-paragraph footnotes work like
-    multi-paragraph list items.
-
-This paragraph won't be part of the note, because it
-isn't indented.
