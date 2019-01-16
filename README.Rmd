@@ -1,7 +1,7 @@
 ---
 title: "Effect Size Estimation"
 author: "Nathan (Nat) Goodman"
-date: "January 1, 2019"
+date: "January 16, 2019"
 output:
   pdf_document: default
   html_document: default
@@ -19,6 +19,6 @@ The current version is just a placeholder.
 
 ## Comments Please!
 
-Please post comments using the [GitHub Issue Tracker](https://github.com/natgoodman/effit/issues).
+Please post comments on [Twitter](https://twitter.com/gnatgoodman) or [Facebook](https://www.facebook.com/nathan.goodman.3367), or contact me by email [natg@shore.net](mailto:natg@shore.net).
 
 
