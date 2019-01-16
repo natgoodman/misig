@@ -17,18 +17,20 @@
 ## initialization.
 ## process parameters and store in param environment.
 ## create output directories if necessary.
+doc.all=cq(readme,siglo,sighi,supp);
 init=function(
   ## doc parameters 
   doc='readme',                     # controls sim defaults, data, figure subdirs
-  docx=match.arg(doc,cq(readme,sigbi,xperiment)), 
-  ## simulation parameters 
+  docx=match.arg(doc,doc.all), 
+  ## simulation parameters
   n=switch(docx,                            # sample sizes
            readme=20*2^(0:4),               # 20,40,80,160,320 (5 values)
-           sigbi=c(20,seq(50,500,by=50)),   # 20,50,100,...,1000 (11 values)
+           siglo=20,                        #
+           sighi=c(20,seq(50,500,by=50)),   # 20,50,100,...,1000 (11 values)
            xperiment=NA),                   # xperiment must supply values
   m=switch(docx,                            # number of populations
-           readme=1e3,sigbi=1e4,
-           xperiment=NA),                   # xperiment must supply values
+           xperiment=NA,                    # xperiment must supply values
+           1e4),                            # others
   d.gen=runif,                              # function to generate population effect sizes
   d.args=list(n=m,min=-3,max=3),            # arguments passed to d.gen
   d=switch(docx,                            # population effect sizes
@@ -99,231 +101,18 @@ init=function(
   if (clean.sim) cleanq(sim);
   invisible();
 }
-## copy local variables to param environment - to simplify init
-init_param=function() {
-  parent.env=parent.frame(n=1);
-  param.env=new.env();
-  sapply(ls(envir=parent.env),
-        function(what) assign(what,get(what,envir=parent.env),envir=param.env));
-  assign('param.env',param.env,envir=.GlobalEnv);
-}
-## setup in-memory cache to hold simulations, etc. do carefully in case already setup
-init_cache=function(memlist=cq(sim)) {
-  param(clean.data,clean.cache);
-  if (clean.data||clean.cache||!exists('cache.list',envir=.GlobalEnv)) cache.env=new.env();
-  sapply(memlist,function(what)
-    if (!exists(what,envir=cache.env)) assign(what,list(),envir=cache.env));
-  assign('cache.env',cache.env,envir=.GlobalEnv);
-}
-## clean specific data type. deletes directory, any top level files and in-memory list
-cleanq=function(what,cleandir=T) {
-  what=as.character(pryr::subs(what));
-  ## delete top level files if exist
-  unlink(filename(datadir,list.files(datadir,pattern=paste(sep='','^',what,'\\.'))));
-  ## delete in-memory list
-  if (exists(what,envir=cache.env)) rm(list=what,envir=cache.env);
-  if (cleandir) {
-    whatdir=paste(sep='',what,'dir');
-    ## delete directory if exists
-    if (exists(whatdir,envir=param.env)) unlink(get(whatdir,envir=param.env),recursive=T);
-  }
-}
-
-## initialize measures.
-## init_mesr called by doposr to init parameters used for constructing posrs
-##   can't run until smry object exists!
-## also called by init_docmesr for the common case of generating doc separately from data  
-## init_docmesr called by init_doc to init parameters used for doc generation
-init_mesr=function(must.exist=T) {
-  ## return immediately if already initialized
-  if (exists('init.mesr',envir=.GlobalEnv)&&init.mesr) invisible(T);
-  mesr.all=get_data(mesr,must.exist=must.exist);
-  if (is.null(mesr.all)) {
-    init.mesr<<-F;    # so doposr will know init_mesr not done 
-    invisible(F);
-  }
-  ## measures grouped by source row in smry
-  mesr.fromraw=cq(sig1,sdir);
-  mesr.frombsln=setdiff(grep('scp',mesr.all,invert=T,value=T),mesr.fromraw);
-  mesr.fromsig2=setdiff(mesr.all,c(mesr.frombsln,mesr.fromraw));
-  ## measures grouped by relative row (denominator in rate calculation) in std interpretation
-  mesr.relraw=mesr.fromraw;
-  mesr.relsig1=c(mesr.frombsln,mesr.fromsig2);
-  mesr.relsig2=NULL;
-  ## mesr.relsig2=mesr.fromsig2;
-  ## measures grouped by functional category
-  mesr.sig=cq(sig2,sigm);
-  ## mesr.dcc=cq(d1.c2,d2.c1,c1.c2,d1.p2,d2.p1,p1.p2);
-  mesr.dcc=grep('(d(1|2)\\.(c|p)(1|2))|((c|p)1\\.(c|p)2)',mesr.all,value=T);
-  ## mesr.scp=cq(d1.scp2,d2.scp1,d1.scpd2,d2.scpd1);
-  mesr.scp=grep('d(1|2)\\.scp(d{0,1})(1|2)',mesr.all,value=T);
-  mesr.meta=grep('dm|cm',mesr.all,value=T);
-  mesr.other=setdiff(mesr.all,c(mesr.sig,mesr.dcc,mesr.scp,mesr.meta));
-  ## setup mesr.from & relto variable for default interpretation
-  mesr.fromtype=sapply(mesr.all,function(mesr) {
-    if (mesr %in% mesr.fromraw) 'raw'
-    else if (mesr %in% mesr.frombsln) 'bsln'
-    else if (mesr %in% mesr.fromsig2) 'sig2'
-    else stop(paste('No from.type for mesr:',mesr))});
-  mesr.reltotype=sapply(mesr.all,function(mesr) {
-    if (mesr %in% mesr.relraw) 'raw'
-    else if (mesr %in% mesr.relsig1) 'sig1'
-    else if (mesr %in% mesr.relsig2) 'sig2'
-    else stop(paste('No relto.type for mesr:',mesr))});
-  ## at end, assign mesr parameters to global variables
-  sapply(grep('mesr',ls(),value=T),function(what) assign(what,get(what),envir=.GlobalEnv));
-  init.mesr<<-T;         # so dosmry will know init_mesr done
-  invisible(T);
-}
-init_docmesr=function(must.exist=T) {
-  init_mesr(must.exist=must.exist);
-  ## defaults for plot functions. depends on doc
-  if (doc=='readme') {
-    mesr.dflt=cq(sig2,d1.c2,sigm,d2.c1,c1.c2,d1.p2,d2.p1,p1.p2,d2.scp1);
-    mesr.plotdflt=mesr.ragdflt=cq(sig2,d1.c2,sigm,d2.c1);
-    mesr.heatdflt=mesr.rocdflt=grep('scp',mesr.dflt,invert=T,value=T);
-    mesr.order=mesr.dflt;
-    n.mesr=length(mesr.dflt);
-    col.mesr=c(colorRampPalette(RColorBrewer::brewer.pal(min(8,n.mesr-1),'Set1'))(n.mesr-1),
-               'blue');
-    ## manually fix 6th color (d1.p2) - make it darker
-    ## col.mesr[6]='#FFcc00';
-    ## use line widths, point cex to further discriminate measures
-    ## sig2 is biggest. others gradually diminish. d2.scp1 is special - shouldn't be too small
-    lwd.mesr=c(2,seq(1.5,0.75,len=n.mesr-2),1);
-    cex.mesr=c(1,seq(0.9,0.5,len=n.mesr-2),0.75);
-    ## some docs use line types to further discriminate measures. readme doesn't
-    lty.mesr=rep('solid',n.mesr);
-    ## set names in all these lists
-    ## CAUTION: have to use loop (not sapply) for scoping to work
-    for (name in cq(col.mesr,lwd.mesr,cex.mesr,lty.mesr))
-      assign(name,setNames(get(name),mesr.dflt));
-  } else if (doc=='resig') {
-    mesr.dflt='sig2';
-    mesr.plotdflt=mesr.heatdflt=mesr.rocdflt=mesr.ragdflt=mesr.dflt;
-    mesr.order=mesr.dflt;
-    n.mesr=length(mesr.dflt);
-    col.mesr=colorRampPalette(RColorBrewer::brewer.pal(max(3,min(8,n.mesr)),'Set1'))(n.mesr);
-    lwd.mesr=2;
-    cex.mesr=1;
-    ## some docs use line types to further discriminate measures. repwr doesn't
-    lty.mesr=rep('solid',n.mesr);
-    ## set names in all these lists
-    ## CAUTION: have to use loop (not sapply) for scoping to work
-    for (name in cq(col.mesr,lwd.mesr,cex.mesr,lty.mesr))
-      assign(name,setNames(get(name),mesr.dflt));
-  } else if (doc=='repwr') {
-    mesr.dflt=cq(sig2,d1.c2,sigm,d2.c1,c1.c2,d1.p2,d2.p1,p1.p2,d2.scp1);
-    mesr.plotdflt=mesr.heatdflt=mesr.rocdflt=mesr.ragdflt=grep('scp',mesr.dflt,invert=T,value=T);
-    mesr.order=mesr.dflt;
-    n.mesr=length(mesr.dflt);
-    col.mesr=c(colorRampPalette(RColorBrewer::brewer.pal(min(8,n.mesr-1),'Set1'))(n.mesr-1),
-               'blue');
-    ## manually fix 6th color (d1.p2) - make it darker
-    col.mesr[6]='#FFcc00';
-    ## use line widths, point cex to further discriminate measures
-    ## sig2 is biggest. others gradually diminish. d2.scp1 is special - shouldn't be too small
-    lwd.mesr=c(2,seq(1.5,0.75,len=n.mesr-2),1);
-    cex.mesr=c(1,seq(0.9,0.5,len=n.mesr-2),0.75);
-    ## some docs use line types to further discriminate measures. repwr doesn't
-    lty.mesr=rep('solid',n.mesr);
-    ## set names in all these lists
-    ## CAUTION: have to use loop (not sapply) for scoping to work
-    for (name in cq(col.mesr,lwd.mesr,cex.mesr,lty.mesr))
-      assign(name,setNames(get(name),mesr.dflt));
-  } else if (doc=='tech') {
-    ## TODO: these are old. refine based on experience
-    ## mesr.plotdflt=cq(sig2,sigm,d1.c2,d2.c1,d1.p2,d2.p1);
-    mesr.plotdflt=c(mesr.sig,mesr.dcc,'d1.scp2','d2.scp1');
-    mesr.heatdflt=c(mesr.sig,mesr.dcc,mesr.scp,mesr.meta);
-    mesr.rocdflt=c(mesr.sig,mesr.dcc);
-    mesr.ragdflt=cq(sig2,d1.c2);
-    ## measures ordered for legends and such
-    mesr.order=c(mesr.sig,mesr.dcc,mesr.scp,mesr.other);
-    ## RColorBrewer pallete names for plotrate
-    pal.sig='Reds';
-    pal.dcc='Blues';
-    pal.meta='Greens';
-    pal.scp='Purples';
-    pal.other='Greys';
-    ## line properties
-    lty.max=8;                          # max 'on' value for dashed lines
-    ## convert names into palettes of correct size
-    col.mesr=do.call(c,sapply(cq(sig,dcc,meta,scp,other),USE.NAMES=F,function(what) {
-      pal=get(paste(sep='.','pal',what));
-      mesr=get(paste(sep='.','mesr',what));
-      ## col=colorRampPalette(rev(RColorBrewer::brewer.pal(9,pal)[3:8]))(length(mesr));
-      ## col=colorRampPalette(rev(RColorBrewer::brewer.pal(9,pal))[2:7])(length(mesr));
-      ## RColorBrewer sequential palettes can have 3-9 colors. use directly unless too many mesrs
-      ## skip 1st two colors - usually too light - then reverse so darker colors will be first
-      ##   if too many mesrs, colorRampPalette will make more
-      n.mesr=length(mesr);
-      if (n.mesr<=7) col=rev(RColorBrewer::brewer.pal(n.mesr+2,pal))[1:n.mesr]
-      else col=colorRampPalette(rev(RColorBrewer::brewer.pal(9,pal)[3:9]))(n.mesr);
-      col=setNames(col,mesr);
-    }));
-    ## compute line widths to further discriminate measures
-    lwd.mesr=do.call(c,sapply(cq(sig,dcc,meta,scp,other),USE.NAMES=F,function(what) {
-      mesr=get(paste(sep='.','mesr',what));
-      n.mesr=length(mesr);
-      lwd=seq(3,1,len=n.mesr);
-      lwd=setNames(lwd,mesr);
-    }));
-    ## compute line types to further discriminate measures
-    lty.mesr=do.call(c,sapply(cq(sig,dcc,meta,scp,other),USE.NAMES=F,function(what) {
-      mesr=get(paste(sep='.','mesr',what));
-      n.mesr=length(mesr);
-      ## crude effort to create divergent line types, up to lty.max
-      gap=ceiling(n.mesr/2);
-      on=(do.call(c,lapply(seq_len(floor(n.mesr/2)),function(i) c(i,i+gap))));
-      on=1+on%%(lty.max-1);
-      off=on+1;
-      lty=c('solid',paste(sep='',as.hexmode(on),as.hexmode(off)))[1:n.mesr];
-      lty=setNames(lty,mesr);
-    }));
-    ## compute cex for points in plotroc
-    cex.mesr=do.call(c,sapply(cq(sig,dcc,meta,scp,other),USE.NAMES=F,function(what) {
-      mesr=get(paste(sep='.','mesr',what));
-      n.mesr=length(mesr);
-      cex=seq(1,0.5,len=n.mesr);
-      cex=setNames(cex,mesr);
-    }));
-  } else if (doc=='xperiment') {
-    mesr.dflt=cq(sig2,d1.c2,sigm,d2.c1,c1.c2,d1.p2,d2.p1,p1.p2,d2.scp1);
-    mesr.plotdflt=mesr.ragdflt=cq(sig2,d1.c2,sigm,d2.c1);
-    mesr.heatdflt=mesr.rocdflt=grep('scp',mesr.dflt,invert=T,value=T);
-    mesr.order=mesr.dflt;
-    n.mesr=length(mesr.dflt);
-    col.mesr=c(colorRampPalette(RColorBrewer::brewer.pal(min(8,n.mesr-1),'Set1'))(n.mesr-1),
-               'blue');
-    ## use line widths, point cex to further discriminate measures
-    ## sig2 is biggest. others gradually diminish. d2.scp1 is special - shouldn't be too small
-    lwd.mesr=c(2,seq(1.5,0.75,len=n.mesr-2),1);
-    cex.mesr=c(1,seq(0.9,0.5,len=n.mesr-2),0.75);
-    lty.mesr=rep('solid',n.mesr);
-    ## set names in all these lists
-    ## CAUTION: have to use loop (not sapply) for scoping to work
-    for (name in cq(col.mesr,lwd.mesr,cex.mesr,lty.mesr))
-      assign(name,setNames(get(name),mesr.dflt));
-  }
-  ## at end, assign mesr parameters to global variables
-  sapply(grep('mesr',ls(),value=T),function(what) assign(what,get(what),envir=.GlobalEnv));
-  init.mesr<<-T;         # so dosmry will know init_mesr done
-  invisible(T);
-}
-
 ## initialize doc parameters
+## NG 19-01-11: abandon subdoc concept for 'supp' - not useful for effit
+##              retain for xperiment just in case...
 init_doc=function(
   subdoc=NULL,
-  subdocx=
-    if(doc=='xperiment') subdoc else if(is.null(subdoc)) NULL else match.arg(subdoc,cq(supp)),
   ## output directories. filename function ignores subdoc if NULL
-  figdir=filename('figure',doc,subdocx,mdir), # directory for figures, eg, figure/repwr/m=1e4
-  tbldir=filename('table',doc,subdocx,mdir),  # directory for tables, eg, table/repwr/m=1e4
+  figdir=filename('figure',param(doc),subdoc,param(mdir)), # directory for figures
+  tbldir=filename('table',param(doc),subdoc,param(mdir)),  # directory for tables
   ## output modifiers
-  outpfx=if(doc=='xperiment'|is.null(subdocx)) NULL else 'S',
-  outsfx=if(doc=='xperiment'|is.null(subdocx)) NULL else letters, # used in figure and table blocks
-  sectnum=if(doc=='xperiment'|is.null(subdocx)) NULL else T, # add section number to prefix eg, S1
+  outpfx=switch(param(doc),supp='S',NULL),          # prefix before figure or table number
+  outsfx=switch(param(doc),xperiment=NULL,letters), # suffix in figure and table blocks
+  sectnum=switch(param(doc),supp=T,NULL),           # add section number to prefix eg, S1
   ## figures
   figpfx=outpfx,
   figsfx=outsfx,
@@ -340,8 +129,12 @@ init_doc=function(
   xfignum=1,
   xfigblk=NULL,                 # index into xfigsfx if in figure block
   ## error cutoffs for plots
+  ## TODO decide which are still needed
   fpr.cutoff=0.05,              # false positive rate cutoff for plots
   fnr.cutoff=0.20,              # false negative rate cutoff for plots
+  ## for pval colors
+  steps.pvcol=100,                # number of colors in color ramp
+  min.pvcol=1e-4,                  # min pval in ramp - smaller pvals mapped to min
   ## clean, save
   save.out=T,
   save.fig=save.out,            # save figures (when called via dofig)
@@ -351,21 +144,20 @@ init_doc=function(
   clean.fig=clean.out,          # remove figdir
   clean.tbl=clean.out,          # remove tbldir
   ## plot control
-  figscreen=if(doc=='readme') T else !save.fig,
+  figscreen=if(param(doc)=='readme') T else !save.fig,
                                  # plot figures on screen
   fignew=figscreen,              # plot each figure in new window
   figextra=T,                    # plot extra figures, too
   ## doc generation function
-  docfun=get(paste(collapse='',c('doc_',doc,subdocx))),
+  docfun=get(paste(collapse='',c('doc_',param(doc),subdoc))),
   docsect=NULL,                  # all document sections. set by docfun
   end=NULL                       # placeholder for last parameter
   ) {
-  subdoc=subdocx;                # to avoid confusion later
-  ## assign parameters to global variables
-  ## do it before calling any functions that rely on globals
-  assign_global();
-  ## init mesr parameters for doc
-  init_docmesr();
+  ## assign parameters to param environment
+  ## do it before calling any functions that rely on params
+  assign_param();
+  ## initialize pval colors
+  init_pvcol();
   ## clean and create output directories
   outdir=c(figdir,tbldir);
   if (clean.fig) unlink(figdir,recursive=T);
@@ -373,3 +165,41 @@ init_doc=function(
   sapply(outdir,function(dir) dir.create(dir,recursive=TRUE,showWarnings=FALSE));
   invisible();
 }
+
+## setup in-memory cache to hold simulations, etc. do carefully in case already setup
+init_cache=function(memlist=cq(sim)) {
+  param(clean.data,clean.cache);
+  if (clean.data||clean.cache||!exists('cache.env',envir=.GlobalEnv)) cache.env=new.env();
+  sapply(memlist,function(what)
+    if (!exists(what,envir=cache.env,inherit=F)) assign(what,list(),envir=cache.env));
+  assign('cache.env',cache.env,envir=.GlobalEnv);
+}
+## clean specific data type. deletes directory, any top level files and in-memory list
+cleanq=function(what,cleandir=T) {
+  what=as.character(pryr::subs(what));
+  ## delete top level files if exist
+  unlink(filename(datadir,list.files(datadir,pattern=paste(sep='','^',what,'\\.'))));
+  ## delete in-memory list
+  if (exists(what,envir=cache.env)) rm(list=what,envir=cache.env);
+  if (cleandir) {
+    whatdir=paste(sep='',what,'dir');
+    ## delete directory if exists
+    if (exists(whatdir,envir=param.env)) unlink(get(whatdir,envir=param.env),recursive=T);
+  }
+}
+## setup pval colors. adapted from repwr/R/plot.R/heat_setup
+init_pvcol=function() {
+  param(steps.pvcol,min.pvcol,sig.level);
+  ## reds=colorRampPalette(RColorBrewer::brewer.pal(4,'Reds'))(steps.pvcol);
+  ## blues=colorRampPalette(RColorBrewer::brewer.pal(5,'Blues'))(steps.pvcol);
+  reds=colorRampPalette(RColorBrewer::brewer.pal(4,'Reds')[2:4])(steps.pvcol);
+  blues=colorRampPalette(RColorBrewer::brewer.pal(4,'Blues')[2:4])(steps.pvcol);
+  col.pval=c(blues,rev(reds));
+  hi.brk=seq(0,-log10(sig.level),length.out=(steps.pvcol)+1);
+  lo.brk=seq(-log10(sig.level),-log10(min.pvcol),length.out=(steps.pvcol)+1);
+  brk.pval=unique(c(hi.brk,lo.brk))
+  ## param.env$col.pval=col.pval;
+  ## param.env$brk.pval=brk.pval;
+  param(col.pval=col.pval,brk.pval=brk.pval);
+}
+  
