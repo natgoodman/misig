@@ -46,7 +46,7 @@ ci_draw=function(n,d.raw,sd,conf.level=0.95) {
   setNames(c(d.raw-tstar,d.raw+tstar),paste(sep='',100*c(p0,p1),'%'));
 }
 ## significance boundary for Cohen's d
-d_sig=function(n,sig.level=parent(sig.level,0.05)) pval2d(n,pval=sig.level)
+d_crit=d_sig=function(n,sig.level=parent(sig.level,0.05)) pval2d(n,pval=sig.level)
 
 ## probability functions for t-distribution of d
 ncp=function(n,d) sqrt(n/2)*d
