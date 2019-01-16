@@ -77,25 +77,20 @@ get_sim=function(n,load=load.sim,keep=keep.sim,must.exist=T) {
 }
 
 ##### table - saved in tbldir
-save_tbl=function(what,file=NULL,data=NULL,
-                  sect=parent(figsect,NULL),sectnum=parent(sectnum,NULL),
-                  save=save.tbl,save.txt=save.txt.tbl) {
-  what=as.character(pryr::subs(what));
-  if (missing(data) && exists(what,envir=parent.frame(n=1)))
-    data=get(what,envir=parent.frame(n=1));
-  if (is.null(data)) stop('Trying to save NULL object. Is "what" set correctly?');
-  if (is.null(file)) base=basename_tbl(what,sect=sect,tblnum=tblnum,id=id,i=i)
-  else base=desuffix(file);
+save_tbl=function(tbl,file) {
+  param(save.tbl,save.txt.tbl);
+  if (is.null(tbl)) stop('Trying to save NULL table. Is table name set correctly?');
+  base=desuffix(file);
   file=filename(base=base,suffix='RData');
-  if ((is.na(save)&!file.exists(file))|(!is.na(save)&save)) {
-    save(data,file=file);
-    if (save.txt) {
+  if ((is.na(save.tbl)&!file.exists(file))|(!is.na(save.tbl)&save.tbl)) {
+    save(tbl,file=file);
+    if (save.txt.tbl) {
       file=filename(base=base,suffix='txt');
-      if (length(dim(data))==2) write.table(data,file=file,sep='\t',quote=F,row.names=F)
-      else if (is.vector(data)) writeLines(as.character(data),file)
-      else stop('Trying to save object with more than 2 dimensions as text. Is "what" set correctly?');
+      if (length(dim(tbl))==2) write.table(tbl,file=file,sep='\t',quote=F,row.names=F)
+      else if (is.vector(tbl)) writeLines(as.character(tbl),file)
+      else stop('Trying to save object with more than 2 dimensions as text. Is table name set correctly?');
     }}
-  invisible(data);
+  invisible(tbl);
 }
 
 ## ---- File Functions ----
@@ -114,48 +109,11 @@ basename_sim=function(n=NULL) {
 }
 casename_sim=casename_n;
 
-##### output (figure, table) - saved in figdir, tbldir
-casename_out=
-  function(name,sect,num,sectnum,blk,pfx,sfx,where=cq(content,filename),what=cq(figure,table)) {
-    where=match.arg(where);
-    what=match.arg(what);
-    if (where=='filename') {
-      num=sprintf('%03i',num);
-      if (!is.null(sectnum)) sectnum=sprintf('%02i',sectnum);
-    }
-    if (!is.null(sectnum)) pfx=paste(collapse='',c(pfx,sectnum));
-    if (!is.null(blk)) sfx=sfx[blk] else sfx=NULL;
-    base=paste(collapse='',c(pfx,num,sfx));
-    ## if (where=='content') what=ucfirst(what);
-    if (where=='filename')
-      casename=paste(collapse='_',c(what,base,sect,name))
-    else {
-      if (!is.null(sectnum)) pfx=paste(sep='',pfx,'-');
-      ## casename=paste(collapse='',c(what,' ',pfx,num,sfx));
-      casename=paste(collapse='',c(pfx,num,sfx));
-    }
-    casename;
-  }
-## figure functions
-casename_fig=function(name,sect,sectnum=NULL,extra=F,where=cq(content,filename)) {
-  if (extra) {fignum=xfignum; figblk=xfigblk; figpfx=xfigpfx; figsfx=xfigsfx;}
-  casename_out(name,sect,fignum,sectnum,figblk,figpfx,figsfx,where=match.arg(where),what='figure');
-}
-filename_fig=function(figname,sect,sectnum=NULL,extra=parent(extra,F),suffix='png')
-  filename(basename_fig(figname,sect,sectnum,extra=extra),suffix=suffix);
-basename_fig=function(figname,sect,sectnum=NULL,extra=parent(extra,F))
-  filename(figdir,casename_fig(figname,sect,sectnum,extra=extra,where='filename'));
-figname=function(figname,sect,sectnum=NULL,extra=parent(extra,F),suffix='png')
-  casename_fig(figname,sect,sectnum,extra=extra,where='content')
-## table functions
-casename_tbl=function(name,sect,sectnum=NULL,where=cq(content,filename))
-  casename_out(name,sect,tblnum,sectnum,tblblk,tblpfx,tblsfx,where=match.arg(where),what='table');
-filename_tbl=function(tblname,sect,sectnum=NULL,suffix='RData')
-  filename(basename_tbl(tblname,sect,sectnum),suffix=suffix);
-basename_tbl=function(tblname,sect,sectnum=NULL)
-  filename(tbldir,casename_tbl(tblname,sect,sectnum,where='filename'));
-tblname=function(tblname,sect,sectnum=NULL,suffix='png')
-  casename_tbl(tblname,sect,sectnum,where='content')
+## figure and table functions
+filename_fig=function(figlabel,sect,figname,suffix='png')
+  filename(param(figdir),paste(collapse='_',c('figure',figlabel,sect,figname)),suffix=suffix);
+filename_tbl=function(tbllabel,sect,tblname,suffix='RData')
+  filename(param(tbldir),paste(collapse='_',c('table',tbllabel,sect,tblname)),suffix=suffix);
 
 ## construct file or directory pathname from components
 ## wrapper for file.path with base, tail and suffix pasted on
