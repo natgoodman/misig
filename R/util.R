@@ -66,8 +66,22 @@ parent=function(what,default) {
 ## get value of variable from param environment and assign to same named variable in parent
 ## call with quoted or unquoted variable names
 ## adapted from base::rm
+## set params using par-like notation, eg, param(m=1e4)
 param=function(...,list=character()) {
   dots=match.call(expand.dots=FALSE)$...
+  parent.env=parent.frame(n=1);
+  ## handle params with new values
+  names=names(dots);
+  if (!is.null(names)) {
+    dots=sapply(seq_along(dots),function(i) {
+      if (nchar(names[i])==0) return(dots[i]);
+      ## set new value in param.env
+      what=names[i];
+      val=eval(dots[[i]],envir=parent.env);
+      assign(what,val,envir=param.env);
+      ## replace element in dots with name so it'll get returned
+      what;
+    })}
   if (length(dots) &&
       !all(vapply(dots,function(x) is.atomic(x)||is.symbol(x)||is.character(x),
                   NA,USE.NAMES=FALSE))) 
@@ -75,21 +89,38 @@ param=function(...,list=character()) {
   names=vapply(dots,as.character,"");
   if (length(names)==0L) names=character();
   names=c(list,names);
-  parent.env=parent.frame(n=1);
   ## make sure all params valid
   bad=which(sapply(names,function(name) !exists(name,envir=param.env)));
   if (any(bad)) stop(paste(sep=' ','Invalid param(s):',paste(collapse=', ',names(bad))))
-  sapply(names,function(name) assign(name,get(name,envir=param.env),envir=parent.env));
+  retval=lapply(names,function(name) assign(name,get(name,envir=param.env),envir=parent.env));
+  ## fix up return value
+  if (length(retval)==1) unlist(retval)
+  else {
+    names(retval)=names;
+    retval;
+  }
 }
-
 ## copy local variables to global - to simplify init
+## NG 19-01-11: used in repwr, not in effit
 assign_global=function() {
   env=parent.frame(n=1);
   sapply(ls(envir=env),function(what) assign(what,get(what,envir=env),envir=.GlobalEnv));
 }
-
-## TODO NG 18-10-22: I don't think this is still used...
-## copy variable to parent. used in dofig to update fignum
+## copy local variables to new or existing param environment - to simplify init
+init_param=function() {
+  param.env=new.env();
+  parent.env=parent.frame(n=1);
+  sapply(ls(envir=parent.env),
+        function(what) assign(what,get(what,envir=parent.env),envir=param.env));
+  assign('param.env',param.env,envir=.GlobalEnv);
+}
+assign_param=function() {
+  parent.env=parent.frame(n=1);
+  sapply(ls(envir=parent.env),
+        function(what) assign(what,get(what,envir=parent.env),envir=param.env));
+}
+## copy variable to parent
+## NG 19-01-11: not used in effit. used once upon a time in dofig to update fignum
 assign_parent=function(what,value) {
   what=as.character(pryr::subs(what));
   if (missing(value)) value=get(what,envir=parent.frame(n=1));
@@ -205,7 +236,7 @@ repc=function(x,...) {
 }
 ## not in - based on example in RefMan - more intutive than !%in%
 "%notin%"=function(x,table) match(x,table,nomatch=0)==0
-## between, near - to subset sim results
+## between, near - to subset sim results. closed on bottom, open on top
 between=function(x,lo,hi) x>=lo&x<hi
 near=function(x,target,tol=.01) between(x,target-tol,target+tol)
 
@@ -213,4 +244,9 @@ near=function(x,target,tol=.01) between(x,target-tol,target+tol)
 ## TODO: BREAKPOINT is sooo feeble :(
 BREAKPOINT=browser;
 devs.close=function() for (dev in dev.list()) dev.off(dev)
-
+## display color palette
+pal=function(col,border="light gray",...) {
+ n=length(col)
+ plot(0,0,type="n",xlim=c(0,1),ylim=c(0,1),axes=FALSE,xlab="",ylab="",...)
+ rect(0:(n-1)/n,0,1:n/n,1,col=col,border=border)
+}
