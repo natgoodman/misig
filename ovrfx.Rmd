@@ -16,7 +16,7 @@ urlcolor: blue
 
 [^1]: I assume effect sizes *>0* so I can use terms like "bigger" and "smaller" rather than "more extreme" and "less extreme".
 
-Figure 1 illustrates the issue using simulated data from a two group difference of mean study with sample size (*n*) of 20 using standardized difference, aka *Cohen's d* as the effect size statistic. From what I read in the blogosphere, the typical true effect size (*d*) in social science research is 0.3. For this example, all significant points (the red ones) have observed effect sizes beyond 0.3. In other words, all significant studies overestimate the true effect size. The red points extend well to the right suggesting that the average observed effect might be quite high. I'll get to this shortly. 
+Figure 1 illustrates the issue using simulated data from a two group difference of mean study with sample size (*n*) of 20 using standardized difference, aka *Cohen's d*, as the effect size statistic. From what I read in the blogosphere, the typical true effect size (*d*) in social science research is 0.3. For this example, all significant points (the red ones) have observed effect sizes beyond 0.3. In other words, all significant studies overestimate the true effect size. The red points extend well to the right suggesting that the average observed effect might be quite high. I'll get to this shortly. 
 
 Figure 2 zooms into the region where the p-values switch from nonsignifiant to significant (blue to red). There's a sharp boundary at about 0.64. This is a *critical value* that depends only on *n*. 
 
@@ -27,7 +27,7 @@ knitr::include_graphics('figure/ovrfx/m=1e4/figure_002_zoom_in.png');
 
 The critical effect size is the minimum significant effect size you can get for a given *n*. When the critical effect size is less than the true effect size, every significant study will overestimate the true effect size. 
 
-The average significant effect size is greater than the critical value and depends on both *n* and *d*. Figure 3 plots the critical and average effect sizes for a range of *n* and *d*. Let's look first at *n=20*. For *d=0.3* the average is 0.82, an overestimate of 2.7x. A modest increase in effect size helps a lot. For *d=0.5* (still "medium" in Cohen's d vernacular), the average is 0.87, an overestimate of 1.7x. Now let's see what sample size we need to reduce the overestimate to a reasonable level, say 1.25x: for *d=0.3* it's 122, for *d=0.5* it's 45.
+The average significant effect size is greater than the critical value and depends on both *n* and *d*. Figure 3 plots the critical and average effect sizes for a range of *n* and *d*. Let's look first at *n=20*. For *d=0.3* the average is 0.82, an overestimate of 2.7x. A modest increase in effect size helps a lot. For *d=0.5* (still "medium" in Cohen's d vernacular), the average is 0.87, an overestimate of 1.7x. To reduce the overestimate to a reasonable level, say 1.25x, we need *n=122* for *d=0.3*, but only *n=45* for *d=0.5*.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
 knitr::include_graphics('figure/ovrfx/m=1e4/figure_003_dcrit_dmean.png');

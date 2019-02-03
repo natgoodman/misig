@@ -33,6 +33,9 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   ##  mean observed significant effect size
   d.mean3=meand[meand$d0==0.3,];
   d.mean5=meand[meand$d0==0.5,];
+  ##  mean observed significant effect size for n=20
+  d.mean3.20=d.mean3[d.mean3$n==n.fig1,'meand'];
+  d.mean5.20=d.mean5[d.mean5$n==n.fig1,'meand'];
   ##  n that achieves d.crit=d.pop
   n.crit3=uniroot(function(n) d2pval(n=n,d=0.3)-param(sig.level),interval=c(10,1000))$root;
   n.crit5=uniroot(function(n) d2pval(n=n,d=0.5)-param(sig.level),interval=c(10,1000))$root;
@@ -45,8 +48,8 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
     d.crit=d.crit1,
     ##   for n=20, d=0.3, average=0.82, overestimate of 2.7x
     ##   for n=20, d=0.5, average=0.87, overestimate of 1.7x
-    d.mean3=d.mean3[d.mean3$n==n.fig1,'meand'],
-    d.mean5=d.mean5[d.mean5$n==n.fig1,'meand'],
+    d.mean3=d.mean3.20,
+    d.mean5=d.mean5.20,
     d.over3=d.mean3[d.mean3$n==n.fig1,'over'],
     d.over5=d.mean5[d.mean5$n==n.fig1,'over'],
     ##  to achieve 1.25x, for d=0.3, n=122, for d=0.5, n=46
@@ -88,6 +91,7 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   ##       vline=round(c(n.fig1,n.crit3,n.crit5)),hline=c(0.3,0.5,0.7));
   dofig(plotdvsn,'dcrit_dmean',x=n,y=y,title=title,cex.main=1,lwd=2,col=col,
         legend='topright',legend.labels=legend.labels,
+        d.mean20=c(d.mean3.20,d.mean5.20),
         n.crit=c(n.crit3,n.crit5),n.over=c(n.over3,n.over5),
         xlab='sample size',ylab='effect size');
   invisible();
@@ -106,7 +110,7 @@ n2over=function(meand,d0,over=1.25) {
 }
 ## plot d.crit, d.mean vs n (figure 3)
 plotdvsn=function(x,y,title,col='black',lty='solid',lwd=1,legend.labels,
-                  d.pop=c(0.3,0.5),n.crit=NULL,n.over=NULL,...) {
+                  d.pop=c(0.3,0.5),d.mean20=NULL,n.crit=NULL,n.over=NULL,...) {
   col.pop=col[as.character(d.pop)];
   col.crit=col['d.crit'];
   ## add legend text for extra lines and adjust line properties
@@ -121,6 +125,10 @@ plotdvsn=function(x,y,title,col='black',lty='solid',lwd=1,legend.labels,
   plotm(x=x,y=y,col=col,lty=lty,lwd=lwd,title=title,legend.labels=legend.labels,...);
   ## horizontal grid-like lines for d.pop
   abline(h=d.pop,col=col.pop,lty='dotted',lwd=1);
+  ## horizontal lines for averages with n=20
+  if (!is.null(d.mean20)) {
+    hline(x=20,y=d.mean20,col=col.pop,lty='dotted',lwd=0.5,text=round(d.mean20,digits=2));
+  }
   ## horizontal & vertical lines for overestimates
   if (!is.null(n.over)) {
     hline(x=n.over,y=1.25*d.pop,col=col.pop,lty='dotted',lwd=2,text=paste(sep='','1.25x',d.pop));
