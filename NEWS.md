@@ -4,10 +4,17 @@ Nathan (Nat) Goodman
 January 1, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
-Release 0.10 2019-01-DD
+Release 0.50 2019-02-03
 -----------------------
 
-First version. Contains boilerplate files such as this one. Will contain the document `sigbi.Rmd` and code to support the document when released.
+-   Rename repo from 'effit' to 'misig'. Better reflects the content I expect for this repo
+-   Rename first blog post from 'siglo' to 'ovrfx' - stands for 'overestimate with fixed effect size'
+-   Support first real version of blog post ready for external review
+
+Release 0.10 2019-01-01
+-----------------------
+
+First version. Contains boilerplate files such as this one and the document `sigbi.Rmd` (presently just a stub). Will contain code to support the document when released.
 
 Copyright & License
 -------------------
