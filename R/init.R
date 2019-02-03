@@ -17,7 +17,7 @@
 ## initialization.
 ## process parameters and store in param environment.
 ## create output directories if necessary.
-doc.all=cq(readme,siglo,sighi,supp);
+doc.all=cq(readme,ovrfx,ovrht,supp);
 init=function(
   ## doc parameters 
   doc='readme',                     # controls sim defaults, data, figure subdirs
@@ -25,26 +25,31 @@ init=function(
   ## simulation parameters
   n=switch(docx,                            # sample sizes
            readme=20*2^(0:4),               # 20,40,80,160,320 (5 values)
-           siglo=20,                        #
-           sighi=c(20,seq(50,500,by=50)),   # 20,50,100,...,1000 (11 values)
+           ovrfx=20,
+           ovrht=c(20,87,105,175,290),
            xperiment=NA),                   # xperiment must supply values
   m=switch(docx,                            # number of populations
            xperiment=NA,                    # xperiment must supply values
            1e4),                            # others
-  d.gen=runif,                              # function to generate population effect sizes
-  d.args=list(n=m,min=-3,max=3),            # arguments passed to d.gen
+  d.gen=switch(docx,                        # function to generate population effect sizes
+               readme=runif,
+               ovrfx=runif,
+               ovrht=rnorm,
+               xperiment=NA),
+  d.args=switch(docx,                       # arguments passed to d.gen
+                readme=list(n=m,min=-3,max=3),
+                ovrfx=list(n=m,min=-3,max=3),
+                ovrht=list(n=m,mean=0.3,sd=0.1),
+                xperiment=NA),
   d=switch(docx,                            # population effect sizes
            xperiment=NA,                    # xperiment must supply values
            do.call(d.gen,d.args)),          # others call generating function
   ## analysis parameters
-  ## TODO decide which are still needed
   sig.level=0.05,                   # for conventional significance
-  conf.level=0.95,                  # for confidence intervals
-  pred.level=0.95,                  # for prediction intervals
-                                    # grid for various precacluated data
+  ## params from mean effect size computation (domeand). these work for ovrfx
+  n.meand=seq(20,200,by=20),
+  d0.meand=c(0.3,0.5),
   ## program parameters, eg, for output files, error messages, etc.
-  ## TODO decide which are still needed
-  scriptname='effit',                      #
   mdir=paste_nv(m,m_pretty(m)),            # m subdirectory
   datadir=file.path('data',docx,mdir),     # directory for data files. default eg, data/repwr/m=1e4
   simdir=file.path(datadir,'sim'),         # directory for sim files
@@ -59,6 +64,7 @@ init=function(
                                  #   NA means load if file exists
                                  #   T, F mean always or never load
   load.sim=load,                 # load saved simulations
+  load.data=load,                # load top level results
   save=NA,                       # shorthand for other save params 
                                  #   NA means save unless file exists
                                  #   T, F mean always or never save
@@ -86,7 +92,8 @@ init=function(
   if (doc=='xperiment'&any(is.na(c(n,m,d))))
     stop('doc=xperiment but no value provided for n, m, or d');
   ## round d to avoid imprecise decimals
-  d=round(d,digits=5); 
+  d=round(d,digits=5);
+  d=rep(d,len=m);            # extend d to cover m
   ## assign parameters to param environment
   ## do it before calling any functions that rely on params
   init_param();
@@ -169,7 +176,8 @@ init_doc=function(
 ## setup in-memory cache to hold simulations, etc. do carefully in case already setup
 init_cache=function(memlist=cq(sim)) {
   param(clean.data,clean.cache);
-  if (clean.data||clean.cache||!exists('cache.env',envir=.GlobalEnv)) cache.env=new.env();
+  if (clean.data||clean.cache||!exists('cache.env',envir=.GlobalEnv))
+    cache.env=new.env(parent=emptyenv());
   sapply(memlist,function(what)
     if (!exists(what,envir=cache.env,inherit=F)) assign(what,list(),envir=cache.env));
   assign('cache.env',cache.env,envir=.GlobalEnv);

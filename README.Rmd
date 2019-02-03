@@ -1,5 +1,5 @@
 ---
-title: "Effect Size Estimation"
+title: "Mistakes of Significance"
 author: "Nathan (Nat) Goodman"
 date: "January 16, 2019"
 output:
@@ -13,12 +13,20 @@ urlcolor: blue
 ---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-*A collection of R scripts and documents exploring effect size estimation. I use simulation to work backwards from samples to population. This better mimics real world practice than the usual forward simulation from population to samples.*
+*A collection of R scripts and documents exploring mistakes made by significance testing.*
 
-The current version is just a placeholder.
+**The current version is just a placeholder**
+
+**THE SOFTWARE IS STILL ROUGH and SOFTWARE DOCUMENTATION NONEXISTENT. PLEASE GET IN TOUCH IF YOU NEED HELP**
 
 ## Comments Please!
 
-Please post comments on [Twitter](https://twitter.com/gnatgoodman) or [Facebook](https://www.facebook.com/nathan.goodman.3367), or contact me by email [natg@shore.net](mailto:natg@shore.net).
+Please post comments on [Twitter](https://twitter.com/gnatgoodman) or [Facebook](https://www.facebook.com/nathan.goodman.3367), or contact me by email [natg@shore.net](mailto:natg@shore.net). 
 
+Please report bugs, other software problems, and feature requests using the [GitHub Issue Tracker](https://github.com/natgoodman/effit/issues). I will be notified, and you'll be apprised of progress. As already noted, the software is still rough and software documentation nonexistent.
 
+## Copyright & License
+
+Copyright (c) 2019 Nathan Goodman
+
+The software is **open source and free**, released under the [MIT License](https://opensource.org/licenses/MIT). The documentation is **open access**, released under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0).

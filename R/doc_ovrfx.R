@@ -1,22 +1,23 @@
 #################################################################################
 ##
 ## Author:  Nat Goodman
-## Created: 19-01-10
+## Created: 19-02-03 
+##          from doc_siglo.R created 19-01-10
 ##          from repwr/R/doc_resig.R created 18-09-05
 ## Includes code from repwr/R/docfun_resig.R created 18-10-25
 ##
 ## Copyright (C) 2019 Nat Goodman.
 ## 
-## Generate figures and tables for siglo blog post
+## Generate figures and tables for ovrfx blog post
 ##
 ## This software is open source, distributed under the MIT License. See LICENSE
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## --- Generate Figures and Tables for siglo Blog Post ---
+## --- Generate Figures and Tables for ovrfx Blog Post ---
 ## no sections. only 2 figures
 ## n.fig is sample size for which figures plotted
-doc_siglo=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
+doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   ## support statements in text or drawn on figures
   ## do it upfront 'cuz some used in figures
   ##   d_crit(n=20)=0.64
@@ -58,20 +59,20 @@ doc_siglo=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
 
   ## draw the figures
   ## figure 1
-  title=title_siglo('P-values improve as observed effect size grows more extreme');
+  title=title_ovrfx('P-values improve as observed effect size grows more extreme');
   x='d.sdz'; y='d.pop';
   sim=get_sim(n=n.fig1);
   sim.pos_dsdz=subset(sim,subset=d.sdz>=0);
   dofig(plotdvsd,'big_picture',sim=sim.pos_dsdz,x=x,y=y,d.crit=d.crit1,d.pop=d.fig1,xlim=c(0,2),
         title=title,cex.main=1);
   ## figure 2
-  title=title_siglo('Sharp boundary between nonsignificant and significant p-values');
+  title=title_ovrfx('Sharp boundary between nonsignificant and significant p-values');
   sim.zoom_in=subset(sim,subset=near(d.sdz,d.crit1,0.05));
   dofig(plotdvsd,'zoom_in',sim=sim.zoom_in,x=x,y=y,d.crit=d.crit1,d.pop=d.fig1,legend=F,
         vline=d.crit1,vlab=F,
         title=title,cex.main=1)
   ## figure 3
-  title=title_siglo('Critical and average observed effect sizes improve as n increases',n=NULL);
+  title=title_ovrfx('Critical and average observed effect sizes improve as n increases',n=NULL);
   ## y=data.frame(
   ##   d.crit,d.mean3=d.mean3[,'meand'],d.mean5=d.mean5[,'meand'],d.mean7=d.mean7[,'meand']);
   y=data.frame(
@@ -91,8 +92,8 @@ doc_siglo=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
         xlab='sample size',ylab='effect size');
   invisible();
 }
-## generate title for doc_siglo
-title_siglo=function(desc=NULL,n=parent(n.fig1)) {
+## generate title for doc_ovrfx
+title_ovrfx=function(desc=NULL,n=parent(n.fig1)) {
   fig=paste(sep='','Figure ',figlabel());
   paste(collapse="\n",c(fig,desc,if(!is.null(n)) paste_nv(n)));
 }

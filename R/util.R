@@ -54,6 +54,10 @@ m_pretty=function(m) {
   if (round(log10(m))==log10(m)) sub('e\\+0{0,1}','e',sprintf("%0.0e",m),perl=TRUE)
   else as.character(m);
 }
+## NG 19-01-31: CAUTION. doesn’t really work
+##   supposed to search dynamic environment tree but does static instead
+##   seemed to work “back in the day” because params were global and static predecessor
+##   of most functions is the global environment 
 ## get value of variable from parent or set to default
 ## call with quoted or unquoted variable name
 ## if default missing, throws error if variable not found
@@ -108,7 +112,7 @@ assign_global=function() {
 }
 ## copy local variables to new or existing param environment - to simplify init
 init_param=function() {
-  param.env=new.env();
+  param.env=new.env(parent=emptyenv());
   parent.env=parent.frame(n=1);
   sapply(ls(envir=parent.env),
         function(what) assign(what,get(what,envir=parent.env),envir=param.env));

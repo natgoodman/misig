@@ -1,7 +1,8 @@
 #################################################################################
 ##
 ## Author:  Nat Goodman
-## Created: 19-01-01
+## Created: 19-02-03 
+##          from siglo.R 19-01-01
 ##          from repwr/R/repwr.R created 17-10-05 
 ##           and repwr/R/sim.R created 18-05-03
 ##
@@ -17,7 +18,7 @@ source('R/util.R');
 source('R/datman.R');
 source('R/doc.R');
 ## source('R/doc_readme.R');
-source('R/doc_siglo.R');
+source('R/doc_ovrfx.R');
 source('R/init.R');
 source('R/plot.R');
 ## source('R/sim.R');
@@ -26,7 +27,7 @@ source('R/stats.R');
 ## ---- run ----
 ## run the program
 ## parameters defined in init
-run=function(need.init=T,doc='siglo',...) {
+run=function(need.init=T,doc='ovrfx',...) {
   if (need.init) wrap_fun(init,...);
   need.init=F;
   dosim();                        # do the simulation
