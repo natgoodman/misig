@@ -14,130 +14,71 @@
 #################################################################################
 
 ## ---- Save and Load ----
-## call with file or software attempts to construct file name
-##### for data keyed by n
 ## save data in RData and optionally txt formats
-save_n=function(data,n,file=NULL,what,save,save.txt=F,keep) {
-  if (is.null(file)) base=basename_n(n,what)
-  else base=desuffix(file);
-  file=filename(base=base,suffix='RData');
+save_=function(data,file,save,save.txt=F) {
   if ((is.na(save)&!file.exists(file))|(!is.na(save)&save)) {
-    save(data,file=file);
+    base=desuffix(file);
+    save(data,file=filename(base=base,suffix='RData'));
     if (save.txt)
       write.table(data,file=filename(base=base,suffix='txt'),sep='\t',quote=F,row.names=F);
   }
-  if (keep) keep_n(data,n,what=what);
 }
-## load data from file
-load_n=function(file=NULL,n=NULL,what) {
-  if (is.null(file)) file=filename_n(n,what);
-  what=load(file=file);               # what is name of saved data
+## load data from RData file
+load_=function(file,what) {
+  base=desuffix(file);
+  what=load(file=filename(base=base,suffix='RData')); # what is name of saved data
   get(what);                          # return it
 }
-## get data already in memory (eg, in sim.list) or read from file
-##   fail if data does not exist unless must.exist is FALSE
-get_n=function(n=NULL,what,load,keep,must.exist=T) {
-  case=casename_n(n,short=T);
-  if (is.na(load)|load) {
-    what.list=get(what,envir=cache.env);
-    data=what.list[[case]];
-    if (is.null(data)) {
-      file=filename_n(n,what);
-      if (file.exists(file)) data=load_n(file=file)
-      else {
-        if (must.exist)
-          stop(paste(sep=' ',what,'for case',case,
-                     'not in cache and file',file,'does not exist'));
-        data=NULL;
-      }
-    if (keep&&!is.null(data)) keep_n(data,n,what=what);
-    }}
-    else {
-      if (must.exist)
-        stop(paste(sep=' ','must.exist is TRUE but load is FALSE for',what,'case',case));
-      data=NULL;
-    }
-  invisible(data);
-}
-keep_n=function(data,n=NULL,what) {
-  case=casename_n(n,short=T);
-  ## CAUTION: have to do get/assign in single statement to update env. sigh...
-  get(what,envir=cache.env)[[case]]=data;
-}
 
-##### sim
-save_sim=function(sim,n,file=NULL) {
-  param(save.sim,save.txt.sim,keep.sim);
-  save_n(sim,n,file,what='sim',save=save.sim,save.txt=save.txt.sim,keep=keep.sim);
-  }
-load_sim=function(file=NULL,n) load_n(file,n,what='sim');
-get_sim=function(n,must.exist=T) {
-  param(load.sim,keep.sim);
-  get_n(n,what='sim',load=load.sim,keep=keep.sim,must.exist);
+##### sim_rand
+save_sim_rand=function(sim,n,file=NULL) {
+  param(save.sim,save.txt.sim);
+  if (is.null(file)) file=filename(param(sim.rand.dir),base='sim',tail=nvq(n));
+  save_(sim,file,save=save.sim,save.txt=save.txt.sim);
 }
+load_sim_rand=function(file=NULL,n) {
+  if (is.null(file)) file=filename(param(sim.rand.dir),base='sim',tail=nvq(n));
+  load_(file,'sim');
+}
+get_sim_rand=load_sim_rand;
+##### sim_fixd
+save_sim_fixd=function(sim,n,d,file=NULL) {
+  param(save.sim,save.txt.sim);
+  if (is.null(file))
+    file=filename(param(sim.fixd.dir),base='sim',
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d))));
+  save_(sim,file,save=save.sim,save.txt=save.txt.sim);
+}
+load_sim_fixd=function(file=NULL,n,d) {
+  if (is.null(file))
+    file=filename(param(sim.fixd.dir),base='sim',
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d))));
+  load_(file,'sim');
+}
+get_sim_fixd=load_sim_fixd;
 
-##### data - top-level data saved in datadir
-## save data in RData and txt formats
-save_data=function(what,file=NULL,data=NULL) {
-  param(save.data,save.txt.data,keep.data);
-  what=as.character(pryr::subs(what));
-  if (missing(data) && exists(what,envir=parent.frame(n=1)))
-    data=get(what,envir=parent.frame(n=1));
-  if (is.null(data)) stop('Trying to save NULL object. Is "what" set correctly?');
-  if (is.null(file)) base=basename_data(what)
-  else base=desuffix(file);
-  file=filename(base=base,suffix='RData');
-  if ((is.na(save.data)&!file.exists(file))|(!is.na(save.data)&save.data)) {
-    save(data,file=file);
-    if (save.txt.data) {
-      file=filename(base=base,suffix='txt');
-      if (length(dim(data))==2) write.table(data,file=file,sep='\t',quote=F,row.names=F)
-      else if (is.vector(data)) writeLines(as.character(data),file)
-      else stop('Trying to save object with more than 2 dimensions as text. Is "what" set correctly?');
-    }
-  }
-  if (keep.data) keep_data(name=what,data=data);
-  invisible(data);
+##### meand_empi
+save_meand_empi=function(meand,file=NULL) {
+  param(save.meand,save.txt.meand);
+  if (is.null(file)) file=filename(param(datadir),base='meand.empi');
+  save_(meand,file,save=save.meand,save.txt=save.txt.meand);
 }
-## load data from file
-load_data=function(file=NULL,what=NULL) {
-  if (is.null(file)&is.null(what)) stop('Cannot load data unless file or what is set');
-  if (is.null(file)) file=filename_data(what);
-  what=load(file=file);               # what is name of saved data
-  get(what);                          # return it
+load_meand_empi=function(file=NULL) {
+  if (is.null(file)) file=filename(param(datadir),base='meand.empi');
+  load_(file,'meand');
 }
-## get top-level data already in memory or read from file
-##   fail if data does not exist unless must.exist is FALSE
-get_data=function(what,load=load.data,keep=keep.data,must.exist=T,name=NULL) {
-  param(load.data,keep.data);
-  if (is.na(load.data)|load.data) {
-    if (!is.null(name)) what=name else what=as.character(pryr::subs(what));
-    if (exists(what,envir=cache.env)) data=get(what,envir=cache.env) else data=NULL;
-    if (is.null(data)) {
-      file=filename_data(what);
-      if (file.exists(file)) data=load_data(file=file)
-      else {
-        if (must.exist)
-          stop(paste(sep=' ',what,'not in memory and file',file,'does not exist'));
-        data=NULL;
-      }
-      if (keep.data&&!is.null(data)) keep_data(data,name=what);
-    }}
-    else {
-      if (must.exist)
-        stop(paste(sep=' ','must.exist is TRUE but load is FALSE for',what));
-      data=NULL;
-    }
-  invisible(data);
+get_meand_empi=load_meand_empi;
+##### meand_theo
+save_meand_theo=function(meand,file=NULL) {
+  param(save.meand,save.txt.meand);
+  if (is.null(file)) file=filename(param(datadir),base='meand.theo');
+  save_(meand,file,save=save.meand,save.txt=save.txt.meand);
 }
-## keep top-level data. assign globally and keep in global list
-keep_data=function(data,what=NULL,name=NULL) {
- if (!is.null(name)) what=name else what=as.character(pryr::subs(what));
- if (missing(data) && exists(what,envir=parent.frame(n=1)))
-   data=get(what,envir=parent.frame(n=1));
- if (is.null(data)) stop("Trying to keep NULL object. Is 'what' set correctly?");
- assign(what,data,envir=cache.env); # store in cache
+load_meand_theo=function(file=NULL) {
+  if (is.null(file)) file=filename(param(datadir),base='meand.theo');
+  load_(file,'meand');
 }
+get_meand_theo=load_meand_theo;
 
 ##### table - saved in tbldir
 save_tbl=function(tbl,file) {
@@ -156,21 +97,6 @@ save_tbl=function(tbl,file) {
   invisible(tbl);
 }
 
-## ---- File Functions ----
-##### names for data keyed by n
-filename_n=function(n,what,suffix='RData')
-  filename(basename_n(n,what),suffix=suffix);
-basename_n=function(n,what)
-  filename(param(list=paste(sep='',what,'dir')),base=what,tail=casename_n(n))
-casename_n=function(n=NULL,short=F) if (short) as.character(n) else paste_nv(n);
-
-##### sim
-filename_sim=function(n=NULL,suffix='RData') filename(basename_sim(n),suffix=suffix);
-basename_sim=function(n=NULL) {
-  param(simdir);
-  filename(simdir,base='sim',tail=casename_n(n))
-}
-casename_sim=casename_n;
 ##### data - arbitrary objects saved in datadir
 filename_data=function(what,suffix='RData')
   filename(basename_data(what),suffix=suffix);
