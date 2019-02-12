@@ -21,71 +21,81 @@ doc.all=cq(readme,ovrfx,ovrht,supp);
 init=function(
   ## doc parameters 
   doc='readme',                     # controls sim defaults, data, figure subdirs
-  docx=match.arg(doc,doc.all), 
-  ## simulation parameters
-  n=switch(docx,                            # sample sizes
-           readme=20*2^(0:4),               # 20,40,80,160,320 (5 values)
-           ovrfx=20,
-           ovrht=c(20,87,105,175,290),
-           xperiment=NA),                   # xperiment must supply values
-  m=switch(docx,                            # number of populations
-           xperiment=NA,                    # xperiment must supply values
-           1e4),                            # others
+  docx=match.arg(doc,doc.all),
+  run.id=NULL,                      # to separate runs for tests
+  ## simulation parameters. random-d simulation
+  n.rand=switch(docx,                       # sample sizes
+                readme=20*2^(0:4),          # 20,40,80,160,320 (5 values)
+                ovrfx=20,
+                ovrht=c(20,87,105,175,290),
+                xperiment=NA),              # xperiment must supply values
+  m.rand=switch(docx,                       # number of populations
+                xperiment=NA,               # xperiment must supply values
+                1e5),                       # others
   d.gen=switch(docx,                        # function to generate population effect sizes
                readme=runif,
                ovrfx=runif,
                ovrht=rnorm,
                xperiment=NA),
   d.args=switch(docx,                       # arguments passed to d.gen
-                readme=list(n=m,min=-3,max=3),
-                ovrfx=list(n=m,min=-3,max=3),
-                ovrht=list(n=m,mean=0.3,sd=0.1),
+                readme=list(n=m.rand,min=-3,max=3),
+                ovrfx=list(n=m.rand,min=-3,max=3),
+                ovrht=list(n=m.rand,mean=0.3,sd=0.1),
                 xperiment=NA),
-  d=switch(docx,                            # population effect sizes
-           xperiment=NA,                    # xperiment must supply values
-           do.call(d.gen,d.args)),          # others call generating function
+  d.rand=switch(docx,                         # population effect sizes
+                xperiment=NA,                 # xperiment must supply values
+                do.call(d.gen,d.args)),       # others call generating function
+
+  ## simulation parameters. fixed-d simulation
+  n.fixd=switch(docx,                       # sample sizes
+                readme=NA,                  # 20,40,80,160,320 (5 values)
+                ovrfx=seq(20,200,by=20),
+                ovrht=NA,
+                xperiment=NA),              # xperiment must supply values
+  m.fixd=switch(docx,                       # number of studied per d
+                xperiment=NA,               # xperiment must supply values
+                1e4),                       # others
+  d.fixd=switch(docx,                       # population effect sizes
+                readme=NA,                  
+                ovrfx=c(0.3,0.5,0.7),
+                ovrht=NA,
+                xperiment=NA),       # others call generating function
+
+  ## mean effect size computation (domeand)
+  n.meand=seq(20,200,by=20),
+  d0.meand=c(0.3,0.5,0.7),
+
   ## analysis parameters
   sig.level=0.05,                   # for conventional significance
-  ## params from mean effect size computation (domeand). these work for ovrfx
-  n.meand=seq(20,200,by=20),
-  d0.meand=c(0.3,0.5),
+
   ## program parameters, eg, for output files, error messages, etc.
-  mdir=paste_nv(m,m_pretty(m)),            # m subdirectory
-  datadir=file.path('data',docx,mdir),     # directory for data files. default eg, data/repwr/m=1e4
-  simdir=file.path(datadir,'sim'),         # directory for sim files
+  mdir=paste_nv(m,m_pretty(m)),              # m subdirectory
+  datadir=dirname('data',docx,run.id),       # directory for data files
+  sim.rand.dir=dirname(datadir,'sim.rand'),  # directory for sim random-d files
+  sim.fixd.dir=dirname(datadir,'sim.fixd'),  # directory for sim fixed-d files
   ## NG 18-10-18: figdir, tbldir moved to init_doc
-  ## figdir=file.path('figure',docx,mdir), # directory for figures. default eg, figure/repwr/m=1e4
-  ## tbldir=file.path('table',docx,mdir), # directory for tables. default eg, table/repwr/m=1e4
+  ## figdir=dirname('figure',docx,mdir), # directory for figures. default eg, figure/repwr/m=1e4
+  ## tbldir=dirname('table',docx,mdir), # directory for tables. default eg, table/repwr/m=1e4
   verbose=F,                               # print progress messages
+
   ## program control
   ## TODO decide which are still needed
   must.exist=F,                  # must all sub-inits succeed?
-  load=NA,                       # shorthand for other load params
-                                 #   NA means load if file exists
-                                 #   T, F mean always or never load
-  load.sim=load,                 # load saved simulations
-  load.data=load,                # load top level results
   save=NA,                       # shorthand for other save params 
                                  #   NA means save unless file exists
                                  #   T, F mean always or never save
   save.sim=save,                 # save simulations (RData format)
-  save.data=save,                # save top level results (RData & txt formats)
+  save.meand=save,               # save mean effect size results (RData & txt formats)
   save.txt=NA,                   # save results in txt format as well as RData
                                  #   NA means use default rule for type:
                                  #   F for all but top level data
   save.txt.sim=!is.na(save.txt)&save.txt,  # save txt simulations. default F
-  save.txt.data=is.na(save.txt)|save.txt,  # save txt top level results. default T
-  keep=NA,                       # shorthand for other keep params 
-                                 #   NA means use default keep rule for type:
-                                 #   T for all but detl
-                                 #   T, F mean always or never keep
-  keep.sim=!is.na(keep)&keep,    # keep simulations. default F
-  keep.data=is.na(keep)|keep,    # keep top-level data. default T
+  save.txt.meand=is.na(save.txt)|save.txt, # save txt meand results. default T
                                  #    
   clean=F,                       # remove everything and start fresh
-  clean.data=clean,              # remove datadir & in-memory cache
-  clean.cache=T,                 # clean in-memory cache - always safe
+  clean.data=clean,              # remove datadir
   clean.sim=F,                   # clean simulations. default F
+  clean.meand=F,                 # clean mean effect size data. default F
   end=NULL                       # placeholder for last parameter
   ) {
   doc=docx;                      # to avoid confusion later
@@ -99,13 +109,15 @@ init=function(
   init_param();
   ## clean and create output directories as needed
   if (clean.data) unlink(datadir,recursive=T);
-  outdir=c(datadir,simdir);
+  outdir=c(datadir,sim.rand.dir,sim.fixd.dir);
   ## create data subdirectories. nop if already exist
   sapply(outdir,function(dir) dir.create(dir,recursive=TRUE,showWarnings=FALSE));
-  ## setup in-memory cache to hold simulations, etc. do carefully in case already setup
-  init_cache()
   ## clean specific types if desired. cleans directories and cache
-  if (clean.sim) cleanq(sim);
+  if (clean.sim) {
+    unlink(sim.rand.dir,recursive=T);
+    unlink(sim.fixd.dir,recursive=T);
+  }
+  if (clean.meand) cleanq(meand);
   invisible();
 }
 ## initialize doc parameters
@@ -114,8 +126,8 @@ init=function(
 init_doc=function(
   subdoc=NULL,
   ## output directories. filename function ignores subdoc if NULL
-  figdir=filename('figure',param(doc),subdoc,param(mdir)), # directory for figures
-  tbldir=filename('table',param(doc),subdoc,param(mdir)),  # directory for tables
+  figdir=dirname('figure',param(doc),subdoc,param(run.id)), # directory for figures
+  tbldir=dirname('table',param(doc),subdoc,param(run.id)),  # directory for tables
   ## output modifiers
   outpfx=switch(param(doc),supp='S',NULL),          # prefix before figure or table number
   outsfx=switch(param(doc),xperiment=NULL,letters), # suffix in figure and table blocks
@@ -173,22 +185,11 @@ init_doc=function(
   invisible();
 }
 
-## setup in-memory cache to hold simulations, etc. do carefully in case already setup
-init_cache=function(memlist=cq(sim)) {
-  param(clean.data,clean.cache);
-  if (clean.data||clean.cache||!exists('cache.env',envir=.GlobalEnv))
-    cache.env=new.env(parent=emptyenv());
-  sapply(memlist,function(what)
-    if (!exists(what,envir=cache.env,inherit=F)) assign(what,list(),envir=cache.env));
-  assign('cache.env',cache.env,envir=.GlobalEnv);
-}
-## clean specific data type. deletes directory, any top level files and in-memory list
+## clean specific data type. deletes directory, and any top level files
 cleanq=function(what,cleandir=T) {
   what=as.character(pryr::subs(what));
   ## delete top level files if exist
   unlink(filename(datadir,list.files(datadir,pattern=paste(sep='','^',what,'\\.'))));
-  ## delete in-memory list
-  if (exists(what,envir=cache.env)) rm(list=what,envir=cache.env);
   if (cleandir) {
     whatdir=paste(sep='',what,'dir');
     ## delete directory if exists
