@@ -65,7 +65,7 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   ## figure 3
   title=title_ovrfx('Histogram of observed effect size',d=d.fig1,n=n.fig1);
   sim=get_sim_fixd(n=n.fig1,d=d.fig1);
-  dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),legend.x0=-1.15,
+  dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),legend.x0=-1.15,xlim=c(-1.2,1.5),
         title=title,cex.main=1);
   ## figure 4
   title=title_ovrfx('Average observed effect size improves as n increases');
@@ -78,11 +78,6 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   col=c(col,col);
   lty=c(rep('solid',len=3),rep('dotted',3));
   lwd=2;
-  ## dofig(plotm,'dcrit_dmean',x=n,y=y,title=title,cex.main=1,lwd=2,col=col,legend='topright',
-  ##       legend.labels=
-  ##         c('critical d','mean d for d.pop=0.3','mean d for d.pop=0.5','mean d for d.pop=0.7'),
-  ##       xlab='sample size',ylab='effect size',
-  ##       vline=round(c(n.fig1,n.crit3,n.crit5)),hline=c(0.3,0.5,0.7));
   dofig(plotmeand,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
         legend='topright',legend.labels=legend.labels,
         meand20=meand20,nover=nover,ylim=c(0.3,meand20[3]),
