@@ -24,42 +24,37 @@ init=function(
   docx=match.arg(doc,doc.all),
   run.id=NULL,                      # to separate runs for tests
   ## simulation parameters. random-d simulation
-  n.rand=switch(docx,                       # sample sizes
-                readme=20*2^(0:4),          # 20,40,80,160,320 (5 values)
+  n.rand=switch(docx,                     # sample sizes
+                readme=20*2^(0:4),        # 20,40,80,160,320 (5 values)
                 ovrfx=20,
-                ovrht=c(20,87,105,175,290),
-                xperiment=NA),              # xperiment must supply values
-  m.rand=switch(docx,                       # number of populations
-                xperiment=NA,               # xperiment must supply values
-                1e5),                       # others
-  d.gen=switch(docx,                        # function to generate population effect sizes
+                ovrht=seq(20,200,by=20)),
+  m.rand=switch(docx,                     # number of populations
+                readme=1e3,
+                ovrfx=1e5,
+                ovrfx=1e4),
+  d.gen=switch(docx,                      # function to generate population effect sizes
                readme=runif,
                ovrfx=runif,
-               ovrht=rnorm,
-               xperiment=NA),
-  d.args=switch(docx,                       # arguments passed to d.gen
+               ovrht=rnorm),
+  d.args=switch(docx,                     # arguments passed to d.gen
                 readme=list(n=m.rand,min=-3,max=3),
                 ovrfx=list(n=m.rand,min=-3,max=3),
-                ovrht=list(n=m.rand,mean=0.3,sd=0.1),
-                xperiment=NA),
-  d.rand=switch(docx,                         # population effect sizes
-                xperiment=NA,                 # xperiment must supply values
-                do.call(d.gen,d.args)),       # others call generating function
+                ovrht=list(n=m.rand,mean=0.3,sd=0.1)),
+  d.rand=do.call(d.gen,d.args),            # population effect sizes. call generating function
 
   ## simulation parameters. fixed-d simulation
   n.fixd=switch(docx,                       # sample sizes
-                readme=NA,                  # 20,40,80,160,320 (5 values)
+                readme=20*2^(0:4),          # 20,40,80,160,320 (5 values)
                 ovrfx=seq(20,200,by=20),
-                ovrht=NA,
-                xperiment=NA),              # xperiment must supply values
-  m.fixd=switch(docx,                       # number of studied per d
-                xperiment=NA,               # xperiment must supply values
-                1e4),                       # others
+                ovrht=seq(20,200,by=20)), 
+  m.fixd=switch(docx,                       # number of studies per d
+                readme=1e2,
+                ovrfx=1e4,
+                ovrht=NA),
   d.fixd=switch(docx,                       # population effect sizes
-                readme=NA,                  
+                readme=seq(0.1,1,by=0.1),
                 ovrfx=c(0.3,0.5,0.7),
-                ovrht=NA,
-                xperiment=NA),       # others call generating function
+                ovrht=NA),
 
   ## mean effect size computation (domeand)
   n.meand=seq(20,200,by=20),
@@ -69,7 +64,6 @@ init=function(
   sig.level=0.05,                   # for conventional significance
 
   ## program parameters, eg, for output files, error messages, etc.
-  mdir=paste_nv(m,m_pretty(m)),              # m subdirectory
   datadir=dirname('data',docx,run.id),       # directory for data files
   sim.rand.dir=dirname(datadir,'sim.rand'),  # directory for sim random-d files
   sim.fixd.dir=dirname(datadir,'sim.fixd'),  # directory for sim fixed-d files
@@ -99,11 +93,11 @@ init=function(
   end=NULL                       # placeholder for last parameter
   ) {
   doc=docx;                      # to avoid confusion later
-  if (doc=='xperiment'&any(is.na(c(n,m,d))))
-    stop('doc=xperiment but no value provided for n, m, or d');
-  ## round d to avoid imprecise decimals
-  d=round(d,digits=5);
-  d=rep(d,len=m);            # extend d to cover m
+
+  ## extend d.rand to cover m
+  d.rand=rep(d.rand,len=m.rand);
+  ## round d.fixd to avoid imprecise decimals 
+  d.fixd=round(d.fixd,digits=5);
   ## assign parameters to param environment
   ## do it before calling any functions that rely on params
   init_param();
