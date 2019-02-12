@@ -22,18 +22,15 @@
 ##   legend.xscale, legend.yscale are fractions of plat ares
 ##   legend.cex is cex for legend text
 ## x, y are columns of sim containing x, y values; also used for axis labels
-## d.crit is critical d.sdz separating nonsignificant and significant values
-## d.pop is presumed true effect size
 ## vline,hline are vectors of x or y positions for extra vertical or horizontal lines
 ## vhlty, vhcol, vhlwd are lty, col, lwd for these extra lines
 ## vlab, hlab contol writing vline, hline values along axes
 ## vhdigits is number of digits for these values
 #
 plotdvsd=
-  function(sim,title='',cex.title=1,x='d.sdz',y='d.pop',d.crit=d_crit(20),d.pop=0.3,
+  function(sim,title='',cex.title=1,x='d.sdz',y='d.pop',
            legend=T,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
-           vline=c(d.crit,d.pop),hline=c(d.pop),
-           vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="true effect size",
            ...) {
     plot(sim[,x],sim[,y],col=pval2col(sim[,'pval']),main=title,cex.main=cex.title,
@@ -49,6 +46,45 @@ plotdvsd=
     ## plot legend if desired
     if (legend) pval_legend();
   }
+## plot histogram of (typically) d.sdz colored by pval
+## sim is data frame of simulation results
+## n is sample size (for converting d to t or pval)
+## title is title
+## legend tells whether to draw pval legend
+##   legend.x0 is harcoded x-position of legend - use with care!
+##   legend.xscale, legend.yscale are fractions of plat areas
+##   legend.cex is cex for legend text
+## x is column of sim containing values for histogram; also used for axis labels
+## breaks, freq are same-named parameters for hist
+## vline,hline are vectors of x or y positions for extra vertical or horizontal lines
+## vhlty, vhcol, vhlwd are lty, col, lwd for these extra lines
+## vlab, hlab contol writing vline, hline values along axes
+## vhdigits is number of digits for these values
+#
+plothist=
+  function(sim,n=unique(sim$n),title='',cex.title=1,x='d.sdz',breaks=50,freq=F,
+           legend=T,legend.x0=NULL,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           xlab="observed effect size (Cohen's d)",ylab="density",
+           ...) {
+    hist.obj=hist(sim[,x],breaks=breaks,plot=F);
+    if (length(n)==1) col=d2col(n=n,d=hist.obj$mids)
+    else {
+      warn('plothist need unique n to convert d to color');
+      col='black';
+    }
+    plot(hist.obj,col=col,freq=freq,main=title,cex.main=cex.title,
+         xlab=xlab,ylab=ylab,...);
+    ## plot extra lines if desired. nop if vline, hline NULL
+    abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
+    ## write values along axes
+    if (vlab&!is.null(vline))
+      mtext(round(vline,vhdigits),side=1,at=vline,col=vhcol,line=0.25,cex=0.75);
+    if (hlab&!is.null(hline))
+      mtext(round(hline,vhdigits),side=2,at=hline,col=vhcol,line=0.25,cex=0.75);
+    ## plot legend if desired
+    if (legend) pval_legend(x0=legend.x0);
+  }
 ## plot probability distributions vs. d colored by pval
 ## n is sample size (for converting d to t or pval)
 ## d is range of d.sdz
@@ -56,12 +92,12 @@ plotdvsd=
 ## d0 is center for noncentral distribution
 ## y is probability density or cumulative prob. can be values or keyword
 ## fill.tail tells whether to fill the distribution tail (density only)
-## add tells whether to add new plot to existing one
 ##   boolean or one or more of 'upper','lower','both'. T means c('upper','lower')
+## add tells whether to add new plot to existing one
 ## xunit tells what to write along x-axis: d, t, or both
 ## title is title
 ## legend tells whether to draw pval legend
-##   legend.xscale, legend.yscale are fractions of plat ares
+##   legend.xscale, legend.yscale are fractions of plat areas
 ##   legend.cex is cex for legend text
 ## vline,hline are vectors of x or y positions for extra vertical or horizontal lines
 ## vhlty, vhcol, vhlwd are lty, col, lwd for these extra lines
@@ -187,7 +223,7 @@ vline=
 
 ## draw pval legend. works for big picture figure and probability plots
 pval_legend=
-  function(x.scale=parent(legend.xscale,1/8),y.scale=parent(legend.yscale,1/3),
+  function(x.scale=parent(legend.xscale,1/8),y.scale=parent(legend.yscale,1/3),x0=NULL,
            cex=parent(legend.cex,0.75)) {
   param(brk.pval,col.pval,steps.pvcol,sig.level);
   ## plt=par('usr');                       # plot region in user coordinates
@@ -195,7 +231,7 @@ pval_legend=
   xtkl=par('xaxp');                    # x tick locations
   ytkl=par('yaxp');                    # y tick locations
   names(xtkl)=names(ytkl)=cq(lo,hi,num);
-  x0=xtkl['lo'];
+  if (is.null(x0)) x0=xtkl['lo'];
   width=x.scale*(xtkl['hi']-x0);
   x1=x0+width;
   y1=ytkl['hi'];
@@ -249,5 +285,7 @@ pval2col=function(pval) {
   param(col.pval,brk.pval,min.pvcol);
   col.pval[findInterval(-log10(clamp_pval(pval,min.pvcol)),brk.pval,all.inside=T)];
 }
+d2col=function(n,d) pval2col(d2pval(n=n,d=d));
+  
 clamp_pval=function(pval,min.pvcol) sapply(pval,function(pval) max(min(pval,1),min.pvcol));
 
