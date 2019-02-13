@@ -1,20 +1,20 @@
 Revision history for misig repository
 ================
 Nathan (Nat) Goodman
-February 12, 2019
+February 13, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
 Release 0.90 2019-02-13
 -----------------------
 
-Support second version of ovrfx blog post. Current title "When You Select Significant Findings, You’re Selecting Inflated Estimates". Hopefully near final version.
+Support second version of `ovrfx` blog post. Current title "When You Select Significant Findings, You’re Selecting Inflated Estimates". Not final version but close.
 
 Major code changes
 
 -   Abandon file caching. Way more trouble than it's worth
 -   Handle multiple types of simulation
-    -   `rand` - the original siumulation scheme: randomly choose 'd' and run one simulation per choice
-    -   `fixd` - more typical simulation scheme: set 'd' to certain fixed values and run many simulations for each value
+    -   `rand` - the original siumulation scheme: randomly choose `d` and run one simulation per choice
+    -   `fixd` - more typical simulation scheme: set `d` to certain fixed values and run many simulations for each value
 -   Handle two ways of calculating mean significant effect sizes, 'meand'
     -   `empi` - estimate empirically from simulation data
     -   `theo` - theoretical calculation from sampling distribution
@@ -49,10 +49,10 @@ Changed files
 Release 0.50 2019-02-03
 -----------------------
 
-Support first real version of ovrfx blog post ready for external review. Current title "Significance Testing Makes Bad Choices"
+Support first real version of `ovrfx` blog post ready for external review. Current title "Significance Testing Makes Bad Choices"
 
--   Rename repo from 'effit' to 'misig'. Better reflects the content I expect for this repo
--   Rename first blog post from 'siglo' to 'ovrfx' - stands for 'overestimate with fixed effect size'
+-   Rename repo from `effit` to `misig`. Better reflects the content I expect for this repo
+-   Rename first blog post from `siglo` to `ovrfx` - stands for 'overestimate with fixed effect size'
 
 Release 0.10 2019-01-01
 -----------------------

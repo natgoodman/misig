@@ -1,7 +1,7 @@
 ---
 title: "Revision history for misig repository"
 author: "Nathan (Nat) Goodman"
-date: "February 12, 2019"
+date: "February 13, 2019"
 output:
   html_document: default
   github_document:
@@ -15,7 +15,7 @@ urlcolor: blue
 
 ## Release 0.90 2019-02-13
 
-Support second version of `ovrfx` blog post. Current title "When You Select Significant Findings, You’re Selecting Inflated Estimates". Hopefully near final version.
+Support second version of `ovrfx` blog post. Current title "When You Select Significant Findings, You’re Selecting Inflated Estimates". Not final version but close.
 
 Major code changes
 
