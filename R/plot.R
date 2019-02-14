@@ -104,17 +104,17 @@ plothist=
 ## vlab, hlab contol writing vline, hline values along axes
 ## vhdigits is number of digits for these values
 plotpvsd=
-  function(n,d,dinc=.005,d0=NULL,y=cq(density,cumulative),add=F,fill.tail=F,
+  function(n,d0=NULL,y=cq(density,cumulative),dlim=c(-2,2),dinc=.005,add=F,fill.tail=F,
            title='',cex.title=1,d.crit=d_crit(n),d.pop=0.3,
            legend=!add,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
-           vline=if(!add) c(d.crit,-d.crit,d.pop) else NULL,hline=NULL,
-           vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="probability",
            ...) {
-    d=seq(min(d),max(d),by=dinc);
+    d=seq(min(dlim),max(dlim),by=dinc);
     if (mode(y)=='character') {
       y=match.arg(y);
       if (y!='density') fill.tail=F;
+      if (missing(ylab)) ylab=if(y=='density') 'probability density' else 'cumulative probability';
       y=if(y=='density') d_d2t(n,d,d0) else p_d2t(n,d,d0);
     }
     col=pval2col(d2pval(n,d));
