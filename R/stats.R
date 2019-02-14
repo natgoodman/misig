@@ -48,11 +48,14 @@ d_crit=d_sig=function(n,sig.level=parent(sig.level,0.05)) pval2d(n,pval=sig.leve
 
 ## probability functions for t-distribution of d
 ncp=function(n,d) sqrt(n/2)*d
+## NG 19-02-14: I messed up density here and in repwr
+##   need to scale by d2t (sqrt(n/2)) to account for difference in x-density
 d_d2t=function(n,d,d0=NULL) {
   df=2*(n-1);
   t=d2t(n,d);
-  if (!is.null(d0)) suppressWarnings(dt(t,df=df,ncp=ncp(n,d0)))
-  else dt(t,df=df)
+  sqrt(n/2)*
+    if (!is.null(d0)) suppressWarnings(dt(t,df=df,ncp=ncp(n,d0)))
+    else dt(t,df=df)
 }
 p_d2t=function(n,d,d0=NULL,lower.tail=TRUE) {
   df=2*(n-1);
