@@ -57,8 +57,8 @@ init=function(
                 ovrht=NA),
 
   ## mean effect size computation (domeand)
-  n.meand=seq(20,200,by=20),
-  d0.meand=c(0.3,0.5,0.7),
+  n.meand=n.fixd,
+  d.meand=d.fixd,
 
   ## analysis parameters
   sig.level=0.05,                   # for conventional significance
@@ -96,8 +96,9 @@ init=function(
 
   ## extend d.rand to cover m
   d.rand=rep(d.rand,len=m.rand);
-  ## round d.fixd to avoid imprecise decimals 
+  ## round d.fixd, d.meand to avoid imprecise decimals 
   d.fixd=round(d.fixd,digits=5);
+  d.meand=round(d.meand,digits=5);
   ## assign parameters to param environment
   ## do it before calling any functions that rely on params
   init_param();
