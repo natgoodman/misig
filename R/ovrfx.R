@@ -96,13 +96,13 @@ dosim_fixd=function(n,m,d) {
 domeand=function() {
   param(n.fixd,d.fixd);
   domeand_empi(n.fixd,d.fixd);
-  ## param(n.meand,d0.meand,verbose);
-  ## domeand_theo(n.meand,d0.meand);
+  param(n.meand,d.meand,verbose);
+  domeand_theo(n.meand,d.meand);
   }
 domeand_empi=function(n,d0,breaks=100) {
   cases=expand.grid(n,d0);
-  meand=do.call(rbind,apply(cases,1,function(row) {
-    n=row[1]; d0=row[2];
+  meand=do.call(rbind,apply(cases,1,function(case) {
+    n=case[1]; d0=case[2];
     sim=get_sim_fixd(n=n,d=d0);
     hist=hist(sim$d.sdz,breaks=breaks,plot=F);
     sig=which(hist$mids>=d_crit(n));
@@ -112,20 +112,14 @@ domeand_empi=function(n,d0,breaks=100) {
   save_meand_empi(meand);
   invisible(meand);
 }
-domeand_theo=function(n.d0,dmax=10,dlen=1e4) {
+domeand_theo=function(n,d0,dmax=10,dlen=1e4) {
   param(verbose);
-  d0=round(d0.meand,digits=2);     # to avoid problems with imprecise decimals
-  cases=expand.grid(n.meand,d0);
+  cases=expand.grid(n,d0);
   meand=do.call(rbind,apply(cases,1,function(case) {
     n=case[1]; d0=case[2]
     if (verbose) print(paste(sep=' ','>>> domeand',nvq(n),nvq(d0)));
     d=seq(d_crit(n),dmax,len=dlen);
-    ## wt=d_d2t(n=n,d=d,d0=d0);
-    ## NG 19-02-10: it seems I messed up d_d2t.
-    ##   needs to be scaled by d2t for reason I don't yet understand...
-    ## temporary hack until I fix stats:d_d2t
-    ## BUT doesn't affect answer since it's just linear scaling of weights...
-    wt=d_d2t(n=n,d=d,d0=d0)*sqrt(n/2);
+    wt=d_d2t(n=n,d=d,d0=d0)
     meand=weighted.mean(d,wt);
     data.frame(n,d0,meand,over=meand/d0,row.names=NULL);
   }));
