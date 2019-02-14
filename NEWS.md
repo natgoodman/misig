@@ -1,9 +1,33 @@
 Revision history for misig repository
 ================
 Nathan (Nat) Goodman
-February 13, 2019
+February 14, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+Release 1.00 2019-02-14
+-----------------------
+
+Support third version of `ovrfx` blog post. Final or near-final version.
+
+Changed files
+
+-   `R/doc_ovrfx.R`
+    -   Remove the 'zoom' figure (old figure 2)
+    -   Add 'sampling distribution' figure (new figure 3)
+    -   Use theoretical meand calculations for 'average significant effect size' (figure 4) and numbers in text
+-   `R/init.R`
+    -   Unify parameters for fixd simulation (used for empirical meand calculation) and theoretical meand calculation
+-   `R/ovrfx.R`
+    -   Turn theoretical meand calculation on again
+-   `R/plot.R`
+    -   Minor cleanup of plotpvsd
+-   `R/stats.R`
+    -   Fix blunder in d\_d2t. Have to scale by sqrt(n/2) to account for difference in x-density
+    -   Mistake also in repwr/R/stats.R, which I will fix separately
+-   `css/html_document.css`
+    -   Add css for blockquote. Rmd's built-in blockquote style sets the font too big
+    -   Solution from <https://stackoverflow.com/questions/44191576>. Thanks!
+
 Release 0.90 2019-02-13
 -----------------------
 
