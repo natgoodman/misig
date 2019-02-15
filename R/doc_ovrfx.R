@@ -64,11 +64,14 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   ## figure 2
   title=title_ovrfx('Histogram of observed effect size',d=d.fig1,n=n.fig1);
   sim=get_sim_fixd(n=n.fig1,d=d.fig1);
+  ylim=c(0,d_d2t(n=100,d=0.3,d0=0.3));  # set ylim to match figure 3
   dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.main=1,
-        legend.x0=-1.85,xlim=c(-2,2));
+        xlim=c(-2,2),ylim=c(0, d_d2t(n=100,d=0.3,d0=0.3)));
+  ## dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.main=1,
+  ##       legend.x0=-1.85,xlim=c(-2,2),ylim=c(0, d_d2t(n=100,d=0.3,d0=0.3)));
   ## figure 3
   title=title_ovrfx('Sampling distributions show impact of increasing n and d');
-  dofig(plotsmpldist,'smpl_dist',title=title);
+  dofig(plotsmpldist,'smpl_dist',vline=c(-d.crit1,d.fig1,d.crit1),title=title);
   ## figure 4
   title=title_ovrfx('Average observed effect size improves as n increases');
   x=seq(min(n.meand),max(n.meand),by=1);
@@ -80,11 +83,6 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   col=rep(col,2);
   lty=c(rep('solid',len=3),rep('dotted',3));
   lwd=2;
-  ## dofig(plotm,'dcrit_dmean',x=n,y=y,title=title,cex.main=1,lwd=2,col=col,legend='topright',
-  ##       legend.labels=
-  ##         c('critical d','mean d for d.pop=0.3','mean d for d.pop=0.5','mean d for d.pop=0.7'),
-  ##       xlab='sample size',ylab='effect size',
-  ##       vline=round(c(n.fig1,n.crit3,n.crit5)),hline=c(0.3,0.5,0.7));
   dofig(plotmeand,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
         legend='topright',legend.labels=legend.labels,
         meand20=meand20,nover=nover,ylim=c(0.3,meand20[3]),
@@ -100,12 +98,12 @@ title_ovrfx=function(desc=NULL,d=NULL,n=NULL) {
                 paste(collapse=', ',c(if(!is.null(d))paste_nv(d),if(!is.null(n))paste_nv(n))))));
 }
 ## plot sampling distributions (figure 3)
-## all hard-coded because no easy way to automate placement of text
-plotsmpldist=function(title,dlim=c(-1,2)) {
+## mostly hard-coded because no easy way to automate placement of text
+plotsmpldist=function(vline=NULL,title,dlim=c(-2,2)) {
   ## do n=100 first because it's way taller than the others
-  plotpvsd(n=100,d0=0.3,dlim=dlim,add=F,vline=0.3,title=title);
+  plotpvsd(n=100,d0=0.3,dlim=dlim,add=F,vline=vline,title=title);
   plotpvsd(n=20,d0=0.3,dlim=dlim,add=T);
-  plotpvsd(n=20,d0=0.7,dlim=dlim,vline=0.7,add=T);
+  plotpvsd(n=20,d0=0.7,dlim=dlim,add=T);
   dtext(n=20,d0=0.3,y=0.5,side='left');
   dtext(n=20,d0=0.7,y=0.5,side='right');
   dtext(n=100,d0=0.3,y=2.5,side='left');
