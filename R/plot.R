@@ -75,6 +75,7 @@ plothist=
     }
     plot(hist.obj,col=col,freq=freq,main=title,cex.main=cex.title,
          xlab=xlab,ylab=ylab,...);
+    box(); grid();
     ## plot extra lines if desired. nop if vline, hline NULL
     abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
     ## write values along axes
