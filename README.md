@@ -131,7 +131,7 @@ run();
 
 This runs the program in a demo-like mode that quickly generates the data and produces the figures that appear in this README document. The default computation simulates 2,500 replications and produces 22 figures and one table. The data generation takes about 30 seconds on my small Linux server; the figures take about a minute, much of which is spent rendering the plots over a remote X11 connection.
 
-The code that creates the outout (figures and table) for this README document is in `R/doc_readme.R` [here](R/doc_readme.R).
+The code that creates the outout (figures and table) for this README document is in `R/doc_readme.R`.
 
 To rerun the program from scratch you must specify `clean=T`, since by default the program reuses existing data.
 
@@ -175,7 +175,7 @@ The default mode produces figures that illustrate the kinds of graphs the progra
 3.  probability distribution vs. *d*<sub>*s**d**z*</sub> colored by p-value; can compute probability density or cumulative probability internally, or you can pass the distribution into the function
 4.  multiple line plot; my adaptation of R's `matplot`
 
-The first block of figures show *d* vs. *d* scatter plots for *n* = 20 and *n* = 100.
+The first block of figures show *d* vs. *d* scatter plots for *n* = 20 and *n* = 100. You may notice that the p-value color legends are of different sizes. This is a limitation of the code that draws these legends.
 
 <img src="figure/readme/figure_01-001a_plotdvsd_scat_pop_sdz.png" width="50%" /><img src="figure/readme/figure_01-001b_plotdvsd_scat_sdz_pop.png" width="50%" /><img src="figure/readme/figure_01-002a_plotdvsd_scat_pop_sdz.png" width="50%" /><img src="figure/readme/figure_01-002b_plotdvsd_scat_sdz_pop.png" width="50%" />
 
@@ -183,9 +183,9 @@ The next block are similar but zoom in to the critical region where p-values swi
 
 <img src="figure/readme/figure_01-003a_plotdvsd_zoom.png" width="50%" /><img src="figure/readme/figure_01-003b_plotdvsd_zoom.png" width="50%" />
 
-Next are four histograms for *d* = 0.2 and *d* = 0.8 by *n* = 20 and *n* = 100.
+Next are four histograms for *d* = 0.2 and *d* = 0.8 by *n* = 20 and *n* = 100. You may notice that the p-value color legends are in different places and have different sizes. Again, these are limitations of the code.
 
-<img src="figure/readme/figure_02-001a_plothist_hist.png" width="50%" /><img src="figure/readme/figure_02-001b_plothist_hist.png" width="50%" /><img src="figure/readme/figure_02-002a_plothist_hist.png" width="50%" /><img src="figure/readme/figure_02-002b_plothist_hist.png" width="50%" />
+<img src="figure/readme/figure_02-001a_plothist_hist.png" width="25%" /><img src="figure/readme/figure_02-001b_plothist_hist.png" width="25%" /><img src="figure/readme/figure_02-002a_plothist_hist.png" width="25%" /><img src="figure/readme/figure_02-002b_plothist_hist.png" width="25%" />
 
 The next block are NULL and sampling distributions for *d* = 0.2, *n* = 20, and *d* = 0.8, *n* = 100.
 
@@ -193,7 +193,13 @@ The next block are NULL and sampling distributions for *d* = 0.2, *n* = 
 
 The final block are line plots of mean significant observed effect size (*m**e**a**n**d*<sub>*e**m**p**i*</sub>, *m**e**a**n**d*<sub>*t**h**e**o*</sub>) with various smoothing functions applied/
 
-<img src="figure/readme/figure_04-001_plotm_meand.png" width="50%" /><img src="figure/readme/figure_04-002_plotm_meand.png" width="50%" /><img src="figure/readme/figure_04-003_plotm_meand.png" width="50%" /><img src="figure/readme/figure_04-004_plotm_meand.png" width="50%" />
+<img src="figure/readme/figure_04-001_plotm_meand.png" width="25%" /><img src="figure/readme/figure_04-002_plotm_meand.png" width="25%" /><img src="figure/readme/figure_04-003_plotm_meand.png" width="25%" /><img src="figure/readme/figure_04-004_plotm_meand.png" width="25%" />
+
+Finally, here is a table of supporting data.
+
+|     d.crit|  meand20\_0.2|  meand20\_0.5|  meand20\_0.8|  over20\_0.2|  over20\_0.5|  over20\_0.8|  nover\_0.2|  nover\_0.5|  nover\_0.8|
+|----------:|-------------:|-------------:|-------------:|------------:|------------:|------------:|-----------:|-----------:|-----------:|
+|  0.6401696|     0.7927474|     0.8590826|      0.975697|     3.963737|     1.718165|     1.219621|    166.5173|    46.59579|    16.65268|
 
 Comments Please!
 ----------------

@@ -3,11 +3,11 @@ title: "Mistakes of Significance"
 author: "Nathan (Nat) Goodman"
 date: "January 16, 2019"
 output:
-  github_document:
-    html_preview: no
   html_document:
     css: css/html_document.css
     highlight: kate
+  github_document:
+    html_preview: no
   pdf_document: default
 linkcolor: cyan
 citecolor: green
@@ -70,7 +70,7 @@ run();
 
 This runs the program in a demo-like mode that quickly generates the data and produces the figures that appear in this README document. The default computation simulates 2,500 replications and produces 22 figures and one table. The data generation takes about 30 seconds on my small Linux server; the figures take about a minute, much of which is spent rendering the plots over a remote X11 connection. 
 
-The code that creates the outout (figures and table) for this README document is in `R/doc_readme.R` [here](R/doc_readme.R).
+The code that creates the outout (figures and table) for this README document is in `R/doc_readme.R`.
 
 To rerun the program from scratch you must specify  `clean=T`, since by default the program reuses existing data.
 
@@ -113,7 +113,7 @@ The default mode produces figures that illustrate the kinds of graphs the progra
 3. probability distribution vs. $d_{sdz}$ colored by p-value; can compute probability density or cumulative probability internally, or you can pass the distribution into the function
 4. multiple line plot; my adaptation of R's `matplot`
 
-The first block of figures show $d$ vs. $d$ scatter plots for $n=20$ and $n=100$.
+The first block of figures show $d$ vs. $d$ scatter plots for $n=20$ and $n=100$. You may notice that the p-value color legends are of different sizes. This is a limitation of the code that draws these legends. 
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
 knitr::include_graphics('figure/readme/figure_01-001a_plotdvsd_scat_pop_sdz.png');
@@ -129,9 +129,9 @@ knitr::include_graphics('figure/readme/figure_01-003a_plotdvsd_zoom.png');
 knitr::include_graphics('figure/readme/figure_01-003b_plotdvsd_zoom.png');
 ```
 
-Next are four histograms for $d=0.2$ and $d=0.8$ by $n=20$ and $n=100$.
+Next are four histograms for $d=0.2$ and $d=0.8$ by $n=20$ and $n=100$.  You may notice that the p-value color legends are in different places and have different sizes. Again, these are limitations of the code.
 
-```{r out.width="50%",echo=FALSE,fig.show='asis'}
+```{r out.width="25%",echo=FALSE,fig.show='asis'}
 knitr::include_graphics('figure/readme/figure_02-001a_plothist_hist.png');
 knitr::include_graphics('figure/readme/figure_02-001b_plothist_hist.png');
 knitr::include_graphics('figure/readme/figure_02-002a_plothist_hist.png');
@@ -153,11 +153,20 @@ knitr::include_graphics('figure/readme/figure_03-002d_plotpvsd_distn.png');
 
 The final block are line plots of mean significant observed effect size ($meand_{empi}$, $meand_{theo}$) with various smoothing functions applied/
 
-```{r out.width="50%",echo=FALSE,fig.show='asis'}
+```{r out.width="25%",echo=FALSE,fig.show='asis'}
 knitr::include_graphics('figure/readme/figure_04-001_plotm_meand.png');
 knitr::include_graphics('figure/readme/figure_04-002_plotm_meand.png');
 knitr::include_graphics('figure/readme/figure_04-003_plotm_meand.png');
 knitr::include_graphics('figure/readme/figure_04-004_plotm_meand.png');
+```
+
+Finally, here is a table of supporting data.
+
+```{r echo=FALSE}
+load('table/readme/table_05-001_table_support.RData');
+knitr::kable(
+  tbl, caption = 'Table of supporting data'
+)
 ```
 
 ## Comments Please!
