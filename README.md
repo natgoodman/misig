@@ -20,6 +20,9 @@ The program performs two types of simulations.
 1.  *s**i**m*<sub>*r**a**n**d*</sub>. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s and simulates one study per *d*<sub>*p**o**p*</sub>.
 2.  *s**i**m*<sub>*f**i**x**d*</sub>. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
 
+-   *s**i**m*<sub>*r**a**n**d*</sub>. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s and simulates one study per *d*<sub>*p**o**p*</sub>.
+-   *s**i**m*<sub>*f**i**x**d*</sub>. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
+
 The program uses *s**i**m*<sub>*f**i**x**d*</sub> to estimate the mean significant observed effect size for each *d*<sub>*p**o**p*</sub> and *n*. It also caculates these values analytically.
 
 After running the simulations and calculating the mean significant observed effect sizes, the program generates the figures that appear in the blog post, as well as the specific results mentioned in the post. It stores the latter in a table for future reference.
@@ -197,9 +200,9 @@ The final block are line plots of mean significant observed effect size (*m**e**
 
 Finally, here is a table of supporting data.
 
-|     d.crit|  meand20\_0.2|  meand20\_0.5|  meand20\_0.8|  over20\_0.2|  over20\_0.5|  over20\_0.8|  nover\_0.2|  nover\_0.5|  nover\_0.8|
-|----------:|-------------:|-------------:|-------------:|------------:|------------:|------------:|-----------:|-----------:|-----------:|
-|  0.6401696|     0.7927474|     0.8590826|      0.975697|     3.963737|     1.718165|     1.219621|    166.5173|    46.59579|    16.65268|
+|  d.crit|  md20\_0.2|  md20\_0.5|  md20\_0.8|  ov20\_0.2|  ov20\_0.5|  ov20\_0.8|  nov\_0.2|  nov\_0.5|  nov\_0.8|
+|-------:|----------:|----------:|----------:|----------:|----------:|----------:|---------:|---------:|---------:|
+|    0.64|       0.79|       0.86|       0.98|       3.96|       1.72|       1.22|    166.52|      46.6|     16.65|
 
 Comments Please!
 ----------------
