@@ -191,7 +191,7 @@ loessm=function(x,y,xout,...) {
   ## CAUTION: perhaps this should be error...
   if (nrow(y)<length(x)) y=repr(y,length=length(x));
   data=data.frame(x=x,y);
-  yout=do.call(data.frame,lapply(colnames(y),function(name) {
+  yout=do.call(data.frame,lapply(colnames(data)[2:ncol(data)],function(name) {
     fmla=as.formula(paste(name,'~ x'));
     yout=predict(loess(fmla,data=data),xout)
   }));
