@@ -25,7 +25,7 @@
 ##   fignew - plot each figure in new window. default figscreen
 ##   docfun document-specific function. default calculated from doc,subdoc eg, doc_repwr
 dodoc=
-  function(sect=NULL,need.init=T,xperiment=F,...) {
+  function(sect=NULL,need.init=F,xperiment=F,...) {
     if (!xperiment) {
       ## normal doc
       if (need.init) wrap_fun(init,...);
@@ -49,7 +49,9 @@ dodoc=
 ##   matched by plot-function args. eg, 'd' matches 'doc', 'x' matches 'xtra'
 ##   choose argument names carefully!
 dofig=
-  function(figfun,figname=NULL,title=NULL,extra=parent(extra,F),sect=parent(sect,NULL),...) {
+  function(figfun,figname=NULL,title=NULL,extra=parent(extra,F),
+           sect=parent(sect,NULL),sectnum=parent(sectnum,NULL),sect.desc=parent(sect.desc,NULL),
+           ...) {
     param(figextra,save.fig,figscreen,fignew);
     if (extra&!figextra) return();
     file=filename_fig(figlabel(where='filename'),sect,figname);
@@ -119,13 +121,14 @@ dotbl=
 ## construct figure label, eg, S1-2c
 figlabel=function(extra=parent(extra,F),where=cq(content,filename)) {
   where=match.arg(where);
+  param(sectpfx,sectnum);
   if (extra) {
-    param(xfigpfx,sectnum,xfignum,xfigsfx,xfigblk);
+    param(xfigpfx,xfignum,xfigsfx,xfigblk);
     pfx=xfigpfx;
     sfx=if(!is.null(xfigblk)) xfigsfx[xfigblk] else NULL;
     num=xfignum;
   } else {
-    param(figpfx,sectnum,fignum,figsfx,figblk);
+    param(figpfx,fignum,figsfx,figblk);
     pfx=figpfx;
     sfx=if(!is.null(figblk)) figsfx[figblk] else NULL;
     num=fignum;
@@ -134,22 +137,28 @@ figlabel=function(extra=parent(extra,F),where=cq(content,filename)) {
     num=sprintf('%03i',num);
     if (!is.null(sectnum)) sectnum=sprintf('%02i',sectnum);
   }
-  pfx=if(!is.null(sectnum)) paste(collapse='',c(pfx,sectnum)) else pfx;
+  pfx=if(sectpfx) paste(collapse='',c(pfx,sectnum)) else pfx;
   paste(collapse='-',c(pfx,paste(collapse='',c(num,sfx))));
 }
 ## construct table label, eg, S1-2c
 tbllabel=function(where=cq(content,filename)) {
   where=match.arg(where);
-  param(tblpfx,sectnum,tblnum,tblsfx,tblblk);
+  param(tblpfx,sectpfx,sectnum,tblnum,tblsfx,tblblk);
   if (where=='filename') {
     tblnum=sprintf('%03i',tblnum);
-    if (!is.null(sectnum)) sectnum=sprintf('%02i',sectnum);
+    sectnum=sprintf('%02i',sectnum);
   }
-  pfx=if(!is.null(sectnum)) paste(collapse='',c(tblpfx,sectnum)) else tblpfx;
+  pfx=if(sectpfx) paste(collapse='',c(tblpfx,sectnum)) else tblpfx;
   sfx=if(!is.null(tblblk)) tblsfx[tblblk] else NULL;
   paste(collapse='-',c(pfx,paste(collapse='',c(tblnum,sfx))));
 }
 ## manage figure,table numbers, blocks
+sect_start=function(sectnum) {
+  ## start section with blocks turned off
+  param(sectnum=sectnum,figblk=NULL,tblblk=NULL,xfigblk=NULL);
+  ## reset fignum if we're doing section-specific numbering
+  if (param(sectpfx)) param(fignum=1);
+}
 figinc=function(extra=parent(extra,F))
   if (extra) {
     param(xfigblk,xfignum);
