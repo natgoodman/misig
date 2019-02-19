@@ -1,7 +1,7 @@
 Mistakes of Significance
 ================
 Nathan (Nat) Goodman
-January 16, 2019
+February 19, 2019
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 *A collection of R scripts and documents exploring mistakes made by significance testing. The only content at present is a blog post entitled "When You Select Significant Findings, You’re Selecting Inflated Estimates" whose main point is that significance testing is a biased procedure that overestimates effect size.*
@@ -177,7 +177,7 @@ The default mode produces figures that illustrate the kinds of graphs the progra
 
 The first block of figures show *d* vs. *d* scatter plots for *n* = 20 and *n* = 100. You may notice that the p-value color legends are of different sizes. This is a limitation of the code that draws these legends.
 
-<img src="figure/readme/figure_01-001a_plotdvsd_scat_pop_sdz.png" width="50%" /><img src="figure/readme/figure_01-001b_plotdvsd_scat_sdz_pop.png" width="50%" /><img src="figure/readme/figure_01-002a_plotdvsd_scat_pop_sdz.png" width="50%" /><img src="figure/readme/figure_01-002b_plotdvsd_scat_sdz_pop.png" width="50%" />
+<img src="figure/readme/figure_01-001a_plotdvsd_scat_pop_sdz.png" width="25%" /><img src="figure/readme/figure_01-001b_plotdvsd_scat_sdz_pop.png" width="25%" /><img src="figure/readme/figure_01-002a_plotdvsd_scat_pop_sdz.png" width="25%" /><img src="figure/readme/figure_01-002b_plotdvsd_scat_sdz_pop.png" width="25%" />
 
 The next block are similar but zoom in to the critical region where p-values switch from nonsignificant to significant.
 
