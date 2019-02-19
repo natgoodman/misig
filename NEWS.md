@@ -1,9 +1,39 @@
 Revision history for misig repository
 ================
 Nathan (Nat) Goodman
-February 14, 2019
+February 19, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+Release 1.10 2019-02-19
+-----------------------
+
+First real version of README. Renamed and refactored top-level file. See below.
+
+Changed, new, and deleted files
+
+-   `README.Rmd`
+    -   First version of README doc
+-   Rename top level `R/ovrfx.R` to `R/run.R` and move data generation code to `R/dodata.R`. When writing README, I saw that old scheme made it hard to explain how to run program
+
+-   `R/doc.R`
+    -   Improve management of figure and table labels - numbers, prefixes, suffixes
+    -   Add `sect_start` function to adjust figure and table labels at start of new section
+    -   Change `need.init` default in `dodoc` to F - works better with current `init` scheme
+-   `R/doc_readme.R`
+    -   Support first version of README doc
+-   `R/init.R`
+    -   Update defaults for `readme` doc
+    -   Change figure and table labels per new scheme in R/doc.R
+-   `R/plot.R`
+    -   Fix xlab, ylab defaults when x, y are not defaults
+-   `R/util.R`
+    -   Fix bug in loess smoother when data column names are not valid formula symbols
+
+Release 1.01 2019-02-16
+-----------------------
+
+Support posted version of `ovrfx` blog post.
+
 Release 1.00 2019-02-14
 -----------------------
 
