@@ -31,7 +31,14 @@ plotdvsd=
   function(sim,title='',cex.title=1,x='d.sdz',y='d.pop',
            legend=T,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
-           xlab="observed effect size (Cohen's d)",ylab="true effect size",
+           xlab=switch(x,
+                       d.sdz="observed effect size (Cohen's d)",
+                       d.pop="true effect size",
+                       NULL),
+           ylab=switch(y,
+                       d.sdz="observed effect size (Cohen's d)",
+                       d.pop="true effect size",
+                       NULL),
            ...) {
     plot(sim[,x],sim[,y],col=pval2col(sim[,'pval']),main=title,cex.main=cex.title,
          xlab=xlab,ylab=ylab,pch=19,cex=0.5,...);
