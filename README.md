@@ -17,13 +17,10 @@ The program explores the bias of significance testing and why it inflates effect
 
 The program performs two types of simulations.
 
-1.  *s**i**m*<sub>*r**a**n**d*</sub>. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s and simulates one study per *d*<sub>*p**o**p*</sub>.
-2.  *s**i**m*<sub>*f**i**x**d*</sub>. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
+1.  *rand*. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s and simulates one study per *d*<sub>*p**o**p*</sub>.
+2.  *fixd*. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
 
--   *s**i**m*<sub>*r**a**n**d*</sub>. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s and simulates one study per *d*<sub>*p**o**p*</sub>.
--   *s**i**m*<sub>*f**i**x**d*</sub>. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
-
-The program uses *s**i**m*<sub>*f**i**x**d*</sub> to estimate the mean significant observed effect size for each *d*<sub>*p**o**p*</sub> and *n*. It also caculates these values analytically.
+The program uses the *fixd* simulation to estimate the mean significant observed effect size for each *d*<sub>*p**o**p*</sub> and *n*. It also caculates these values analytically.
 
 After running the simulations and calculating the mean significant observed effect sizes, the program generates the figures that appear in the blog post, as well as the specific results mentioned in the post. It stores the latter in a table for future reference.
 

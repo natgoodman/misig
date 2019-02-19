@@ -27,13 +27,10 @@ The program explores the bias of significance testing and why it inflates effect
 
 The program performs two types of simulations.
 
-1. $sim_{rand}$. Randomly selects a large number of $d_{pop}$s and simulates one study per $d_{pop}$.
-2. $sim_{fixd}$. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
+1. *rand*. Randomly selects a large number of $d_{pop}$s and simulates one study per $d_{pop}$.
+2. *fixd*. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
 
-- $sim_{rand}$. Randomly selects a large number of $d_{pop}$s and simulates one study per $d_{pop}$.
-- $sim_{fixd}$. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
-
-The program uses $sim_{fixd}$ to estimate the mean significant observed effect size for each $d_{pop}$ and $n$. It also caculates these values analytically. 
+The program uses the *fixd* simulation to estimate the mean significant observed effect size for each $d_{pop}$ and $n$. It also caculates these values analytically. 
 
 After running the simulations and calculating the mean significant observed effect sizes, the program generates the figures that appear in the blog post, as well as the specific results mentioned in the post. It stores the latter in a table for future reference.
 
