@@ -18,7 +18,7 @@
 source('R/util.R');
 source('R/datman.R');
 source('R/doc.R');
-## source('R/doc_readme.R');
+source('R/doc_readme.R');
 source('R/doc_ovrfx.R');
 source('R/dodata.R');
 source('R/init.R');
@@ -28,7 +28,7 @@ source('R/stats.R');
 ## ---- run ----
 ## run the program
 ## parameters defined in init
-run=function(need.init=T,doc='ovrfx',...) {
+run=function(need.init=T,...) {
   if (need.init) wrap_fun(init,...);
   need.init=F;
   dosim();                        # do the simulation
