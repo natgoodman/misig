@@ -15,7 +15,7 @@
 ##
 #################################################################################
 ## --- Generate Figures and Tables for ovrfx Blog Post ---
-## no sections. only 2 figures
+## no sections. only 4 figures
 ## n.fig is sample size for which figures plotted
 doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   param(n.meand,d.meand);
