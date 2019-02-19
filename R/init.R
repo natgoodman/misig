@@ -25,13 +25,13 @@ init=function(
   run.id=NULL,                      # to separate runs for tests
   ## simulation parameters. random-d simulation
   n.rand=switch(docx,                     # sample sizes
-                readme=20*2^(0:4),        # 20,40,80,160,320 (5 values)
+                readme=c(20,100),
                 ovrfx=20,
                 ovrht=seq(20,200,by=20)),
   m.rand=switch(docx,                     # number of populations
                 readme=1e3,
                 ovrfx=1e5,
-                ovrfx=1e4),
+                ovrht=1e4),
   d.gen=switch(docx,                      # function to generate population effect sizes
                readme=runif,
                ovrfx=runif,
@@ -44,7 +44,7 @@ init=function(
 
   ## simulation parameters. fixed-d simulation
   n.fixd=switch(docx,                       # sample sizes
-                readme=20*2^(0:4),          # 20,40,80,160,320 (5 values)
+                readme=seq(20,100,by=20),
                 ovrfx=seq(20,200,by=20),
                 ovrht=seq(20,200,by=20)), 
   m.fixd=switch(docx,                       # number of studies per d
@@ -52,7 +52,7 @@ init=function(
                 ovrfx=1e4,
                 ovrht=NA),
   d.fixd=switch(docx,                       # population effect sizes
-                readme=seq(0.1,1,by=0.1),
+                readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
                 ovrfx=c(0.3,0.5,0.7),
                 ovrht=NA),
 
@@ -125,8 +125,9 @@ init_doc=function(
   tbldir=dirname('table',param(doc),subdoc,param(run.id)),  # directory for tables
   ## output modifiers
   outpfx=switch(param(doc),supp='S',NULL),          # prefix before figure or table number
-  outsfx=switch(param(doc),xperiment=NULL,letters), # suffix in figure and table blocks
-  sectnum=switch(param(doc),supp=T,NULL),           # add section number to prefix eg, S1
+  outsfx=letters,                                   # suffix in figure and table blocks
+  sectpfx=switch(param(doc),readme=T,F),            # add section number to prefix eg, S1
+  sectnum=1,                                        # section number. incremented in docs
   ## figures
   figpfx=outpfx,
   figsfx=outsfx,
