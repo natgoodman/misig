@@ -3,11 +3,11 @@ title: "Mistakes of Significance"
 author: "Nathan (Nat) Goodman"
 date: "January 16, 2019"
 output:
-  github_document:
-    html_preview: no
   html_document:
     css: css/html_document.css
     highlight: kate
+  github_document:
+    html_preview: no
   pdf_document: default
 linkcolor: cyan
 citecolor: green
@@ -115,7 +115,7 @@ The default mode produces figures that illustrate the kinds of graphs the progra
 
 The first block of figures show $d$ vs. $d$ scatter plots for $n=20$ and $n=100$. You may notice that the p-value color legends are of different sizes. This is a limitation of the code that draws these legends. 
 
-```{r out.width="50%",echo=FALSE,fig.show='asis'}
+```{r out.width="25%",echo=FALSE,fig.show='asis'}
 knitr::include_graphics('figure/readme/figure_01-001a_plotdvsd_scat_pop_sdz.png');
 knitr::include_graphics('figure/readme/figure_01-001b_plotdvsd_scat_sdz_pop.png');
 knitr::include_graphics('figure/readme/figure_01-002a_plotdvsd_scat_pop_sdz.png');
