@@ -39,52 +39,65 @@ init=function(
   d.args=switch(docx,                     # arguments passed to d.gen
                 readme=list(n=m.rand,min=-3,max=3),
                 ovrfx=list(n=m.rand,min=-3,max=3),
-                ovrht=list(n=m.rand,mean=0.3,sd=0.1)),
+                ovrht=list(n=m.rand,mean=d.mean,sd=0.1)),
   d.rand=do.call(d.gen,d.args),            # population effect sizes. call generating function
 
   ## simulation parameters. fixed-d simulation
   n.fixd=switch(docx,                       # sample sizes
                 readme=seq(20,100,by=20),
                 ovrfx=seq(20,200,by=20),
-                ovrht=seq(20,200,by=20)), 
+                ovrht=NULL), 
   m.fixd=switch(docx,                       # number of studies per d
                 readme=1e2,
                 ovrfx=1e4,
-                ovrht=NA),
+                ovrht=NULL),
   d.fixd=switch(docx,                       # population effect sizes
                 readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
                 ovrfx=c(0.3,0.5,0.7),
-                ovrht=NA),
+                ovrht=NULL),
 
-  ## mean effect size computation (domeand)
-  n.meand=n.fixd,
-  d.meand=d.fixd,
-
+  ## simulation parameters. het-d simulation
+  n.hetd=switch(docx,ovrht=200,NULL),       # sample sizes
+  m.hetd=switch(docx,ovrht=1e5,NA),         # number of studies per d.het
+  d.hetd=switch(docx,ovrht=0,NULL),         # centers of het pop effect sizes
+  sd.hetd=switch(docx,ovrht=0.2,NULL),      # standard deviation of het pop distribution
+  
+  ## data generation function
+  datfun=get(paste(sep='_','dat',docx)),
   ## analysis parameters
-  sig.level=0.05,                   # for conventional significance
+  sig.level=0.05,                   # significance level
+  conf.level=0.95,                  # for confidence intervals
 
-  ## program parameters, eg, for output files, error messages, etc.
+  ## data directories
   datadir=dirname('data',docx,run.id),       # directory for data files
-  sim.rand.dir=dirname(datadir,'sim.rand'),  # directory for sim random-d files
-  sim.fixd.dir=dirname(datadir,'sim.fixd'),  # directory for sim fixed-d files
+  sim.rand.dir=dirname(datadir,'sim.rand'),  # directory for sim rand files
+  sim.fixd.dir=dirname(datadir,'sim.fixd'),  # directory for sim fixd files
+  sim.hetd.dir=dirname(datadir,'sim.hetd'),  # directory for sim hetd files
+  outdir=c(datadir,                          # output dirs needed by doc. all need datadir
+           switch(docx,
+                  readme=c(sim.rand.dir,sim.fixd.dir,sim.hetd.dir),
+                  ovrfx=c(sim.rand.dir,sim.fixd.dir),
+                  ovrht=c(sim.hetd.dir))),
+  
   ## NG 18-10-18: figdir, tbldir moved to init_doc
   ## figdir=dirname('figure',docx,mdir), # directory for figures. default eg, figure/repwr/m=1e4
   ## tbldir=dirname('table',docx,mdir), # directory for tables. default eg, table/repwr/m=1e4
-  verbose=F,                               # print progress messages
 
   ## program control
-  ## TODO decide which are still needed
+  verbose=F,                               # print progress messages
   must.exist=F,                  # must all sub-inits succeed?
   save=NA,                       # shorthand for other save params 
                                  #   NA means save unless file exists
                                  #   T, F mean always or never save
   save.sim=save,                 # save simulations (RData format)
   save.meand=save,               # save mean effect size results (RData & txt formats)
+  save.data=save,                # save top level data
   save.txt=NA,                   # save results in txt format as well as RData
                                  #   NA means use default rule for type:
                                  #   F for all but top level data
-  save.txt.sim=!is.na(save.txt)&save.txt,  # save txt simulations. default F
-  save.txt.meand=is.na(save.txt)|save.txt, # save txt meand results. default T
+  save.txt.sim=!is.na(save.txt)&save.txt,   # save txt simulations. default F
+  save.txt.meand=is.na(save.txt)|save.txt,  # save txt meand results. default T
+  save.txt.data=is.na(save.txt)|save.txt,   # save txt top level results. default T
                                  #    
   clean=F,                       # remove everything and start fresh
   clean.data=clean,              # remove datadir
@@ -95,22 +108,22 @@ init=function(
   doc=docx;                      # to avoid confusion later
 
   ## extend d.rand to cover m
-  d.rand=rep(d.rand,len=m.rand);
-  ## round d.fixd, d.meand to avoid imprecise decimals 
-  d.fixd=round(d.fixd,digits=5);
-  d.meand=round(d.meand,digits=5);
+  if(!is.null(d.rand)) d.rand=rep(d.rand,len=m.rand);
+  ## round various d params to avoid imprecise decimals 
+  if(!is.null(d.fixd)) d.fixd=round(d.fixd,digits=5);
+  if(!is.null(d.hetd)) d.hetd=round(d.hetd,digits=5);
   ## assign parameters to param environment
   ## do it before calling any functions that rely on params
   init_param();
   ## clean and create output directories as needed
   if (clean.data) unlink(datadir,recursive=T);
-  outdir=c(datadir,sim.rand.dir,sim.fixd.dir);
+  ## outdir=c(datadir,sim.rand.dir,sim.fixd.dir);
   ## create data subdirectories. nop if already exist
   sapply(outdir,function(dir) dir.create(dir,recursive=TRUE,showWarnings=FALSE));
-  ## clean specific types if desired. cleans directories and cache
+  ## clean specific types if desired.
   if (clean.sim) {
-    unlink(sim.rand.dir,recursive=T);
-    unlink(sim.fixd.dir,recursive=T);
+    sapply(c(sim.rand.dir,sim.fixd.dir,sim.het.dir),
+           function(dir) if (!is.null(dir)) unlink(dir,recursive=T));
   }
   if (clean.meand) cleanq(meand);
   invisible();
@@ -143,13 +156,9 @@ init_doc=function(
   xfigsfx=outsfx,
   xfignum=1,
   xfigblk=NULL,                 # index into xfigsfx if in figure block
-  ## error cutoffs for plots
-  ## TODO decide which are still needed
-  fpr.cutoff=0.05,              # false positive rate cutoff for plots
-  fnr.cutoff=0.20,              # false negative rate cutoff for plots
   ## for pval colors
-  steps.pvcol=100,                # number of colors in color ramp
-  min.pvcol=1e-4,                  # min pval in ramp - smaller pvals mapped to min
+  steps.pvcol=100,              # number of colors in color ramp
+  min.pvcol=1e-4,               # min pval in ramp - smaller pvals mapped to min
   ## clean, save
   save.out=T,
   save.fig=save.out,            # save figures (when called via dofig)
