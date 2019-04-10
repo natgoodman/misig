@@ -98,19 +98,19 @@ doc_readme=function(sect=NULL) {
     }
 ##### plotm 
     if (sect=='plotm') {
-      param(n.meand,d.meand);
+      param(n.fixd,d.fixd);
       meand.empi=get_meand_empi();
       meand.theo=get_meand_theo();
       meand.e.byd=split(meand.empi,meand.empi$d0);
       meand.t.byd=split(meand.theo,meand.theo$d0);
-      x=n.meand;
+      x=n.fixd;
       y=do.call(cbind,c(lapply(meand.e.byd,function(meand) meand$meand),
                         lapply(meand.t.byd,function(meand) meand$meand)));
-      col=setNames(RColorBrewer::brewer.pal(length(d.meand),'Set1'),d.meand);
+      col=setNames(RColorBrewer::brewer.pal(length(d.fixd),'Set1'),d.fixd);
       legend.labels=
-        c(paste(sep='=','meand.empi. d.pop',d.meand),paste(sep='=','meand.theo. d.pop',d.meand));
+        c(paste(sep='=','meand.empi. d.pop',d.fixd),paste(sep='=','meand.theo. d.pop',d.fixd));
       col=rep(col,2);
-      lty=c(rep('dotted',len=length(d.meand)),rep('solid',length(d.meand)));
+      lty=c(rep('dotted',len=length(d.fixd)),rep('solid',length(d.fixd)));
       lwd=2;     
       title=title_readme('Line plot of mean significant observed effect size (raw)');
       dofig(plotm,'meand',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=F,title=title,
@@ -132,7 +132,7 @@ doc_readme=function(sect=NULL) {
             xlab='sample size',ylab='effect size'));
     }
     if (sect=='table') {
-      param(n.meand,d.meand);
+      param(n.fixd,d.fixd);
       meand.empi=get_meand_empi();
       meand.theo=get_meand_theo();
       meand.e.byd=split(meand.empi,meand.empi$d0);
@@ -206,12 +206,12 @@ dtext=function(n,d0,y,label=paste(sep=', ',paste_nv('d',d0),paste_nv('n',n)),sid
 ## plot meand vs n, d (figure 4)
 plotmeand=function(x,y,title,col='black',lty='solid',lwd=1,legend.labels,
                  meand20=NULL,nover=NULL,...) {
-  param(n.meand,d.meand);
+  param(n.fixd,d.fixd);
   ## draw the main plot
   plotm(x=x,y=y,col=col,lty=lty,lwd=lwd,title=title,legend.labels=legend.labels,smooth=F,
         ...);
   ## horizontal grid-like lines for d.pop
-  abline(h=d.meand,col=col,lty='dotted',lwd=1);
+  abline(h=d.fixd,col=col,lty='dotted',lwd=1);
   ## horizontal lines for averages with n=20
   ## if (!is.null(meand20)) {
   ##   hline(x=20,y=meand20,col=col,lty='dotted',lwd=0.5,text=round(meand20,digits=2));
@@ -220,7 +220,7 @@ plotmeand=function(x,y,title,col='black',lty='solid',lwd=1,legend.labels,
   vline(x=20,y0=0,y=1,col='grey',lty='dotted',lwd=1,text=20);
   ## horizontal & vertical lines for overestimates
   if (!is.null(nover)) {
-    hline(x=nover,y=1.25*d.meand,col=col,lty='dotted',lwd=2,text=paste(sep='','1.25x',d.meand));
-    vline(x=nover,y=1.25*d.meand,col=col,lty='dotted',lwd=2,text=round(nover));
+    hline(x=nover,y=1.25*d.fixd,col=col,lty='dotted',lwd=2,text=paste(sep='','1.25x',d.fixd));
+    vline(x=nover,y=1.25*d.fixd,col=col,lty='dotted',lwd=2,text=round(nover));
   }
 }
