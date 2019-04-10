@@ -29,7 +29,46 @@ load_=function(file,what) {
   what=load(file=filename(base=base,suffix='RData')); # what is name of saved data
   get(what);                          # return it
 }
-
+##### data - top-level data saved in datadir
+save_data=function(what,file=NULL,data=NULL,base=NULL,
+                   save=param(save.data),save.txt=param(save.txt)) {
+  param(datadir,save.data,save.txt.data);
+  what=as.character(pryr::subs(what));
+  if (missing(data) && exists(what,envir=parent.frame(n=1)))
+    data=get(what,envir=parent.frame(n=1));
+  if (is.null(data)) stop('Trying to save NULL object. Is "what" set correctly?');
+  if (is.null(file)) {
+    if (is.null(base)) base=basename_data(what);
+  } else base=desuffix(file);
+  file=filename(base=base,suffix='RData');
+  save_(data,file=file,save=save.data,save.txt=save.txt.data);
+}
+## load data from file
+load_data=function(...,file=NULL,list=character()) {
+  dots=match.call(expand.dots=FALSE)$...;
+  if (length(dots) &&
+      !all(vapply(dots,function(x) is.atomic(x)||is.symbol(x)||is.character(x),
+                  NA,USE.NAMES=FALSE))) 
+    stop("... must contain atomic data like names or character strings");
+  parent.env=parent.frame(n=1);
+  names=vapply(dots,as.character,"");
+  if (length(names)==0L) names=character();
+  names=c(list,names);
+  if (length(names)==0) {
+    ## easy case - load and return one file
+    if (is.null(file)) stop('Cannot load data unless file or what is set');
+    return(load_(file=file));
+  }
+  sapply(1:length(names),function(i) {
+    what=names[i];
+    if (length(file)>=i) file=file[i] else file=filename_data(what);
+    val=load_(file=file);
+    assign(what,val,envir=parent.env);
+    if (length(names)==1) return(val);
+  });
+  names;
+}
+get_data=load_data;
 ##### sim_rand
 save_sim_rand=function(sim,n,file=NULL) {
   param(save.sim,save.txt.sim);
@@ -57,6 +96,39 @@ load_sim_fixd=function(file=NULL,n,d) {
 }
 get_sim_fixd=load_sim_fixd;
 
+##### sim_hetd
+save_sim_hetd=function(sim,n,d,sd,file=NULL) {
+  param(save.sim,save.txt.sim);
+  if (is.null(file))
+    file=filename(param(sim.hetd.dir),base='sim',
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+  save_(sim,file,save=save.sim,save.txt=save.txt.sim);
+}
+load_sim_hetd=function(file=NULL,n,d,sd) {
+  if (is.null(file))
+    file=filename(param(sim.hetd.dir),base='sim',
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+  load_(file,'sim');
+}
+get_sim_hetd=load_sim_hetd;
+
+##### interp_hetd. interp is approx data, NOT function, 'cuz it's dangerour to save approxfun
+save_interp_hetd=function(interp,n,d,sd,file=NULL) {
+  param(save.interp,save.txt.interp);
+  if (is.null(file))
+    file=filename(param(interp.hetd.dir),base='interp',
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+  save_(interp,file,save=save.interp,save.txt=save.txt.interp);
+}
+load_interp_hetd=function(file=NULL,n,d,sd) {
+  if (is.null(file))
+    file=filename(param(interp.hetd.dir),base='interp',
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+  interp=load_(file,'interp');
+  approxfun(interp)
+}
+get_interp_hetd=load_interp_hetd;
+
 ##### meand_empi
 save_meand_empi=function(meand,file=NULL) {
   param(save.meand,save.txt.meand);
@@ -81,7 +153,7 @@ load_meand_theo=function(file=NULL) {
 get_meand_theo=load_meand_theo;
 
 ##### table - saved in tbldir
-save_tbl=function(tbl,file) {
+save_tbl=function(tbl,file,obj.ok=F) {
   param(save.tbl,save.txt.tbl);
   if (is.null(tbl)) stop('Trying to save NULL table. Is table name set correctly?');
   base=desuffix(file);
@@ -91,8 +163,19 @@ save_tbl=function(tbl,file) {
     if (save.txt.tbl) {
       file=filename(base=base,suffix='txt');
       if (length(dim(tbl))==2) write.table(tbl,file=file,sep='\t',quote=F,row.names=F)
-      else if (is.vector(tbl)) writeLines(as.character(tbl),file)
-      else stop('Trying to save object with more than 2 dimensions as text. Is table name set correctly?');
+      else if (is.list(tbl)) {
+        sink(file);
+        print(tbl);
+        sink();
+      }
+      else if (is.vector(tbl)) {
+        names=names(tbl);
+        if (!is.null(names)) {
+          tbl=data.frame(name=names,value=as.character(tbl));
+          write.table(tbl,file=file,sep='\t',quote=F,row.names=F);
+        } else writeLines(as.character(tbl),file);
+      }
+      else if (!obj.ok) stop('Trying to save generic object but obj.ok=F.');
     }}
   invisible(tbl);
 }
