@@ -17,10 +17,14 @@
 #################################################################################
 source('R/util.R');
 source('R/datman.R');
+source('R/dat.R');
+source('R/dat_ovrfx.R');
+source('R/dat_ovrht.R');
+source('R/dat_readme.R');
 source('R/doc.R');
-source('R/doc_readme.R');
 source('R/doc_ovrfx.R');
-source('R/dodata.R');
+source('R/doc_ovrht.R');
+source('R/doc_readme.R');
 source('R/init.R');
 source('R/plot.R');
 source('R/stats.R');
@@ -31,7 +35,6 @@ source('R/stats.R');
 run=function(need.init=T,...) {
   if (need.init) wrap_fun(init,...);
   need.init=F;
-  dosim();                        # do the simulation
-  domeand();
-  wrap_fun(dodoc,init_doc,...);   # generate figures, tables for doc
+  wrap_fun(dodat,...);             # generate data: eg, simulations, meand
+  wrap_fun(dodoc,init_doc,...);     # generate figures, tables for doc
 }
