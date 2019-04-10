@@ -202,7 +202,8 @@ loessm=function(x,y,xout,...) {
 }
 ## extend smooth.spline for matrix - probably only useful for plotting
 ## NG 18-11-07: remove NAs (same as akima::aspline) else smooth.spline barfs
-splinem=function(x,y,xout,...) {
+splinem=function(x,y,xout,spar=NULL,...) {
+  if (is.null(spar)) spar=0.5;
   if (is.vector(y)) y=data.frame(y=y);
   if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
   ## extend y to correct number of rows if necessary
@@ -215,7 +216,7 @@ splinem=function(x,y,xout,...) {
     if (any(na<-is.na(y))) {
       x=x[!na]; y=y[!na];
     }
-    yout=predict(smooth.spline(x,y,spar=0.5),xout)$y    
+    yout=predict(smooth.spline(x,y,spar=spar),xout)$y    
   });
   ## if yout has single row (ie, xout has one element), R turns it into a vector...
   ## if (length(xout)==1) yout=t(yout);
