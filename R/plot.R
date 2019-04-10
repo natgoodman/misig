@@ -69,20 +69,24 @@ plotdvsd=
 ## vhdigits is number of digits for these values
 #
 plothist=
-  function(sim,n=unique(sim$n),title='',cex.title=1,x='d.sdz',breaks=50,freq=F,
+  function(sim,n=unique(sim$n),title='',cex.title=1,x='d.sdz',breaks=50,freq=F,add=F,
+           col=NULL,border='black',
            legend=T,legend.x0=NULL,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="density",
            ...) {
     hist.obj=hist(sim[,x],breaks=breaks,plot=F);
-    if (length(n)==1) col=d2col(n=n,d=hist.obj$mids)
-    else {
-      warn('plothist need unique n to convert d to color');
-      col='black';
-    }
-    plot(hist.obj,col=col,freq=freq,main=title,cex.main=cex.title,
-         xlab=xlab,ylab=ylab,...);
-    box(); grid();
+    if (is.null(col)) 
+      if (length(n)==1) col=d2col(n=n,d=hist.obj$mids)
+      else {
+        warn('plothist need unique n to convert d to color');
+        col='black';
+      }
+    plot(hist.obj,col=col,border=border,freq=freq,main=title,cex.main=cex.title,
+         xlab=xlab,ylab=ylab,add=add,...);
+    if (!add) {
+      box(); grid();
+    } 
     ## plot extra lines if desired. nop if vline, hline NULL
     abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
     ## write values along axes
@@ -95,9 +99,14 @@ plothist=
   }
 ## plot probability distributions vs. d colored by pval
 ## n is sample size (for converting d to t or pval)
-## d is range of d.sdz
+## d, col, lwd - usually missing - can be used when defaults not desired
+## lwd.sig, lwd.nonsig - lwd for sig vs. non sig
+## dlim is range of d.sdz
 ##   dinc is step-size for extending d across range
-## d0 is center for noncentral distribution
+## d0 is center for noncentral d2t distribution
+## d.het is center for noncentral d2ht distribution
+## sd.het is sd for noncentral d2ht distribution
+## distribution is d2t or d2ht
 ## y is probability density or cumulative prob. can be values or keyword
 ## fill.tail tells whether to fill the distribution tail (density only)
 ##   boolean or one or more of 'upper','lower','both'. T means c('upper','lower')
@@ -112,26 +121,39 @@ plothist=
 ## vlab, hlab contol writing vline, hline values along axes
 ## vhdigits is number of digits for these values
 plotpvsd=
-  function(n,d0=NULL,y=cq(density,cumulative),dlim=c(-2,2),dinc=.005,add=F,fill.tail=F,
-           title='',cex.title=1,d.crit=d_crit(n),d.pop=0.3,
+  function(n,d0=NULL,d.het=NULL,sd.het=NULL,distribution=cq(d2t,d2ht),y=cq(density,cumulative),
+           d,col,lwd,lwd.sig=4,lwd.nonsig=lwd.sig/2,dlim=c(-2,2),dinc=.005,add=F,fill.tail=F,
+           title='',cex.title=1,d.crit=d_crit(n),
            legend=!add,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="probability",
            ...) {
-    d=seq(min(dlim),max(dlim),by=dinc);
+    if (missing(d)) d=seq(min(dlim),max(dlim),by=dinc);
+    if (missing(distribution)) {
+      distribution=if(missing(d.het)&missing(sd.het)) 'd2t' else 'd2ht';
+    }
+    else distribution=match.arg(distribution);
     if (mode(y)=='character') {
       y=match.arg(y);
       if (y!='density') fill.tail=F;
       if (missing(ylab)) ylab=if(y=='density') 'probability density' else 'cumulative probability';
-      y=if(y=='density') d_d2t(n,d,d0) else p_d2t(n,d,d0);
+      if (distribution=='d2t') {
+        y=if(y=='density') d_d2t(n,d,d0) else p_d2t(n,d,d0);
+      }
+      else {
+        y=if(y=='density') d_d2ht(n,d.het=d.het,sd.het=sd.het,d=d)
+          else p_d2ht(n,d.het=d.het,sd.het=sd.het,d=d);
+      }
     }
-    col=pval2col(d2pval(n,d));
+    if (distribution=='d2t') pval=d2pval(n,d) else pval=d2htpval(n,sd.het,d);
+    if (missing(col)) col=pval2col(pval);
+    if (missing(lwd)) lwd=ifelse(pval<=0.05,lwd.sig,lwd.nonsig);
     l=length(d);
     if (!add) plot(d,y,type='n',xlab=xlab,ylab=ylab,main=title,cex.main=cex.title,...);
     if (l==1) points(d,y,col=col,pch=19)
     else {
       x0=d[-l]; y0=y[-l]; x1=d[-1]; y1=y[-1];
-      segments(x0,y0,x1,y1,col=col,lwd=ifelse(d2pval(n,d)<=0.05,4,2))
+      segments(x0,y0,x1,y1,col=col,lwd=lwd)
     }
     grid();
     ## plot extra lines if desired. nop if vline, hline NULL
@@ -165,6 +187,7 @@ plotpvsd=
 ## vhdigits is number of digits for these values
 ## smooth whether to smooth data to make plot prettier
 ##   aspline, spline, loess, none, T, F. default is aspline. T means aspline. F means none
+##   spar is for spline
 ## legend tells whether and where to draw legend
 ##   T or word like 'right' means draw legend, F or NULL means no legend
 ## legend.title is legend title
@@ -173,7 +196,7 @@ plotm=
   function(x,y,col='black',lty='solid',lwd=1,title='',cex.title=1,
            xaxt='s',yaxt='s',
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
-           smooth=c(cq(aspline,spline,loess,none),TRUE,FALSE),
+           smooth=c(cq(aspline,spline,loess,none),TRUE,FALSE),spar=NULL,
            legend=if(is.vector(y)) F else 'right',legend.title=NULL,
            legend.labels=if(is.vector(y)) NULL else colnames(y),
            legend.args=list(where=NULL,x=NULL,y=NULL,cex=0.8,
@@ -192,7 +215,7 @@ plotm=
     if (smooth!='none') {
       x.smooth=seq(min(x),max(x),len=100);
       if (smooth=='aspline') y=asplinem(x,y,xout=x.smooth,method='improved')
-      else if (smooth=='spline') y=splinem(x,y,xout=x.smooth)
+      else if (smooth=='spline') y=splinem(x,y,xout=x.smooth,spar=spar)
       else y=loessm(x,y,xout=x.smooth);
       x=x.smooth;
     }
@@ -214,17 +237,16 @@ plotm=
     }
     if (legend) do.call(plotm_legend,legend.args);
   }
-## helper function to plot horizontal and vertical line segments
+## helper functions to plot horizontal and vertical line segments
 hline=
-  function(y,x0=0,x,col='black',lty='solid',lwd=1,text=NULL,
-           label=list(text=text,side=2,at=y,col=col,line=0.25,cex=0.75,las=1)) {
+  function(y,x0=0,x,col='black',lty='solid',lwd=1,cex=0.75,text=NULL,
+           label=list(text=text,side=2,at=y,col=col,line=0.25,cex=cex,las=1)) {
     segments(x0=x0,x1=x,y0=y,y1=y,col=col,lty=lty,lwd=lwd);
     if (!is.null(text)) do.call(mtext,label);
   }
-## helper function to plot horizontal and vertical line segments
 vline=
-  function(x,y0=0,y,col='black',lty='solid',lwd=1,text=NULL,
-           label=list(text=text,side=1,at=x,col=col,line=0.25,cex=0.75,las=1)) {
+  function(x,y0=0,y,col='black',lty='solid',lwd=1,cex=0.75,text=NULL,
+           label=list(text=text,side=1,at=x,col=col,line=0.25,cex=cex,las=1)) {
     segments(x0=x,x1=x,y0=y0,y1=y,col=col,lty=lty,lwd=lwd);
     if (!is.null(text)) do.call(mtext,label);
   }
