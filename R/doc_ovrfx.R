@@ -18,7 +18,7 @@
 ## no sections. only 4 figures
 ## n.fig is sample size for which figures plotted
 doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
-  param(n.meand,d.meand);
+  param(n.fixd,d.d.fixd);
   meand.empi=get_meand_empi();
   meand.theo=get_meand_theo();
   meand.e.byd=split(meand.empi,meand.empi$d0);
@@ -66,7 +66,7 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   sim=get_sim_fixd(n=n.fig1,d=d.fig1);
   ylim=c(0,d_d2t(n=100,d=0.3,d0=0.3));  # set ylim to match figure 3
   dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.main=1,
-        xlim=c(-2,2),ylim=c(0, d_d2t(n=100,d=0.3,d0=0.3)));
+        xlim=c(-2,2),ylim=ylim);
   ## dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.main=1,
   ##       legend.x0=-1.85,xlim=c(-2,2),ylim=c(0, d_d2t(n=100,d=0.3,d0=0.3)));
   ## figure 3
@@ -74,7 +74,7 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   dofig(plotsmpldist,'smpl_dist',vline=c(-d.crit1,d.fig1,d.crit1),title=title);
   ## figure 4
   title=title_ovrfx('Average observed effect size improves as n increases');
-  x=seq(min(n.meand),max(n.meand),by=1);
+  x=seq(min(n.fixd),max(n.fixd),by=1);
   y=do.call(cbind,lapply(meand.t.fit,function(fit) predict(fit,x)$y));
   col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(meand.t.byd));
   legend.labels=
@@ -129,12 +129,12 @@ dtext=function(n,d0,y,label=paste(sep=', ',paste_nv('d',d0),paste_nv('n',n)),sid
 ## plot meand vs n, d (figure 4)
 plotmeand=function(x,y,title,col='black',lty='solid',lwd=1,legend.labels,
                  meand20=NULL,nover=NULL,...) {
-  param(n.meand,d.meand);
+  param(n.fixd,d.fixd);
   ## draw the main plot
   plotm(x=x,y=y,col=col,lty=lty,lwd=lwd,title=title,legend.labels=legend.labels,smooth=F,
         ...);
   ## horizontal grid-like lines for d.pop
-  abline(h=d.meand,col=col,lty='dotted',lwd=1);
+  abline(h=d.fixd,col=col,lty='dotted',lwd=1);
   ## horizontal lines for averages with n=20
   ## if (!is.null(meand20)) {
   ##   hline(x=20,y=meand20,col=col,lty='dotted',lwd=0.5,text=round(meand20,digits=2));
@@ -143,7 +143,7 @@ plotmeand=function(x,y,title,col='black',lty='solid',lwd=1,legend.labels,
   vline(x=20,y0=0,y=1,col='grey',lty='dotted',lwd=1,text=20);
   ## horizontal & vertical lines for overestimates
   if (!is.null(nover)) {
-    hline(x=nover,y=1.25*d.meand,col=col,lty='dotted',lwd=2,text=paste(sep='','1.25x',d.meand));
-    vline(x=nover,y=1.25*d.meand,col=col,lty='dotted',lwd=2,text=round(nover));
+    hline(x=nover,y=1.25*d.fixd,col=col,lty='dotted',lwd=2,text=paste(sep='','1.25x',d.fixd));
+    vline(x=nover,y=1.25*d.fixd,col=col,lty='dotted',lwd=2,text=round(nover));
   }
 }
