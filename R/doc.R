@@ -98,7 +98,7 @@ dofig=
   }
 ## save one or more tables.
 dotbl=
-  function(...,sect=parent(sect,NULL),list=character()) {
+  function(...,sect=parent(sect,NULL),list=character(),obj.ok=F) {
     dots=match.call(expand.dots=FALSE)$...;  # doesn't evaluate dots
     parent.env=parent.frame(n=1);            # for empty name
     if (length(dots) &&
@@ -114,7 +114,7 @@ dotbl=
     sapply(tblname,function(tblname) {
       tbl=get(tblname,envir=parent.env);
       file=filename_tbl(tbllabel(where='filename'),sect,tblname);
-      save_tbl(tbl,file);
+      save_tbl(tbl,file,obj.ok);
       tblinc()});
     tblname;
  }
