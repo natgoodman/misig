@@ -18,10 +18,12 @@
 ##
 #################################################################################
 ## ---- Data Generation for ovrht ----
-dat_ovrht=function() {
+dat_mndht=function() {
   param(n.hetd,m.hetd,d.hetd,sd.hetd);
   dosim_hetd(n.hetd,m.hetd,d.hetd,sd.hetd);
-  domeand_hetd(n.hetd,d.hetd,sd.hetd);
-  domeand_d2ht(n.hetd,d.hetd,sd.hetd);
+  param(n.meand,d.meand,sd.meand);
+  domeand_d2ht(n.meand,d.meand,sd.meand);
+  param(n.power,d.power,sd.power);
+  dopower_d2ht(n.power,d.power,sd.power);
   invisible();
 }
