@@ -37,8 +37,7 @@ dosim_rand=function(n,m,d) {
     sd1=apply(group1,2,sd);
     sd=pooled_sd(sd0,sd1);
     d.sdz=d.raw/sd;
-    pval=d2pval(n,d.sdz);
-    sim=data.frame(n,d.pop=d,d.sdz,sd,pval,d.raw,mean0,mean1,sd0,sd1,
+    sim=data.frame(n,d.pop=d,d.sdz,sd,d.raw,mean0,mean1,sd0,sd1,
                    row.names=NULL,stringsAsFactors=F);
     save_sim_rand(sim,n);
   });
@@ -61,8 +60,7 @@ dosim_fixd=function(n,m,d) {
       sd1=apply(group1,2,sd);
       sd=pooled_sd(sd0,sd1);
       d.sdz=d.raw/sd;
-      pval=d2pval(n,d.sdz);
-      sim=data.frame(n,d.pop=d,d.sdz,sd,pval,d.raw,mean0,mean1,sd0,sd1,
+      sim=data.frame(n,d.pop=d,d.sdz,sd,d.raw,mean0,mean1,sd0,sd1,
                      row.names=NULL,stringsAsFactors=F);
       save_sim_fixd(sim,n,d);
     });
@@ -86,10 +84,8 @@ dosim_hetd=function(n,m,d,sd) {
       sd1=apply(group1,2,sd);
       sd=pooled_sd(sd0,sd1);
       d.sdz=d.raw/sd;
-      pval=d2pval(n,d.sdz);
-      sim=data.frame(n,d.het,sd.het,d.pop,d.sdz,sd,pval,d.raw,mean0,mean1,sd0,sd1,
-                     row.names=NULL,stringsAsFactors=F);
-      
+      sim=data.frame(n,d.het,sd.het,d.pop,d.sdz,sd,d.raw,mean0,mean1,sd0,sd1,
+                     row.names=NULL,stringsAsFactors=F);      
       save_sim_hetd(sim,n,d.het,sd.het);
     });
   return(T);
@@ -138,7 +134,10 @@ domeand_hetd=function(n,d.het,sd.het) {
     data.frame(n,d.het,sd.het,meand,over=meand/d.het,meand.tval,over.tval=meand.tval/d.het,
                row.names=NULL);
   }));
-  save_meand_empi(meand);
+  ## NG 19-04-15: use general save_data instead of special save_meand_empi
+  ##   first step toward full switchover to save_data/get_data
+  ## save_meand_empi(meand);
+  save_data(meand);
   invisible(meand);
 }
 ## theoretical from d2t sampling distribution
@@ -161,31 +160,57 @@ domeand_d2t=function(n,d0) {
   save_meand_theo(meand);
   invisible(meand);
 }
+## compute mean significant effect size
 ## theoretical from d2ht sampling distribution
-## assumes interp already computed!
 ## domeand_d2ht=function(n,d.het,sd.het,dmax=10,dlen=1e4) {
 domeand_d2ht=function(n,d.het,sd.het) {
   param(verbose);
-  cases=expand.grid(n,d.het,sd.het);
-  meand=do.call(rbind,apply(cases,1,function(case) {
-    n=case[1]; d.het=case[2]; sd.het=case[3]
-    if (verbose) print(paste(sep=' ','>>> domeand_d2ht',nvq(n),nvq(d.het),nvq(sd.het)));
-    ## integral below equivalent to commmented out computation
-    ## d=seq(d_htcrit(n,d.het,sd.het),dmax,len=dlen);
-    ## wt=d_d2ht(n=n,d=d,d.het=d.het,sd.het=sd.het)
-    ## meand=weighted.mean(d,wt);
-    d.crit=d_htcrit(n=n,sd.het=sd.het);
-    meand=
-      integrate(function(d)
-        d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d)*d,lower=d.crit,upper=Inf)$value / integrate(function(d) d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d),lower=d.crit,upper=Inf)$value;
-    ## also compute with conventional pvalues
-    d.crit=d_crit(n);
-    meand.tval=
-      integrate(function(d)
-        d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d)*d,lower=d.crit,upper=Inf)$value / integrate(function(d) d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d),lower=d.crit,upper=Inf)$value;
-    data.frame(n,d.het,sd.het,meand,over=meand/d.het,meand.tval,over.tval=meand.tval/d.het,
-               row.names=NULL);
-  }));
-  save_meand_theo(meand);
+  if (verbose) print(paste(sep=' ','>>> domeand_d2ht'));
+  ## NG 19-04-15: simply call meand_d2ht now that it exists
+  cases=expand.grid(n=n,d.het=d.het,sd.het=sd.het);
+  meand=with(cases,meand_d2ht(n,d.het,sd.het));
+  ## also compute with conventional pvalues
+  meand.tval=with(cases,meand_d2ht(n,d.het,sd.het,d.crit=d_crit(n)));
+  meand=data.frame(cases,meand,meand.tval);
+  save_data(meand);
   invisible(meand);
+ 
+  ## cases=expand.grid(n,d.het,sd.het);
+  ## meand=do.call(rbind,apply(cases,1,function(case) {
+  ##   n=case[1]; d.het=case[2]; sd.het=case[3]
+  ##   if (verbose) print(paste(sep=' ','>>> domeand_d2ht',nvq(n),nvq(d.het),nvq(sd.het)));
+  ##   ## integral below equivalent to commmented out computation
+  ##   ## d=seq(d_htcrit(n,d.het,sd.het),dmax,len=dlen);
+  ##   ## wt=d_d2ht(n=n,d=d,d.het=d.het,sd.het=sd.het)
+  ##   ## meand=weighted.mean(d,wt);
+  ##   d.crit=d_htcrit(n=n,sd.het=sd.het);
+  ##   meand=
+  ##     integrate(function(d)
+  ##       d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d)*d,lower=d.crit,upper=Inf)$value / integrate(function(d) d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d),lower=d.crit,upper=Inf)$value;
+  ##   ## also compute with conventional pvalues
+  ##   d.crit=d_crit(n);
+  ##   meand.tval=
+  ##     integrate(function(d)
+  ##       d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d)*d,lower=d.crit,upper=Inf)$value / integrate(function(d) d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d),lower=d.crit,upper=Inf)$value;
+  ##   data.frame(n,d.het,sd.het,meand,over=meand/d.het,meand.tval,over.tval=meand.tval/d.het,
+  ##              row.names=NULL);
+  ## }));
+  ## ## NG 19-04-15: use general save_data instead of special save_meand_theo
+  ## ##   first step toward full switchover to save_data/get_data
+  ## ## save_meand_theo(meand);
+  ## save_data(meand);
+  ## invisible(meand);
+}
+## compute power
+## theoretical from d2ht sampling distribution
+dopower_d2ht=function(n,d.het,sd.het) {
+  param(verbose);
+  if (verbose) print(paste(sep=' ','>>> domeand_d2ht'));
+  cases=expand.grid(n=n,d.het=d.het,sd.het=sd.het);
+  power=with(cases,power_d2ht(n,d.het,sd.het));
+  ## also compute with conventional pvalues
+  power.tval=with(cases,power_d2ht(n,d.het,sd.het,d.crit=d_crit(n)));
+  power=data.frame(cases,power,power.tval);
+  save_data(power);
+  invisible(power);
 }
