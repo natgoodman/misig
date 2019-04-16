@@ -23,7 +23,8 @@ paste_nv=function(name,value,sep='=') {
   paste(sep=sep,name,value); 
 }
 ## generate list of name=value using values from parent environment. code adapted from base::rm
-nvq=function(...,sep=' ') {
+## ignore tells whether to ignore NULL and non-existant names
+nvq=function(...,sep=' ',ignore=F) {
   dots=match.call(expand.dots=FALSE)$...
    if (length(dots) &&
      !all(vapply(dots,function(x) is.symbol(x) || is.character(x),NA,USE.NAMES=FALSE))) 
@@ -33,12 +34,13 @@ nvq=function(...,sep=' ') {
   names=vapply(dots,as.character,"");
   values=sapply(names,function(name) {
     if (exists(name,envir=env)) get(name,envir=env)
-    else stop(paste('no value for',name,'in parent environment'));
+    else if (!ignore) stop(paste('no value for',name,'in parent environment'));
   });
   ## values=sapply(names,function(name)
   ##   if (exists(name,envir=parent.frame(n=2))) get(name,envir=parent.frame(n=2))
   ##   else stop(paste('no value for',name,'in parent environment')));
-  paste(collapse=sep,mapply(function(name,value) paste(sep='=',name,value),names,values));
+  paste(collapse=sep,unlist(mapply(function(name,value)
+    if (!is.null(value)|!ignore) paste(sep='=',name,value) else NULL,names,values)));
 }
 ## tack id onto filebase if not NULL or NA
 paste_id=function(base,id=NULL,sep='.') {
