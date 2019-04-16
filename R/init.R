@@ -17,51 +17,51 @@
 ## initialization.
 ## process parameters and store in param environment.
 ## create output directories if necessary.
-doc.all=cq(readme,ovrfx,ovrht,supp);
+doc.all=cq(readme,ovrfx,ovrht,mndht,pwrht,supp);
 init=function(
   ## doc parameters 
-  doc='readme',                     # controls sim defaults, data, figure subdirs
+  doc='readme',                             # controls sim defaults, data, figure subdirs
   docx=match.arg(doc,doc.all),
-  run.id=NULL,                      # to separate runs for tests
+  run.id=NULL,                              # to separate runs for tests
   ## simulation parameters. random-d simulation
-  n.rand=switch(docx,                     # sample sizes
-                readme=c(20,100),
-                ovrfx=20,
-                ovrht=seq(20,200,by=20)),
-  m.rand=switch(docx,                     # number of populations
-                readme=1e3,
-                ovrfx=1e5,
-                ovrht=1e4),
-  d.gen=switch(docx,                      # function to generate population effect sizes
-               readme=runif,
-               ovrfx=runif,
-               ovrht=rnorm),
-  d.args=switch(docx,                     # arguments passed to d.gen
+  n.rand=switch(docx,                       # sample sizes
+                readme=c(20,100),ovrfx=20),
+  m.rand=switch(docx,                       # number of populations
+                readme=1e3, ovrfx=1e5),
+  d.gen=switch(docx,                        # function to generate population effect sizes
+               readme=runif,ovrfx=runif),
+  d.args=switch(docx,                       # arguments passed to d.gen
                 readme=list(n=m.rand,min=-3,max=3),
-                ovrfx=list(n=m.rand,min=-3,max=3),
-                ovrht=list(n=m.rand,mean=d.mean,sd=0.1)),
-  d.rand=do.call(d.gen,d.args),            # population effect sizes. call generating function
-
+                ovrfx=list(n=m.rand,min=-3,max=3)),
+  d.rand=switch(docx,                       # population effect sizes. call generating function
+                readme=do.call(d.gen,d.args),
+                ovrfx=do.call(d.gen,d.args)),
   ## simulation parameters. fixed-d simulation
   n.fixd=switch(docx,                       # sample sizes
                 readme=seq(20,100,by=20),
-                ovrfx=seq(20,200,by=20),
-                ovrht=NULL), 
+                ovrfx=seq(20,200,by=20)), 
   m.fixd=switch(docx,                       # number of studies per d
-                readme=1e2,
-                ovrfx=1e4,
-                ovrht=NULL),
+                readme=1e2,ovrfx=1e4),
   d.fixd=switch(docx,                       # population effect sizes
                 readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
-                ovrfx=c(0.3,0.5,0.7),
-                ovrht=NULL),
-
+                ovrfx=c(0.3,0.5,0.7)),
   ## simulation parameters. het-d simulation
-  n.hetd=switch(docx,ovrht=200,NULL),       # sample sizes
-  m.hetd=switch(docx,ovrht=1e5,NA),         # number of studies per d.het
-  d.hetd=switch(docx,ovrht=0,NULL),         # centers of het pop effect sizes
-  sd.hetd=switch(docx,ovrht=0.2,NULL),      # standard deviation of het pop distribution
-  
+  n.hetd=switch(docx,                       # sample sizes
+                ovrht=200,mndht=200),
+  m.hetd=switch(docx,                       # number of studies per d.het
+                ovrht=1e5,mndht=1e5),
+  d.hetd=switch(docx,                       # centers of het pop effect sizes
+                ovrht=0,mndht=0.3),
+  sd.hetd=switch(docx,                      # standard deviation of het pop distribution
+                 ovrht=0.2,mndht=0.2),
+  ## theoretical mean significant effect size. (empirical uses sim params)
+  n.meand=switch(docx,overfx=n.fixd,mndht=seq(20,400,by=10)),
+  d.meand=switch(docx,overfx=d.fixd,mndht=c(0.3,0.5,0.7)),
+  sd.meand=switch(docx,mndht=c(0,0.05,0.1,0.2,0.4)),
+  ## theoretical power. (empirical uses sim params)
+  n.power=switch(docx,overfx=n.fixd,mndht=n.meand),
+  d.power=switch(docx,overfx=d.fixd,mndht=d.meand),
+  sd.power=switch(docx,mndht=sd.meand),
   ## data generation function
   datfun=get(paste(sep='_','dat',docx)),
   ## analysis parameters
@@ -77,7 +77,8 @@ init=function(
            switch(docx,
                   readme=c(sim.rand.dir,sim.fixd.dir,sim.hetd.dir),
                   ovrfx=c(sim.rand.dir,sim.fixd.dir),
-                  ovrht=c(sim.hetd.dir))),
+                  ovrht=c(sim.hetd.dir),
+                  mndht=c(sim.hetd.dir))),
   
   ## NG 18-10-18: figdir, tbldir moved to init_doc
   ## figdir=dirname('figure',docx,mdir), # directory for figures. default eg, figure/repwr/m=1e4
