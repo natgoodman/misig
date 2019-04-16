@@ -20,114 +20,314 @@
 
 ## no sections. only 4 figures
 ## n.fig is sample size for which figures plotted
-doc_ovrht=function(n.fig1=20,d.fig1=0.3,sd.fig1=0.2,sect=parent(sect,NULL)) {
-  meand.empi=get_meand_empi();
-  meand.theo=get_meand_theo();
+doc_mndht=function(sect=parent(sect,NULL)) {
+  ## NG 19-04-15: use general get_data instead of special get_meand_theo
+  ##   first step toward full switchover to save_data/get_data
+  ## meand=get_meand_theo();
+  get_data(meand,power);
+  ## meand inflation - ratio of meand to true d
+  meand[,cq(over,over.tval)]=with(meand,cbind(meand/d.het,meand.tval/d.het));
+  ## power inflation - ratio of computed power to actual power
+  power[,cq(over,over.tval)]=
+    with(power,cbind(power_d2t(n,d.het)/power,power_d2t(n,d.het)/power.tval));
 
-    ##### this block not yet ported
-
-  meand.e.byd=split(meand.empi,meand.empi$d0);
-  meand.t.byd=split(meand.theo,meand.theo$d0);
-  ## make splines that interpolate meand, over
-  ##   empirically determined smooth.spline as interp function, and spar=0.3
-  spar=0.3;
-  meand.e.fit=lapply(meand.e.byd,function(meand) with(meand,smooth.spline(n,meand,spar=spar)));
-  ## over.e.fit=lapply(meand.e.byd,function(meand) with(meand,smooth.spline(n,over,spar=spar)));
-  meand.t.fit=lapply(meand.t.byd,function(meand) with(meand,smooth.spline(n,meand,spar=spar)));
-  over.t.fit=lapply(meand.t.byd,function(meand) with(meand,smooth.spline(n,over,spar=spar)));
-
-  ## support statements in text or drawn on figures
-  ## do it upfront 'cuz some used in figures
-  ## d_crit(n=20)=0.64
-  d.crit1=d_crit(n.fig1); 
-  ## mean observed significant effect size and overestimate for n=20
-  ##   d=0.3, mean=0.81, over=2.7x
-  ##   d=0.5, mean=0.86, over=1.7x
-  ##   d=0.7, mean=0.93, over=1.3x
-  meand20=predict(meand.e.fit,20)$y;
-  over20=predict(over.e.fit,20)$y;
-  ## n that achieves over=1.25x
-  ##   d=0.3 n=122
-  ##   d=0.5 n=47
-  ##   d=0.7 n=26
-  n2over=function(n) predict(over.e.fit,n)$y;
-  nover=uniroot(function(n) n2over(n)-1.25,interval=c(10,200))$root;
-  ## save supporting values in table
-  support=data.frame(d.crit1,meand20,over20,nover);
-  dotbl(support);
-  ##### 
+  ## meand.byd=split(meand.theo,meand.theo$d0);
+  ## support=list(
+  ##   ## support statements in text or drawn on figures
+  ##   ## do it upfront 'cuz some used in figures
+  ##   ## d_crit(n=20)=0.64
+  ##   d.crit1=d_crit(n.fig1),
+  ##   ## mean observed significant effect size and overestimate for n=20
+  ##   ##   d=0.3, mean=0.81, over=2.7x
+  ##   ##   d=0.5, mean=0.86, over=1.7x
+  ##   ##   d=0.7, mean=0.93, over=1.3x
+  ##   meand20=predict(meand.e.fit,20)$y,
+  ##   over20=predict(over.e.fit,20)$y,
+  ##   ## n that achieves over=1.25x
+  ##   ##   d=0.3 n=122
+  ##   ##   d=0.5 n=47
+  ##   ##   d=0.7 n=26
+  ##   n2over=function(n) predict(over.e.fit,n)$y,
+  ##   nover=uniroot(function(n) n2over(n)-1.25,interval=c(10,200))$root,
+  ##   end=NULL);               # placeholder for last entry
+  ## dotbl(support,obj.ok=T);
 
   ## draw the figures
   ## figure 1
-  title=title_ovrht('Histogram and sampling distribution under NULL',d.het=NULL,sd.het=sd.fig1,n=n.fig1);
-  sim=get_sim_hetd(n=n.fig1,d=0,sd=sd.fig1)
-  dofig(plothist_d2ht,'histd2ht_NULL',sim=sim,title=title,n=n.fig1,d.het=0,sd.het=c(0,sd.fig1));
+  n.fig=200; d.fig=0.3; sd.fig=0.2;
+  title=title_mndht('P-values improve as observed effect size grows more extreme',
+                    n=n.fig,d.het=d.fig,sd.het=sd.fig);
+  sim=get_sim_hetd(n=n.fig,d=d.fig,sd=sd.fig);
+  x='d.sdz'; y='d.pop';
+  d.crit=d_crit(n.fig); d.htcrit=d_htcrit(n.fig,sd.fig);
+  vl=c(d.fig,-d.crit,d.crit,-d.htcrit,d.htcrit);
+  hl=d.fig;
+  xlim=c(-1,1.5);
+  dofig(plotdvsd,'big_picture',sim=sim,x=x,y=y,vline=vl,hline=hl,xlim=xlim,
+        title=title,cex.main=0.75);
   ## figure 2
-  title=title_ovrht('Histogram and sampling distribution non-NULL',
-                    d.het=d.fig1,sd.het=sd.fig1,n=n.fig1);
-  dofig(plothist_d2ht,'histd2ht_nonNULL',title,n=n.fig1,d.het=d.fig1,sd.het=c(0,sd.fig1));
-
+  title=title_mndht('Histogram of observed effect size',n=n.fig,d.het=d.fig,sd.het=sd.fig1);
+  ylim=c(0,d_d2ht(n=n.fig,d.het=d.fig,sd.het=sd.fig,d=d.fig));  # set ylim to match figure 3
+  dofig(plothist,'hist',sim=sim,vline=vl,title=title,cex.main=0.75,xlim=xlim,ylim=ylim);
   ## figure 3
-  title=title_ovrht('Sampling distributions show impact of increasing n and d');
-  dofig(plotsmpldist,'smpl_dist',vline=c(-d.crit1,d.fig1,d.crit1),title=title);
+  figblk_start();
+  n.fig=200; d.fig=c(0.3,0.3,0.3,0.7,0.7); sd.fig=c(0,0.1,0.2,0.1,0.2);
+  text.fig=list(label=paste_nv('sd.het',sd.fig),
+                y=c(3.5,2.25,0.75,2.25,0.75),side=cq(left,left,left,right,right));
+  title=title_mndht('Sampling distributions with varying sd.het and d',n=n.fig);
+  dofig(plotsmpldist,'smpl_dist',n=n.fig,d.het=d.fig,sd.het=sd.fig,
+        text=text.fig,vline=c(-d.htcrit,d.fig,d.htcrit),title=title,xlim=xlim,ylim=ylim);
+  ##
+  n.fig=c(200,20,20); d.fig=c(0.3,0.3,0.7); sd.fig=0.2;
+  text.fig=list(label=paste_nv('n',n.fig),y=c(1.5,0.5,0.5),side=cq(left,left,right));
+  title=title_mndht('Sampling distributions with varying n and d',sd.het=sd.fig);
+  dofig(plotsmpldist,'smpl_dist',n=n.fig,d.het=d.fig,sd.het=sd.fig,
+        text=text.fig,vline=c(-d.htcrit,d.fig,d.htcrit),title=title,xlim=xlim,ylim=ylim);
+  figblk_end();
 
- ## figure 4
-  title=title_ovrfx('Average observed effect size improves as n increases');
-  x=seq(min(n.hetd),max(n.hetd),by=1);
-  y=do.call(cbind,lapply(meand.t.fit,function(fit) predict(fit,x)$y));
-  col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(meand.t.byd));
+  ## figure 4 - meand
+  figblk_start();
+  ## 4a,b - actual meand - not inflation
+  sd.fig=0.2;
+  meand.byd=split(meand,meand$d.het);
+  bsln.byd=lapply(meand.byd,function(meand) subset(meand,subset=sd.het==0,select=c(meand)));
+  meand.byd=lapply(meand.byd,
+                  function(meand) subset(meand,subset=sd.het==sd.fig,select=c(meand,meand.tval)))
+  title=title_mndht('Mean significant effect size vs. n, d',sd.het=sd.fig);
+  x=unique(meand$n);
+  y=cbind(do.call(cbind,meand.byd),do.call(cbind,bsln.byd));  
+  d.het=names(meand.byd);
+  l=length(d.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),col);
+  lty=c(rep(cq(solid,dashed),l),rep('dotted',l));
+  lwd=c(rep(2,2*l),rep(1,l));
   legend.labels=
-    c(paste(sep=' ','mean sig effect for true effect',names(meand.t.byd)),
-      paste(sep=' ','n achieving 1.25x for true effect',names(meand.t.byd)));
-  col=rep(col,2);
-  lty=c(rep('solid',len=3),rep('dotted',3));
-  lwd=2;
-  dofig(plotmeand,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+    c(sapply(d.het,
+             function(d.het) c(paste(sep='','het data and p-values. d.het=',d.het),
+                               paste(sep='','het data, conventional p-values. d.het=',d.het))),
+      paste(sep='','baseline. d.het=',d.het));
+  dofig(plotm,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
         legend='topright',legend.labels=legend.labels,
-        meand20=meand20,nover=nover,ylim=c(0.3,meand20[3]),
-        xlab='sample size',ylab='effect size');
-  
+        xlab='sample size',ylab='effect size',smooth=F);
+  ##
+  d.fig=0.3;
+  bsln=subset(meand,subset=(sd.het==0&d.het==d.fig),select=c(meand));
+  meand.fig=subset(meand,subset=sd.het!=0&d.het==d.fig);
+  meand.bysd=split(meand.fig,meand.fig$sd.het);
+  meand.bysd=lapply(meand.bysd,function(meand) meand[,cq(meand,meand.tval)]) 
+
+  title=title_mndht('Mean significant effect size vs. n, sd.het',d.het=d.fig);
+  x=unique(meand$n);
+  y=cbind(do.call(cbind,meand.bysd),bsln);  
+  sd.het=names(meand.bysd);
+  l=length(sd.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),'black');
+  lty=c(rep(cq(solid,dashed),l),'dotted');
+  lwd=c(rep(2,2*l),1);
+  legend.labels=
+    c(sapply(sd.het,
+             function(sd.het) c(paste(sep='','het data and p-values. sd.het=',sd.het),
+                               paste(sep='','het data, conventional p-values. sd.het=',sd.het))),
+      'baseline');
+  dofig(plotm,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='effect size',smooth=F);
+  ## 4c,d - meand inflation - ratio of meand to true d
+  sd.fig=0.2;
+  meand.byd=split(meand,meand$d.het);
+  bsln.byd=lapply(meand.byd,function(meand) subset(meand,subset=sd.het==0,select=c(over)));
+  over.byd=lapply(meand.byd,
+                  function(meand) subset(meand,subset=sd.het==sd.fig,select=c(over,over.tval)))
+  title=title_mndht('Significant effect size inflation vs. n, d',sd.het=sd.fig);
+  x=unique(meand$n);
+  y=cbind(do.call(cbind,over.byd),do.call(cbind,bsln.byd));  
+  d.het=names(meand.byd);
+  l=length(d.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),col);
+  lty=c(rep(cq(solid,dashed),l),rep('dotted',l));
+  lwd=c(rep(2,2*l),rep(1,l));
+  legend.labels=
+    c(sapply(d.het,
+             function(d.het) c(paste(sep='','het data and p-values. d.het=',d.het),
+                               paste(sep='','het data, conventional p-values. d.het=',d.het))),
+      paste(sep='','baseline. d.het=',d.het));
+  dofig(plotm,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='inflation',smooth=F);
+
+  ##
+  d.fig=0.3;
+  bsln=subset(meand,subset=(sd.het==0&d.het==d.fig),select=c(over));
+  meand.fig=subset(meand,subset=sd.het!=0&d.het==d.fig);
+  meand.bysd=split(meand.fig,meand.fig$sd.het);
+  over.bysd=lapply(meand.bysd,function(meand) meand[,cq(over,over.tval)]) 
+
+  title=title_mndht('Significant effect size inflation vs. n, sd.het',d.het=d.fig);
+  x=unique(meand$n);
+  y=cbind(do.call(cbind,over.bysd),bsln);  
+  sd.het=names(meand.bysd);
+  l=length(sd.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),'black');
+  lty=c(rep(cq(solid,dashed),l),'dotted');
+  lwd=c(rep(2,2*l),1);
+  legend.labels=
+    c(sapply(sd.het,
+             function(sd.het) c(paste(sep='','het data and p-values. sd.het=',sd.het),
+                               paste(sep='','het data, conventional p-values. sd.het=',sd.het))),
+      'baseline');
+  dofig(plotm,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='inflation',smooth=F);
+  figblk_end();
+
+  ## figure 5 - power
+  figblk_start();
+  ## 5a,b - actual power - not inflation
+  sd.fig=0.2;
+  power.byd=split(power,power$d.het);
+  bsln.byd=lapply(power.byd,function(power) subset(power,subset=sd.het==0,select=c(power)));
+  power.byd=lapply(power.byd,
+                  function(power) subset(power,subset=sd.het==sd.fig,select=c(power,power.tval)))
+  title=title_mndht('Power vs. n, d',sd.het=sd.fig);
+  x=unique(power$n);
+  y=cbind(do.call(cbind,power.byd),do.call(cbind,bsln.byd));  
+  d.het=names(power.byd);
+  l=length(d.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),col);
+  lty=c(rep(cq(solid,dashed),l),rep('dotted',l));
+  lwd=c(rep(2,2*l),rep(1,l));
+  legend.labels=
+    c(sapply(d.het,
+             function(d.het) c(paste(sep='','het data and p-values. d.het=',d.het),
+                               paste(sep='','het data, conventional p-values. d.het=',d.het))),
+      paste(sep='','baseline. d.het=',d.het));
+  dofig(plotm,'power',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='power',smooth=F);
+  ##
+  d.fig=0.3;
+  bsln=subset(power,subset=(sd.het==0&d.het==d.fig),select=c(power));
+  power.fig=subset(power,subset=sd.het!=0&d.het==d.fig);
+  power.bysd=split(power.fig,power$sd.het);
+  power.bysd=lapply(power.bysd,function(power) power[,cq(power,power.tval)]) 
+
+  title=title_mndht('Power vs. n, sd.het',d.het=d.fig);
+  x=unique(power$n);
+  y=cbind(do.call(cbind,power.bysd),bsln);  
+  sd.het=names(power.bysd);
+  l=length(sd.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),'black');
+  lty=c(rep(cq(solid,dashed),l),'dotted');
+  lwd=c(rep(2,2*l),1);
+  legend.labels=
+    c(sapply(sd.het,
+             function(sd.het) c(paste(sep='','het data and p-values. sd.het=',sd.het),
+                               paste(sep='','het data, conventional p-values. sd.het=',sd.het))),
+      'baseline');
+  dofig(plotm,'power',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='power',smooth=F);
+  ## 5c,d - power inflation - ratio of computed power to actual power
+  sd.fig=0.2;
+  power.byd=split(power,power$d.het);
+  bsln.byd=lapply(power.byd,function(power) subset(power,subset=sd.het==0,select=c(over)));
+  over.byd=lapply(power.byd,
+                  function(power) subset(power,subset=sd.het==sd.fig,select=c(over,over.tval)))
+  title=title_mndht('Power inflation vs. n, d',sd.het=sd.fig);
+  x=unique(power$n);
+  y=cbind(do.call(cbind,over.byd),do.call(cbind,bsln.byd));  
+  d.het=names(over.byd);
+  l=length(d.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),col);
+  lty=c(rep(cq(solid,dashed),l),rep('dotted',l));
+  lwd=c(rep(2,2*l),rep(1,l));
+  legend.labels=
+    c(sapply(d.het,
+             function(d.het) c(paste(sep='','het data and p-values. d.het=',d.het),
+                               paste(sep='','het data, conventional p-values. d.het=',d.het))),
+      paste(sep='','baseline. d.het=',d.het));
+  dofig(plotm,'over',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='inflation',smooth=F);
+  ##
+  d.fig=0.3;
+  bsln=subset(power,subset=(sd.het==0&d.het==d.fig),select=c(over));
+  power.fig=subset(power,subset=sd.het!=0&d.het==d.fig);
+  power.bysd=split(power.fig,power.fig$sd.het);
+  over.bysd=lapply(power.bysd,function(power) power[,cq(over,over.tval)]) 
+
+  title=title_mndht('Power inflation vs. n, sd.het',d.het=d.fig);
+  x=unique(power$n);
+  y=cbind(do.call(cbind,over.bysd),bsln);  
+  sd.het=names(over.bysd);
+  l=length(sd.het);
+  col=RColorBrewer::brewer.pal(l,'Set1');
+  col=c(rep(col,each=2),'black');
+  lty=c(rep(cq(solid,dashed),l),'dotted');
+  lwd=c(rep(2,2*l),1);
+  legend.labels=
+    c(sapply(sd.het,
+             function(sd.het) c(paste(sep='','het data and p-values. sd.het=',sd.het),
+                               paste(sep='','het data, conventional p-values. sd.het=',sd.het))),
+      'baseline');
+  dofig(plotm,'over',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+        legend='topright',legend.labels=legend.labels,
+        xlab='sample size',ylab='inflation',smooth=F);
+  figblk_end();
+
   invisible();
 }
-## TODO: probably don't need d
-## generate title for doc_ovrht
-title_ovrht=function(desc=NULL,d.het=NULL,sd.het=NULL,n=NULL) {
+## generate title for doc_mndht
+title_mndht=function(...,sep=' ',n=NULL,d.het=NULL,sd.het=NULL) {
   fig=paste(sep='','Figure ',figlabel());
-  paste(collapse="\n",
-        c(fig,
-          paste(sep='. ',desc,
-                paste(collapse=', ',
-                      c(if(!is.null(d.het))paste_nv(d.het),
-                        if(!is.null(sd.het))paste_nv(sd.het),
-                        if(!is.null(n))paste_nv(n))))));
+  desc=paste(sep=sep,...);
+  nv=nvq(sep=', ',ignore=T,n,d.het,sd.het);
+  if (!nzchar(nv)) nv=NULL;
+  paste(collapse="\n",c(fig,paste(collapse='. ',c(desc,nv))));
 }
 
-
-## TODO: NOT USED. wrong sampling distribution!!
+## TODO: change function name - getting clobbered by later doc_ file
+##   push vline stuff into function
 ## plot sampling distributions (figure 3)
+## xlim not presently used
 ## mostly hard-coded because no easy way to automate placement of text
-plotsmpldist=function(vline=NULL,title,dlim=c(-2,2)) {
-  ## do n=100 first because it's way taller than the others
-  plotpvsd(n=100,d0=0.3,dlim=dlim,add=F,vline=vline,title=title);
-  plotpvsd(n=20,d0=0.3,dlim=dlim,add=T);
-  plotpvsd(n=20,d0=0.7,dlim=dlim,add=T);
-  dtext(n=20,d0=0.3,y=0.5,side='left');
-  dtext(n=20,d0=0.7,y=0.5,side='right');
-  dtext(n=100,d0=0.3,y=2.5,side='left');
+plotsmpldist=function(n,d.het,sd.het,text=list(),
+                      vline=NULL,title,dlim=c(-2,2),xlim,ylim) {
+  ## TODO: set up empty plot before doing mapply
+  plotpvsd(n=n[1],d.het=d.het[1],sd.het=sd.het[1],dlim=dlim,add=F,vline=vline,
+           title=title,xlim=xlim,ylim=ylim);
+  mapply(function(n,d.het,sd.het) plotpvsd(n=n,d.het=d.het,sd.het=sd.het,dlim=dlim,add=T),
+         n,d.het,sd.het);
+  do.call(Vectorize(dtext),c(list(n=n.fig,d.het=d.fig,sd.het=sd.fig),text));
+  return();
 }
+  ## ## do n=100 first because it's way taller than the others
+  ##  plotpvsd(n=100,d0=0.3,dlim=dlim,add=F,vline=vline,title=title);
+  ##  plotpvsd(n=20,d0=0.3,dlim=dlim,add=T);
+  ##  plotpvsd(n=20,d0=0.7,dlim=dlim,add=T);
+
+  ## TODO: place text somehow
+  ## dtext(n=20,d0=0.3,y=0.5,side='left');
+  ## dtext(n=20,d0=0.7,y=0.5,side='right');
+  ## dtext(n=100,d0=0.3,y=2.5,side='left');
+## }
 ## helper function for placing text on sampling distributions (figure 3)
-dtext=
-  function(n,d0,y,label=paste(sep=', ',paste_nv('d',d0),paste_nv('n',n)),side=cq(left,right),
-           cex=0.9,col='grey10') {
-  side=match.arg(side);
-  ## invert d_d2t to find d corresponding to y
-  y2d=function(d) d_d2t(n=n,d=d,d0=d0)-y;
+dtext=function(n,d.het,sd.het,label,y,side,cex=0.9,col='grey10') {
+  ## invert d_d2ht to find d corresponding to y
+  y2d=function(d) d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d)-y;
   if(side=='left') {
-    d=uniroot(y2d,interval=c(-10,d0))$root
+    d=uniroot(y2d,interval=c(-10,d.het))$root
     label=paste(sep='',label,' ');
     adj=c(1,0);
   } else {
-    d=uniroot(y2d,interval=c(d0,10))$root;
+    d=uniroot(y2d,interval=c(d.het,10))$root;
     label=paste(sep='',' ',label);
     adj=c(0,0);
   }
