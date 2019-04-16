@@ -18,10 +18,12 @@
 source('R/util.R');
 source('R/datman.R');
 source('R/dat.R');
+source('R/dat_mndht.R');
 source('R/dat_ovrfx.R');
 source('R/dat_ovrht.R');
 source('R/dat_readme.R');
 source('R/doc.R');
+source('R/doc_mndht.R');
 source('R/doc_ovrfx.R');
 source('R/doc_ovrht.R');
 source('R/doc_readme.R');
