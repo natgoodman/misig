@@ -17,6 +17,10 @@
 ## NG 19-01-09. presently just for siglo document
 ## plot d.y vs d.x, typically d.pop vs d.sdz, colored by pval
 ## sim is data frame of simulation results
+## params for generating pval colors
+##   n is sample size - default from sim
+##   sd.het is sd for noncentral d2ht distribution - default from sim if exists there
+##   distribution is d2t or d2ht - default 'd2t' unless sd.het is set
 ## title is title
 ## legend tells whether to draw pval legend
 ##   legend.xscale, legend.yscale are fractions of plat ares
@@ -28,7 +32,11 @@
 ## vhdigits is number of digits for these values
 #
 plotdvsd=
-  function(sim,title='',cex.title=1,x='d.sdz',y='d.pop',
+  function(sim,
+           n=unique(sim$n),sd.het=if(exists('sd.het',sim))unique(sim$sd.het) else NULL,
+           distribution=cq(d2t,d2ht),
+           title='',cex.title=1,x='d.sdz',y='d.pop',
+           col=NULL,
            legend=T,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
            xlab=switch(x,
@@ -40,8 +48,18 @@ plotdvsd=
                        d.pop="true effect size",
                        NULL),
            ...) {
-    plot(sim[,x],sim[,y],col=pval2col(sim[,'pval']),main=title,cex.main=cex.title,
-         xlab=xlab,ylab=ylab,pch=19,cex=0.5,...);
+    if (is.null(col)) {
+      if (missing(distribution)) distribution=if(is.null(sd.het)) 'd2t' else 'd2ht'
+      else distribution=match.arg(distribution);
+      if (length(n)==1&length(sd.het)<=1)
+        col=d2col(n=n,sd.het=sd.het,distribution=distribution,d=sim$d.sdz)
+      else {
+        if (length(n)!=1) warn('plothist need unique n to convert d to color');
+        if (length(sd.het)>1) warn('plothist need unique sd.het to convert d to color');
+        col='grey';
+      }}
+    plot(sim[,x],sim[,y],col=col,main=title,cex.main=cex.title,
+       xlab=xlab,ylab=ylab,pch=19,cex=0.5,...);
     grid();
     ## plot extra lines if desired. nop if vline, hline NULL
     abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
@@ -55,7 +73,10 @@ plotdvsd=
   }
 ## plot histogram of (typically) d.sdz colored by pval
 ## sim is data frame of simulation results
-## n is sample size (for converting d to t or pval)
+## params for generating pval colors
+##   n is sample size - default from sim
+##   sd.het is sd for noncentral d2ht distribution - default from sim if exists there
+##   distribution is d2t or d2ht - default 'd2t' unless sd.het is set
 ## title is title
 ## legend tells whether to draw pval legend
 ##   legend.x0 is harcoded x-position of legend - use with care!
@@ -69,19 +90,26 @@ plotdvsd=
 ## vhdigits is number of digits for these values
 #
 plothist=
-  function(sim,n=unique(sim$n),title='',cex.title=1,x='d.sdz',breaks=50,freq=F,add=F,
+  function(sim,
+           n=unique(sim$n),sd.het=if(exists('sd.het',sim))unique(sim$sd.het) else NULL,
+           distribution=cq(d2t,d2ht),
+           title='',cex.title=1,x='d.sdz',breaks=50,freq=F,add=F,
            col=NULL,border='black',
            legend=T,legend.x0=NULL,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="density",
            ...) {
     hist.obj=hist(sim[,x],breaks=breaks,plot=F);
-    if (is.null(col)) 
-      if (length(n)==1) col=d2col(n=n,d=hist.obj$mids)
+    if (is.null(col)) {
+      if (missing(distribution)) distribution=if(is.null(sd.het)) 'd2t' else 'd2ht'
+      else distribution=match.arg(distribution);
+      if (length(n)==1&length(sd.het)<=1)
+        col=d2col(n=n,sd.het=sd.het,distribution=distribution,d=hist.obj$mids)
       else {
-        warn('plothist need unique n to convert d to color');
-        col='black';
-      }
+        if (length(n)!=1) warn('plothist need unique n to convert d to color');
+        if (length(sd.het)>1) warn('plothist need unique sd.het to convert d to color');
+        col='grey';
+      }}
     plot(hist.obj,col=col,border=border,freq=freq,main=title,cex.main=cex.title,
          xlab=xlab,ylab=ylab,add=add,...);
     if (!add) {
@@ -315,7 +343,9 @@ pval2col=function(pval) {
   param(col.pval,brk.pval,min.pvcol);
   col.pval[findInterval(-log10(clamp_pval(pval,min.pvcol)),brk.pval,all.inside=T)];
 }
-d2col=function(n,d) pval2col(d2pval(n=n,d=d));
-  
+d2col=function(n,sd.het,distribution,d) {
+  pval=if(distribution=='d2t') d2pval(n,d) else d2htpval(n,sd.het,d);
+  pval2col(pval);
+}
 clamp_pval=function(pval,min.pvcol) sapply(pval,function(pval) max(min(pval,1),min.pvcol));
 
