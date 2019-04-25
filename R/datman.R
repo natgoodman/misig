@@ -59,14 +59,14 @@ load_data=function(...,file=NULL,list=character()) {
     if (is.null(file)) stop('Cannot load data unless file or what is set');
     return(load_(file=file));
   }
-  sapply(1:length(names),function(i) {
+  val=lapply(1:length(names),function(i) {
     what=names[i];
     if (length(file)>=i) file=file[i] else file=filename_data(what);
     val=load_(file=file);
     assign(what,val,envir=parent.env);
-    if (length(names)==1) return(val);
+    val;
   });
-  names;
+  if (length(names)==1) return(val[[1]]) else names;
 }
 get_data=load_data;
 ##### sim_rand
