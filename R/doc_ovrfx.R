@@ -18,7 +18,7 @@
 ## no sections. only 4 figures
 ## n.fig is sample size for which figures plotted
 doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
-  param(n.fixd,d.d.fixd);
+  param(n.fixd,d.fixd);
   meand.empi=get_meand_empi();
   meand.theo=get_meand_theo();
   meand.e.byd=split(meand.empi,meand.empi$d0);
