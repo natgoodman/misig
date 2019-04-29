@@ -1,9 +1,69 @@
 Revision history for misig repository
 ================
 Nathan (Nat) Goodman
-February 19, 2019
+May 1, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+Release 1.20 2019-MM-DD
+-----------------------
+
+Support posted version of `ovrht` blog post. "Your P-Values are Too Small! And So Are Your Confidence Intervals!"
+
+Major code changes
+
+-   Refactored data generation code into multiple files analogous to `R/doc...` files
+-   Added support for d2ht (aka 'het') distribution
+
+New files
+
+-   `ovrht.Rmd`, `ovrht.TRN.Rmd` and related
+    -   Source files for `ovrht` blog post. `TRN` is modified to generate Word document that can be ported to TRN more easily
+-   `R/dat.R`
+    -   Top-level and generic data generation functions, analogous to `R/doc.R`
+-   `R/dat_mndht.R`, `R/dat_ovrfx.R`, `R/dat_ovrht.R`, `R/dat_readme.R`
+    -   Data generation function for each document
+-   `R/doc_mndht.R`
+    -   Document generation functions for `mndht` blog post. Expect name to change before post goes public
+-   `R/doc_ovrht.R`
+    -   Document generation functions for `ovrht` blog post
+
+Changed files
+
+-   `R/datman.R`
+    -   Add functions for top level data stored in `datadir`
+    -   Add functions for `hetd` simulations
+    -   Extend `save_tbl` to save nonflat objects. These aren't tables, of course, but it's sometimes useful to store them in table directories
+-   `R/doc.R`
+    -   Add param to `dotbl` for saving nonflat objects
+-   `R/doc_ovrfx.R`
+    -   Replace `n.meand`, `d.meand` params by `n.fixd`, `d.fixd`
+-   `R/doc_readme`
+    -   Replace `n.meand`, `d.meand` params by `n.fixd`, `d.fixd`
+    -   More TBD
+-   `R/init.R`
+    -   Abandon `n.meand`, `d.meand` params - redundant with `n.fixd`, `d.fixd`
+    -   Add `outdir` param to drive creation of output directories. Needed now that documents have become so varied
+    -   Add params for `ovrht` document
+    -   Add params for saving top level data
+    -   Remove obsolete params - `fpr.cutoff`, `fnr.cutoff`
+    -   Stop setting params for doc types that don't use those params
+-   `R/plot.R`
+    -   `plothist`: add `add`, color params
+    -   `plotpvsd`: add support for d2ht (aka 'het') distribution
+    -   `plotm`: add `spar` param for `spline` smoother
+    -   `hline`, `vline`: add `cex` param
+-   `R/run.R`
+    -   Add `source` commands for new `R/dat.R`, `dat_<document>.R` files
+    -   Remove obsolete `source` command for `R/dodata.R`
+    -   Replace calls to `dosim`, `domeand` by more general call to `dodat`
+-   `R/stats.R`
+    -   Add many functions for d2ht (aka 'het') distribution
+    -   Replace obsolete calls to `parent` by `param`
+    -   Vectorize `ci_d2t` function
+-   `R/util.R`
+    -   Add `spar` param to `splinem` smoothing function
+    -   Add `ignore` param to `nvq` to ignore NULL and non-existant names
+
 Release 1.10 2019-02-19
 -----------------------
 
