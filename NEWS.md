@@ -4,8 +4,8 @@ Nathan (Nat) Goodman
 May 1, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
-Release 1.20 2019-MM-DD
------------------------
+Release 1.20a 2019-04-29
+------------------------
 
 Support posted version of `ovrht` blog post. "Your P-Values are Too Small! And So Are Your Confidence Intervals!"
 
@@ -23,7 +23,7 @@ New files
 -   `R/dat_mndht.R`, `R/dat_ovrfx.R`, `R/dat_ovrht.R`, `R/dat_readme.R`
     -   Data generation function for each document
 -   `R/doc_mndht.R`
-    -   Document generation functions for `mndht` blog post. Expect name to change before post goes public
+    -   Document generation functions for `mndht` blog post. Runs, but still a rough sketch. Expect name to change before post goes public
 -   `R/doc_ovrht.R`
     -   Document generation functions for `ovrht` blog post
 
@@ -63,6 +63,12 @@ Changed files
 -   `R/util.R`
     -   Add `spar` param to `splinem` smoothing function
     -   Add `ignore` param to `nvq` to ignore NULL and non-existant names
+
+Known bugs
+
+1.  Functions in the various `doc_` files are clobbering each other. Could also happen with `dat_` files
+    -   Suggests I've reached the limit of my ersatz object-like programming
+    -   One solution is to move sourcing of doc specific files into `init`. Be aware this will break my current debugging practice of sourcing `run.R` to get ‘em all
 
 Release 1.10 2019-02-19
 -----------------------
