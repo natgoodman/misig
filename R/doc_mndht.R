@@ -52,13 +52,13 @@ doc_mndht=function(sect=parent(sect,NULL)) {
   ##   end=NULL);               # placeholder for last entry
   ## dotbl(support,obj.ok=T);
 
-  sim=get_sim_hetd(n=n.fig,d=d.fig,sd=sd.fig);
   ## downsample to 1e4 so plotting will be fast
   m=param(m.hetd);
   if (m>1e4) sim=sim[sample.int(m,1e4),];
   ## draw the figures
   ## figure 1
   n.fig=200; d.fig=0.3; sd.fig=0.2;
+  sim=get_sim_hetd(n=n.fig,d=d.fig,sd=sd.fig);
   title=title_mndht('P-values improve as observed effect size grows more extreme',
                     n=n.fig,d.het=d.fig,sd.het=sd.fig);
   x='d.sdz'; y='d.pop';
