@@ -135,7 +135,8 @@ meand_d2t=Vectorize(
     meand=integrate(function(d) d_d2t(n=n,d=d,d0=d0)*d,lower=d.crit,upper=Inf)$value / p_d2t(n=n,d0=d0,d=d.crit,lower.tail=F);
   })
 ## power - wrapper for power.t.test for stylistic consistency with power_d2ht 
-power_d2t=function(n,d,strict=F) power.t.test(n=n,delta=d,strict=strict)$power
+power_d2t=function(n,d,sig.level=param(sig.level),strict=F)
+  power.t.test(n=n,delta=d,sig.level=sig.level,strict=strict)$power
 
 ## ---- Statistical Functions for d2ht Distribution ----
 ## d2ht is t-distribution with effect size heterogeneity
@@ -214,8 +215,8 @@ meand_d2ht=Vectorize(
       d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d)*d,lower=d.crit,upper=Inf)$value / p_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d.crit,lower.tail=F);
   })
 ## power. strict=F only considers positive tail. default for power.t.test
-power_d2ht=function(n,d,sd.het,d.crit,strict=F) {
-  if (missing(d.crit)) d.crit=d_htcrit(n=n,sd.het=sd.het);
+power_d2ht=function(n,d,sd.het,d.crit,sig.level=param(sig.level),strict=F) {
+  if (missing(d.crit)) d.crit=d_htcrit(n=n,sd.het=sd.het,sig.level=sig.level);
   p_d2ht(n=n,d.het=d,sd.het=sd.het,d=d.crit,lower.tail=F)+
     ifelse(strict,p_d2ht(n=n,d.het=d,sd.het=sd.het,d=-d.crit,lower.tail=T),0)
 }
