@@ -20,7 +20,7 @@
 
 ## no sections. only 4 figures
 ## n.fig is sample size for which figures plotted
-doc_mndht=function(sect=parent(sect,NULL)) {
+doc_ovrhtsupp=function(sect=parent(sect,NULL)) {
   ## NG 19-04-15: use general get_data instead of special get_meand_theo
   ##   first step toward full switchover to save_data/get_data
   ## meand=get_meand_theo();
@@ -59,7 +59,7 @@ doc_mndht=function(sect=parent(sect,NULL)) {
   ## figure 1
   n.fig=200; d.fig=0.3; sd.fig=0.2;
   sim=get_sim_hetd(n=n.fig,d=d.fig,sd=sd.fig);
-  title=title_mndht('P-values improve as observed effect size grows more extreme',
+  title=title_ovrhtsupp('P-values improve as observed effect size grows more extreme',
                     n=n.fig,d.het=d.fig,sd.het=sd.fig);
   x='d.sdz'; y='d.pop';
   d.crit=d_crit(n.fig); d.htcrit=d_htcrit(n.fig,sd.fig);
@@ -69,7 +69,7 @@ doc_mndht=function(sect=parent(sect,NULL)) {
   dofig(plotdvsd,'big_picture',sim=sim,x=x,y=y,vline=vl,hline=hl,xlim=xlim,
         title=title,cex.main=0.75);
   ## figure 2
-  title=title_mndht('Histogram of observed effect size',n=n.fig,d.het=d.fig,sd.het=sd.fig1);
+  title=title_ovrhtsupp('Histogram of observed effect size',n=n.fig,d.het=d.fig,sd.het=sd.fig1);
   ylim=c(0,d_d2t(n=n.fig,d=d.fig,d0=d.fig));  # set ylim to match figure 3
   dofig(plothist,'hist',sim=sim,vline=vl,title=title,cex.main=0.75,xlim=xlim,ylim=ylim);
   ## figure 3
@@ -77,13 +77,13 @@ doc_mndht=function(sect=parent(sect,NULL)) {
   n.fig=200; d.fig=c(0.3,0.3,0.3,0.7,0.7); sd.fig=c(0,0.1,0.2,0.1,0.2);
   text.fig=list(label=paste_nv('sd.het',sd.fig),
                 y=c(3.5,2.25,0.75,2.25,0.75),side=cq(left,left,left,right,right));
-  title=title_mndht('Sampling distributions with varying sd.het and d.het',n=n.fig);
+  title=title_ovrhtsupp('Sampling distributions with varying sd.het and d.het',n=n.fig);
   dofig(plotsmpldist,'smpldist',n=n.fig,d.het=d.fig,sd.het=sd.fig,
         text=text.fig,vline=c(-d.htcrit,d.fig,d.htcrit),title=title,xlim=xlim,ylim=ylim);
   ##
   n.fig=c(200,20,20); d.fig=c(0.3,0.3,0.7); sd.fig=0.2;
   text.fig=list(label=paste_nv('n',n.fig),y=c(1.5,0.5,0.5),side=cq(left,left,right));
-  title=title_mndht('Sampling distributions with varying n and d.het',sd.het=sd.fig);
+  title=title_ovrhtsupp('Sampling distributions with varying n and d.het',sd.het=sd.fig);
   dofig(plotsmpldist,'smpldist',n=n.fig,d.het=d.fig,sd.het=sd.fig,
         text=text.fig,vline=c(-d.htcrit,d.fig,d.htcrit),title=title,xlim=xlim,ylim=ylim);
   ## figure 4 - meand
@@ -112,8 +112,8 @@ doc_mndht=function(sect=parent(sect,NULL)) {
 
   invisible();
 }
-## generate title for doc_mndht
-title_mndht=function(...,sep=' ',n=NULL,d.het=NULL,sd.het=NULL) {
+## generate title for doc_ovrhtsupp
+title_ovrhtsupp=function(...,sep=' ',n=NULL,d.het=NULL,sd.het=NULL) {
   fig=paste(sep='','Figure ',figlabel());
   desc=paste(sep=sep,...);
   nv=nvq(sep=', ',ignore=T,n,d.het,sd.het);
@@ -169,7 +169,7 @@ plot_byd=
     });
     x=unique(data$n);
     y=do.call(cbind,data.byd);  
-    ## title=title_mndht('Mean significant effect size vs. n, d',sd.het=sd.fig);
+    ## title=title_ovrhtsupp('Mean significant effect size vs. n, d',sd.het=sd.fig);
     d.het=names(data.byd);
     l=length(d.het);
     col=RColorBrewer::brewer.pal(max(l,3),'Set1')[1:l];
@@ -192,7 +192,7 @@ plot_byd=
 title_byd=function(what,y,sd.het) {
   desc=if (what=='meand') 'Mean significant effect size' else 'Power';
   if (y=='over') desc=paste(sep=' ',desc,'inflation');
-  title_mndht(desc,'vs. n, d.het',sd.het=sd.het);
+  title_ovrhtsupp(desc,'vs. n, d.het',sd.het=sd.het);
 }
 ylab_byd=function(what,y) {
   ylab=if (what=='meand') 'effect size' else 'power';
@@ -239,7 +239,7 @@ plot_bysd=
 title_bysd=function(what,y,d.het) {
   desc=if (what=='meand') 'Mean significant effect size' else 'Power';
   if (y=='over') desc=paste(sep=' ',desc,'inflation');
-  title_mndht(desc,'vs. n, sd.het',d.het=d.het);
+  title_ovrhtsupp(desc,'vs. n, sd.het',d.het=d.het);
 }
 ylab_bysd=function(what,y) {
   ylab=if (what=='meand') 'effect size' else 'power';
