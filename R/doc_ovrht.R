@@ -21,7 +21,8 @@
 ## n.fig is sample size for which figures plotted
 doc_ovrht=function(sect=parent(sect,NULL)) {
   ## support statements in text or drawn on figures
-  get_data(pval,ci);
+  pval=get_data(pval.d2ht);
+  ci=get_data(ci.d2ht);
   support=list(
     ## for n=200, sd.het=0.2: htpval=0.38, ci_d2ht=+-0.44. ci_d2t=+-0.20
     pval1=subset(pval,subset=(n==200&sd.het==0.2)),
@@ -38,8 +39,8 @@ doc_ovrht=function(sect=parent(sect,NULL)) {
     ## pval inflation 1.90,10.26; ci inflation 1.18,3.00
     pval4=subset(pval,subset=(n%in%c(20,400)&sd.het==0.20)),
     ci4=subset(ci,subset=(n%in%c(20,400)&sd.het==0.20)),
-    end=NULL);                          # placeholder for last entry
-
+    end=NA);                          # placeholder for last entry
+  support=lapply(support,function(x) round(x,digits=2));
   dotbl(support,obj.ok=T);
   ## draw the figures
   ## figure 1
@@ -50,10 +51,10 @@ doc_ovrht=function(sect=parent(sect,NULL)) {
   dofig(plothist_d2t,'hist_d2t',sim=sim,title=title,d=d.fig,n=n.fig);
   ## figure 2
   title=title_ovrht('P-value inflation worsens as sd.het and n increase');
-  dofig(plotpval_infl,'pval_inflation',pval=pval,title=title);
+  dofig(plotpval_over,'pval_inflation',pval=pval,title=title);
   ## figure 3
   title=title_ovrht('Confidence interval inflation worsens as sd.het and n increase');
-  dofig(plotci_infl,'ci_inflation',ci=ci,title=title);
+  dofig(plotci_over,'ci_inflation',ci=ci,title=title);
   ## figure 4
   title=title_ovrht('Conventional and het sampling distributions for two values of n');
   n.fig=c(20,200); d.fig=0; sd.fig=0.2;
@@ -87,11 +88,11 @@ plothist_d2t=
     invisible();
 }
 ## figure 2. p-value inflation
-plotpval_infl=function(pval,title,lwd=2) {
+plotpval_over=function(pval,title,lwd=2) {
     pval=subset(pval,subset=(sd.het!=0));
     pval.bysd=split(pval,pval$sd.het);
     n=unique(pval$n);
-    y=do.call(cbind,lapply(pval.bysd,function(pval) pval$infl));
+    y=do.call(cbind,lapply(pval.bysd,function(pval) pval$over));
     col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(pval.bysd));
     legend.labels=paste(sep='=','sd.het',names(pval.bysd));
     plotm(x=n,y=y,title=title,cex.main=1,lwd=lwd,col=col,smooth='spline',
@@ -99,11 +100,11 @@ plotpval_infl=function(pval,title,lwd=2) {
           xlab='sample size',ylab='inflation (ratio of correct to conventional value)');
 }
 ## figure 3. confidence interval inflation
-plotci_infl=function(ci,title,lwd=2) {
+plotci_over=function(ci,title,lwd=2) {
     ci=subset(ci,subset=(sd.het!=0));
     ci.bysd=split(ci,ci$sd.het);
     n=unique(ci$n);
-    y=do.call(cbind,lapply(ci.bysd,function(ci) ci$infl));
+    y=do.call(cbind,lapply(ci.bysd,function(ci) ci$over));
     col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(ci.bysd));
     legend.labels=paste(sep='=','sd.het',names(ci.bysd));
     plotm(x=n,y=y,title=title,cex.main=1,lwd=lwd,col=col,smooth='spline',
