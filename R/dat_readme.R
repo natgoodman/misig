@@ -12,4 +12,34 @@
 ##
 #################################################################################
 ## ---- Data Generation for readme ----
-dat_readme=function(...) dat_ovrfx(...);
+dat_readme=function(...) {
+  ## do all types of simulations
+  param(n.fixd,m.fixd,d.fixd);
+  dosim_fixd(n.fixd,m.fixd,d.fixd);
+  param(n.rand,m.rand,d.rand);
+  dosim_rand(n.rand,m.rand,d.rand);
+  param(n.hetd,m.hetd,d.hetd,sd.hetd);
+  dosim_hetd(n.hetd,m.hetd,d.hetd,sd.hetd);
+
+  ## fixed effect scenario - mean significant effect size, aka meand
+  ## simulation (fixd, rand)
+  domeand_fixd(n.fixd,d.fixd);
+  domeand_rand(n.rand);
+  ## theoretical 
+  domeand_d2t(n.fixd,d.fixd);
+
+  ## het effect scenario - pval, ci, meand, power
+  ## simulation (hetd)
+  dopval_hetd(n.hetd,sd.hetd);
+  ## doci_hetd(n.hetd,d.hetd,sd.hetd);
+  domeand_hetd(n.hetd,d.hetd,sd.hetd);
+  dopower_hetd(n.hetd,d.hetd,sd.hetd);
+  ## theoretical
+  dopval_d2ht(n.hetd,sd.hetd);
+  doci_d2ht(n.hetd,sd.hetd,d.hetd);
+  domeand_d2ht(n.hetd,d.hetd,sd.hetd);
+  dopower_d2ht(n.hetd,d.hetd,sd.hetd);
+
+  invisible();
+}
+
