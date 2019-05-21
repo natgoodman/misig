@@ -19,15 +19,11 @@
 ## n.fig is sample size for which figures plotted
 doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   param(n.fixd,d.fixd);
-  meand.empi=get_meand_empi();
-  meand.theo=get_meand_theo();
-  meand.e.byd=split(meand.empi,meand.empi$d0);
+  meand.theo=get_data(meand.d2t);
   meand.t.byd=split(meand.theo,meand.theo$d0);
   ## make splines that interpolate meand, over
   ##   empirically determined smooth.spline as interp function, and spar=0.3
   spar=0.3;
-  meand.e.fit=lapply(meand.e.byd,function(meand) with(meand,smooth.spline(n,meand,spar=spar)));
-  ## over.e.fit=lapply(meand.e.byd,function(meand) with(meand,smooth.spline(n,over,spar=spar)));
   meand.t.fit=lapply(meand.t.byd,function(meand) with(meand,smooth.spline(n,meand,spar=spar)));
   over.t.fit=lapply(meand.t.byd,function(meand) with(meand,smooth.spline(n,over,spar=spar)));
   ## support statements in text or drawn on figures
