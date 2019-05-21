@@ -159,7 +159,7 @@ htpval2d=function(n,sd.het,pval) q_d2ht(n,sd.het=sd.het,p=pval/2,lower.tail=F)
 ## significance boundary for Cohen's d
 d_htcrit=function(n,sd.het,sig.level=param(sig.level)) htpval2d(n,sd.het,pval=sig.level)
 
-## need to scale by _q*d2t (sqrt(n/2)) to account for t scaling and difference in x-density
+## need to scale by q_*d2t (sqrt(n/2)) to account for t scaling and difference in x-density
 ncp_ht=function(n,d.het,sd.het) sqrt(n/(2+(n*sd.het^2)))*d.het;
 d_d2ht=function(n,d.het=NULL,sd.het,d) {
   df=2*(n-1);
