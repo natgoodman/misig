@@ -46,10 +46,13 @@ power_blake=function(n,mu,tau2,alpha=0.05,alternative=c('one.sided','two.sided')
 vrnorm=Vectorize(rnorm,"mean");
 pooled_sd=function(sd0,sd1) sqrt((sd0^2+sd1^2)/2);
 power_sim=
-  function(n,mu,sd.het,tau2,alpha=0.05,alternative=c('one.sided','two.sided'),strict=F,
-           m=1e3) {
-     ## Blake suggests this transformation instead
-    if (missing(tau2)) tau2=sqrt(2)*sd.het^2 else sd.het=sqrt(tau2/sqrt(2));
+  function(n,mu,sd.het,tau2,alpha=0.05,alternative=c('one.sided','two.sided'), strict=F,
+           method=cq(blake,sem,nat),m=1e3) {
+    ## Blake suggests this transformation instead
+    ## if (missing(tau2)) tau2=sqrt(2)*sd.het^2 else sd.het=sqrt(tau2/sqrt(2));
+    method=match.arg(method);
+    if (missing(tau2)) tau2=sd2tau2(sd.het=sd.het,n=n,method=method)
+    else sd.het=tau2sd(tau2=tau2,n=n,method=method);
     alternative=match.arg(alternative);
     if (alternative=='one.sided') alpha=alpha*2;
     ## print(paste(sep='','>>> power_sim: ',paste(sep=', ',n,mu,round(sd.het,digits=3),tau2)));
@@ -72,10 +75,13 @@ power_sim=
 }
 cmp_power=
   function(n,mu,sd.het,tau2,alpha=0.05,m=1e3,alternative=c('one.sided','two.sided'),strict=F,
-           gen.cases=c('default','expand.grid','data.frame')) {
+           gen.cases=c('default','expand.grid','data.frame'),method=cq(blake,sem,nat)) {
     ## if (missing(tau2)) tau2=sd.het^2 else sd.het=sqrt(tau2);
     ## Blake suggests this transformation instead
-    if (missing(tau2)) tau2=sqrt(2)*sd.het^2 else sd.het=sqrt(tau2/sqrt(2));
+    ## if (missing(tau2)) tau2=sqrt(2)*sd.het^2 else sd.het=sqrt(tau2/sqrt(2));
+    method=match.arg(method);
+    if (missing(tau2)) tau2=sd2tau2(sd.het=sd.het,n=n,method=method)
+    else sd.het=tau2sd(tau2=tau2,n=n,method=method);
     alternative=match.arg(alternative);
     if (alternative=='one.sided') alpha=alpha*2;
     gen.cases=match.arg(gen.cases);
@@ -86,7 +92,8 @@ cmp_power=
       power.nat=power_d2ht(n=n,d=mu,sd.het=sd.het,sig.level=alpha,strict=strict);
       power.natconv=power_d2ht(n=n,d=mu,sd.het=sd.het,d.crit=d_crit(n,sig.level=alpha),
                                strict=strict);
-      power.sim=power_sim(n,mu,tau2=tau2,sd.het=sd.het,alternative=alternative,strict=strict,m=m);
+      power.sim=power_sim(n,mu,tau2=tau2,sd.het=sd.het,alternative=alternative,strict=strict,
+                          method=method,m=m);
       data.frame(n,mu,tau2,power.blake,power.nat,power.sim=power.sim$power.sim,
                  power.natconv,power.simconv=power.sim$power.simconv)
     }));
@@ -119,6 +126,26 @@ plot_power=
     grid();
     legend(legend.where,title=legend.title,legend=legend,col=col,pch=pch,cex=0.8,bty='n');
   }
+#####
+## functions to convert between tau and sd.het
+## 1) my original: tau=sd.het
+## 2) Blake's suggestion: tau2=sqrt(2)*sd.het^2; sd.het=sqrt(tau2/sqrt(2));
+## 3) tau=standard error of mean=sd.het/sqrt(n); sd.het=tau*sqrt(n)
+tau2sd=function(tau=NA,tau2=NA,n,method=cq(blake,sem,nat)) {
+  method=match.arg(method);
+  if (missing(tau)&missing(tau2)) stop('Either tau or tau2 must be set');
+  if (missing(tau)) tau=sqrt(tau2) else tau2=tau^2;
+  switch(method,sem=tau*sqrt(n),blake=sqrt(tau2/sqrt(2)),nat=tau);
+}
+sd2tau=function(sd.het,n,method=cq(blake,sem,nat)) {
+  method=match.arg(method);
+  switch(method,sem=sd.het/sqrt(n),blake=sqrt(sqrt(2)*sd.het^2),nat=sd.het);
+}
+sd2tau2=function(sd.het,n,method=cq(blake,sem,nat)) {
+  method=match.arg(method);
+  switch(method,sem=sd.het^2/n,blake=sqrt(2)*sd.het^2,nat=sd.het^2);
+}
+
 ####################
 ## functions extracted from R/stats.R.
 ## wrapper for R's t distribution specialized for 
