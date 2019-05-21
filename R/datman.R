@@ -30,6 +30,7 @@ load_=function(file,what) {
   get(what);                          # return it
 }
 ##### data - top-level data saved in datadir
+## base does not include path
 save_data=function(what,file=NULL,data=NULL,base=NULL,
                    save=param(save.data),save.txt=param(save.txt)) {
   param(datadir,save.data,save.txt.data);
@@ -38,13 +39,13 @@ save_data=function(what,file=NULL,data=NULL,base=NULL,
     data=get(what,envir=parent.frame(n=1));
   if (is.null(data)) stop('Trying to save NULL object. Is "what" set correctly?');
   if (is.null(file)) {
-    if (is.null(base)) base=basename_data(what);
+    if (is.null(base)) base=basename_data(what) else base=basename_data(base);
   } else base=desuffix(file);
   file=filename(base=base,suffix='RData');
   save_(data,file=file,save=save.data,save.txt=save.txt.data);
 }
 ## load data from file
-load_data=function(...,file=NULL,list=character()) {
+load_data=function(...,file=NULL,base=NULL,list=character()) {
   dots=match.call(expand.dots=FALSE)$...;
   if (length(dots) &&
       !all(vapply(dots,function(x) is.atomic(x)||is.symbol(x)||is.character(x),
@@ -129,28 +130,29 @@ load_interp_hetd=function(file=NULL,n,d,sd) {
 }
 get_interp_hetd=load_interp_hetd;
 
-##### meand_empi
-save_meand_empi=function(meand,file=NULL) {
-  param(save.meand,save.txt.meand);
-  if (is.null(file)) file=filename(param(datadir),base='meand.empi');
-  save_(meand,file,save=save.meand,save.txt=save.txt.meand);
-}
-load_meand_empi=function(file=NULL) {
-  if (is.null(file)) file=filename(param(datadir),base='meand.empi');
-  load_(file,'meand');
-}
-get_meand_empi=load_meand_empi;
-##### meand_theo
-save_meand_theo=function(meand,file=NULL) {
-  param(save.meand,save.txt.meand);
-  if (is.null(file)) file=filename(param(datadir),base='meand.theo');
-  save_(meand,file,save=save.meand,save.txt=save.txt.meand);
-}
-load_meand_theo=function(file=NULL) {
-  if (is.null(file)) file=filename(param(datadir),base='meand.theo');
-  load_(file,'meand');
-}
-get_meand_theo=load_meand_theo;
+## TODO 19-05-09: delete commented out code when I'm sure I'm happy with the new way
+## ##### meand_empi
+## save_meand_empi=function(meand,file=NULL) {
+##   param(save.meand,save.txt.meand);
+##   if (is.null(file)) file=filename(param(datadir),base='meand.empi');
+##   save_(meand,file,save=save.meand,save.txt=save.txt.meand);
+## }
+## load_meand_empi=function(file=NULL) {
+##   if (is.null(file)) file=filename(param(datadir),base='meand.empi');
+##   load_(file,'meand');
+## }
+## get_meand_empi=load_meand_empi;
+## ##### meand_theo
+## save_meand_theo=function(meand,file=NULL) {
+##   param(save.meand,save.txt.meand);
+##   if (is.null(file)) file=filename(param(datadir),base='meand.theo');
+##   save_(meand,file,save=save.meand,save.txt=save.txt.meand);
+## }
+## load_meand_theo=function(file=NULL) {
+##   if (is.null(file)) file=filename(param(datadir),base='meand.theo');
+##   load_(file,'meand');
+## }
+## get_meand_theo=load_meand_theo;
 
 ##### table - saved in tbldir
 save_tbl=function(tbl,file,obj.ok=F) {
