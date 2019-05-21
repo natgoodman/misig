@@ -17,13 +17,14 @@
 ## initialization.
 ## process parameters and store in param environment.
 ## create output directories if necessary.
-doc.all=cq(readme,ovrfx,ovrht,mndht,pwrht,supp);
+## supp's are placeholders
+doc.all=cq(readme,ovrfx,ovrht,ovrfxsupp,ovrhtsupp,readmesupp);
 init=function(
   ## doc parameters 
   doc='readme',                             # controls sim defaults, data, figure subdirs
   docx=match.arg(doc,doc.all),
   run.id=NULL,                              # to separate runs for tests
-  ## simulation parameters. random-d simulation
+  ## random-d 
   n.rand=switch(docx,                       # sample sizes
                 readme=c(20,100),ovrfx=20),
   m.rand=switch(docx,                       # number of populations
@@ -36,32 +37,30 @@ init=function(
   d.rand=switch(docx,                       # population effect sizes. call generating function
                 readme=do.call(d.gen,d.args),
                 ovrfx=do.call(d.gen,d.args)),
-  ## simulation parameters. fixed-d simulation
+  ## fixed-d 
   n.fixd=switch(docx,                       # sample sizes
                 readme=seq(20,100,by=20),
                 ovrfx=seq(20,200,by=20)), 
   m.fixd=switch(docx,                       # number of studies per d
-                readme=1e2,ovrfx=1e4),
+                readme=1e3,ovrfx=1e4),
   d.fixd=switch(docx,                       # population effect sizes
                 readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
                 ovrfx=c(0.3,0.5,0.7)),
-  ## simulation parameters. het-d simulation
+  ## het-d 
   n.hetd=switch(docx,                       # sample sizes
-                ovrht=200,mndht=200),
+                readme=c(20,seq(100,400,by=100)),ovrht=200,ovrhtsupp=200),
   m.hetd=switch(docx,                       # number of studies per d.het
-                ovrht=1e5,mndht=1e5),
+                readme=1e3,ovrht=1e5,ovrhtsupp=1e5),
   d.hetd=switch(docx,                       # centers of het pop effect sizes
-                ovrht=0,mndht=0.3),
+                readme=c(0,0.5),ovrht=0,ovrhtsupp=0.3),
   sd.hetd=switch(docx,                      # standard deviation of het pop distribution
-                 ovrht=0.2,mndht=0.2),
-  ## theoretical mean significant effect size. (empirical uses sim params)
-  n.meand=switch(docx,overfx=n.fixd,mndht=seq(20,400,by=10)),
-  d.meand=switch(docx,overfx=d.fixd,mndht=c(0.3,0.5,0.7)),
-  sd.meand=switch(docx,mndht=c(0,0.05,0.1,0.2,0.4)),
-  ## theoretical power. (empirical uses sim params)
-  n.power=switch(docx,overfx=n.fixd,mndht=n.meand),
-  d.power=switch(docx,overfx=d.fixd,mndht=d.meand),
-  sd.power=switch(docx,mndht=sd.meand),
+                 readme=c(0,0.2,0.4),ovrht=0.2,ovrhtsupp=0.2),
+  ## pval & ci tables (ovrht) - others use simulation params
+  n.ovrht=switch(docx,                       # sample sizes
+                 ovrht=seq(20,400,by=10)),
+  d.ovrht=switch(docx,ovrht=0),             # centers of het pop effect sizes (ci only)
+  sd.ovrht=switch(docx,                      # standard deviation of het pop distribution
+                 ovrht=c(0,0.05,0.1,0.2,0.4)),
   ## data generation function
   datfun=get(paste(sep='_','dat',docx)),
   ## analysis parameters
@@ -78,14 +77,14 @@ init=function(
                   readme=c(sim.rand.dir,sim.fixd.dir,sim.hetd.dir),
                   ovrfx=c(sim.rand.dir,sim.fixd.dir),
                   ovrht=c(sim.hetd.dir),
-                  mndht=c(sim.hetd.dir))),
+                  ovrhtsupp=c(sim.hetd.dir))),
   
   ## NG 18-10-18: figdir, tbldir moved to init_doc
   ## figdir=dirname('figure',docx,mdir), # directory for figures. default eg, figure/repwr/m=1e4
   ## tbldir=dirname('table',docx,mdir), # directory for tables. default eg, table/repwr/m=1e4
 
   ## program control
-  verbose=F,                               # print progress messages
+  verbose=F,                     # print progress messages
   must.exist=F,                  # must all sub-inits succeed?
   save=NA,                       # shorthand for other save params 
                                  #   NA means save unless file exists
@@ -100,7 +99,7 @@ init=function(
   save.txt.meand=is.na(save.txt)|save.txt,  # save txt meand results. default T
   save.txt.data=is.na(save.txt)|save.txt,   # save txt top level results. default T
                                  #    
-  clean=F,                       # remove everything and start fresh
+  clean=switch(docx,readme=T,F), # remove everything and start fresh
   clean.data=clean,              # remove datadir
   clean.sim=F,                   # clean simulations. default F
   clean.meand=F,                 # clean mean effect size data. default F
@@ -140,7 +139,7 @@ init_doc=function(
   ## output modifiers
   outpfx=switch(param(doc),supp='S',NULL),          # prefix before figure or table number
   outsfx=letters,                                   # suffix in figure and table blocks
-  sectpfx=switch(param(doc),readme=T,F),            # add section number to prefix eg, S1
+  sectpfx=switch(param(doc),readme=F,F),            # add section number to prefix eg, S1
   sectnum=1,                                        # section number. incremented in docs
   ## figures
   figpfx=outpfx,
