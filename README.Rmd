@@ -1,7 +1,7 @@
 ---
 title: "Mistakes of Significance"
 author: "Nathan (Nat) Goodman"
-date: "February 19, 2019"
+date: "May 17, 2019"
 output:
   html_document:
     css: css/html_document.css
@@ -15,43 +15,13 @@ urlcolor: blue
 ---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-*A collection of R scripts and documents exploring mistakes made by significance testing. The only content at present is a blog post entitled "When You Select Significant Findings, You’re Selecting Inflated Estimates" whose main point is that significance testing is a biased procedure that overestimates effect size.*
+A collection of R scripts and documents exploring mistakes made by significance testing. The content at present are
 
-**THE SOFTWARE IS STILL ROUGH and SOFTWARE DOCUMENTATION NONEXISTENT. PLEASE GET IN TOUCH IF YOU NEED HELP**
+- blog post [When You Select Significant Findings, You’re Selecting Inflated Estimates](https://replicationnetwork.com/2019/02/16/goodman-when-youre-selecting-significant-findings-youre-selecting-inflated-estimates/) whose main point is that significance testing is a biased procedure that overestimates effect size; also available on my website [here](https://natgoodman.github.io/misig/ovrfx.stable.html)
+- blog post [Your P-Values are Too Small! And So Are Your Confidence Intervals!](https://replicationnetwork.com/2019/05/01/your-p-values-are-too-small-and-so-are-your-confidence-intervals/) which explores the impact of heterogeneous effect sizes on p-values and confidence intervals; also available on my website [here](https://natgoodman.github.io/misig/ovrht.stable.html)
+- supplementary material for the blog posts TBD
 
-## Overview
-
-The program explores the bias of significance testing and why it inflates effect size. The software simulates *studies* for conditions of interest. The studies are simple two group comparisons parameterized by sample size $n$ and population effect size $d_{pop}$ ($d_{pop}\ge0$). For each study, I generate two groups of random numbers, each of size $n$.  One group, *group0*, comes from a standard normal distribution with $mean=0$; the other, *group1*, is from a standard normal distribution with $mean=d_{pop}$. The effect size statistic is standardized difference, aka *Cohen's d*, defined as the mean of *group1* minus the mean of *group0* divided by the pooled standard deviation of the two groups. P-values are from the t-test.
-
-> __Technical note__: The pairing of Cohen's d with the t-test is mathematically natural because both are *standardized*, meaning both are relative to the sample standard deviation. In fact, Cohen's d and the t-statistic are essentially the same statistic, related by the identities $d=t\sqrt{2/n}$ and $t=d\sqrt{n/2}$ (for my simulation scenario).
-
-The program performs two types of simulations.
-
-1. *rand*. Randomly selects a large number of $d_{pop}$s and simulates one study per $d_{pop}$.
-2. *fixd*. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
-
-The program uses the *fixd* simulation to estimate the mean significant observed effect size for each $d_{pop}$ and $n$. It also caculates these values analytically. 
-
-After running the simulations and calculating the mean significant observed effect sizes, the program generates the figures that appear in the blog post, as well as the specific results mentioned in the post. It stores the latter in a table for future reference.
-
-**Notation**
-
-| in code | in text | meaning |
-| ------- | ----- | --------------------------------------------------------------- |
-| `n` | $n$ | sample size |
-| `d.pop` | $d_{pop}$ | population effect size; this arises in the text but not the software |
-| `d.sdz` | $d_{sdz}$ | standardized observed effect size, aka Cohen's d |
-| `d` | $d$ | variously means either $d_{pop}$ or $d_{sdz}$; hopefully clear from context |
-| `sim.rand` | $sim_{rand}$ | simulation that randomly selects a large number of $d_{pop}$s and simulates one study per $d_{pop}$. |
-| `sim.fixd` | $sim_{fixd}$ | simulation that fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$ |
-| `meand.empi` | $meand_{empi}$ | mean significant observed effect size estimated from simulation ($sim_{fixd}$) |
-| `meand.theo` | $meand_{theo}$ | mean significant observed effect size calculated analytically |
-| `pval` | | p-value |
-| `df` | | degrees of freedom |
-| `t` | $t$ | t-statistic |
-| `d0` | | noncentrality parameter expressed in standardized $d$ units; this is the presumed population effect size |
-| `ncp` | | noncentrality parameter expressed in $t$ units |
-| `sig.level` | $\alpha$ | significance level | 
+**THE SOFTWARE IS A WORK IN PROGRESS. THE CODE IS ROUGH and SOFTWARE DOCUMENTATION NONEXISTENT. PLEASE GET IN TOUCH IF YOU NEED HELP**
 
 ## Installation and Usage
 
@@ -59,52 +29,77 @@ The software is **not a package** and cannot be installed by `devtools::install_
 
 The code mostly uses base R capabilities but has a few dependencies: `RColorBrewer`, `akima`, `knitr`, and `pryr`. Since it's not a package, you have to manually install these packages if you don't already have them.
 
-The recommended way to run the program is to `source` the file `R/run.R` into your R session; `R/run.R will source the rest. Once loaded, you can run the program by executing the statement `run()`  as shown below.
+The recommended way to run the program is to `source` the file `R/run.R` into your R session; `R/run.R` will source the rest. Once loaded, you can run the program by executing the statement `run()` as shown below.
 
 ``` {r eval=FALSE}
-## This code block assumes your working directory is the root of the distribution.
+## This code block assumes your working directory is the root of the distribution
 
 source('R/run.R');
 run();
 ```
 
-This runs the program in a demo-like mode that quickly generates the data and produces the figures that appear in this README document. The default computation simulates 2,500 replications and produces 22 figures and one table. The data generation takes about 30 seconds on my small Linux server; the figures take about a minute, much of which is spent rendering the plots over a remote X11 connection. 
+This runs the program in a demo-like mode that quickly generates the data and produces the figures and table that appear in this README document. The default computation runs three kinds of simulations totaling 47,000 instances, generates 10 other small data files, and produces 8 figures and one table. The data generation takes about 11 seconds on my small Linux server; the figures and table take about 20 seconds, much of which is spent rendering the plots over a remote X11 connection. 
 
-The code that creates the outout (figures and table) for this README document is in `R/doc_readme.R`.
+The code that generates the data is in `R/dat_readme.R`; the code that creates the figures and table is in `R/doc_readme.R`.
 
-To rerun the program from scratch you must specify  `clean=T`, since by default the program reuses existing data.
-
-``` {r eval=FALSE}
-## This code block assumes your working directory is the root of the distribution
-## and you've already sourced R/readme.R into your session
-
-run(clean=T);                # delete data from previous run and rerun program
-```
-
-You can run each part separately by running one of the statements below.
+You can run each part separately by running one or more of the statements below.
 
 ``` {r eval=FALSE}
 ## This code block assumes your working directory is the root of the distribution
-## and you've already sourced R/readme.R into your session
+## and you've already sourced R/run.R into your session
 
-init(doc='readme',clean=T);  # you MUST specify doc to run the program in pieces
-dosim();                     # run simulations
-domeand();                   # calculate mean significant observed effect sizes
-dodoc();                     # generate data and figures
-dodoc(save.out=F);           # generate data and figures without saving them
-dodoc(figscreen=F);          # generate and save figures without plotting to screen. faster!
+init(doc='readme');          # you MUST specify doc to run the program in pieces
+dodat();                     # generate data
+dodoc();                     # generate figures and tables
+dodoc(save.out=F);           # generate figures and tables without saving them
+dodoc(figscreen=F);          # generate and save figures without plotting to screen. much faster!
 ```
 
-The program can also generate the data and figures for the blog post associated with the project. To generate these, execute `run()` with a suitable `doc` argument as shown below. 
+The program can also generate the data and outputs for the documents associated with the project. To generate these, execute `run()` with a suitable `doc` argument as shown below.
 
 ``` {r eval=FALSE}
 ## This code block assumes your working directory is the root of the distribution.
 
 source('R/run.R');
-run(doc='ovrfx');            # generate data and figures for blog post 
+run(doc='ovrfx');            # run code for blog post on significant effect size inflation
 ```
 
-## Figures
+The `doc` arguments for each document are 
+
+| document | `doc` argument |
+| -------------------------- | -------------------------- |
+| [When You Select Significant Findings, You’re Selecting Inflated Estimates](https://replicationnetwork.com/2019/02/16/goodman-when-youre-selecting-significant-findings-youre-selecting-inflated-estimates/) | `ovrfx` |
+| [Your P-Values are Too Small! And So Are Your Confidence Intervals!](https://replicationnetwork.com/2019/05/01/your-p-values-are-too-small-and-so-are-your-confidence-intervals/) | `ovrht` |
+| supplementary material for the blog posts TBD | TBD |
+
+## Nomenclature
+
+| in code | in text | meaning |
+| ---------- | ---------- | --------------------------------------------------------------- |
+| `n` | $n$ | sample size |
+| `d.pop` | $d_{pop}$ | population effect size |
+| `d.sdz` | $d_{sdz}$ | standardized observed effect size, aka Cohen's d |
+| `d.het` | $d_{het}$ | mean of heterogeneous population distribution |
+| `sd.het` | $sd_{het}$ | standard deviation of heterogeneous population distribution |
+| `d` | $d$ | variously means either $d_{pop}$, $d_{sdz}$, or $d_{het}$; hopefully clear from context |
+| `meand.simu` | $meand_{simu}$ | mean significant observed effect size computed from simulated data |
+| `meand.theo` | $meand_{theo}$ | mean significant observed effect size computed analytically |
+| `pval.simu` | $pval_{simu}$ | p-value computed from simulated data |
+| `pval.theo` | $pval_{theo}$ | p-value computed analytically |
+<br/>
+
+The program performs three types of simulations.
+
+1. *rand*. Randomly selects a large number of $d_{pop}$s, sets $n$ to a range of values, and simulates one study for each $d_{pop}$ and $n$.
+2. *fixd*. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
+3. *hetd*. Sets $d_{het}$ and $sd_{het}$ to a few values of interest, and selects a large number of $d_{pop}$s from normal distributions with mean $d_{het}$ and standard deviation $sd_{het}$. Then sets $n$ to a range of values, and simulates one study for each $d_{pop}$ and $n$.
+
+The program implements two data generation models: 
+
+1. *fixed effect (fix)* which imagines we're repeating a study an infinite number of times, drawing a different sample each time from a population with a fixed true effect size
+2. *heterogeneous effect (het)*  which assumes that each time we do the study, we’re sampling from a different population with a different true effect size
+
+## Figures and Tables
 
 The default mode produces figures that illustrate the kinds of graphs the program can produce.
 
@@ -113,58 +108,39 @@ The default mode produces figures that illustrate the kinds of graphs the progra
 3. probability distribution vs. $d_{sdz}$ colored by p-value; can compute probability density or cumulative probability internally, or you can pass the distribution into the function
 4. multiple line plot; my adaptation of R's `matplot`
 
-The first block of figures show $d$ vs. $d$ scatter plots for $n=20$ and $n=100$. You may notice that the p-value color legends are of different sizes. This is a limitation of the code that draws these legends. 
-
-```{r out.width="25%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_01-001a_plotdvsd_scat_pop_sdz.png');
-knitr::include_graphics('figure/readme/figure_01-001b_plotdvsd_scat_sdz_pop.png');
-knitr::include_graphics('figure/readme/figure_01-002a_plotdvsd_scat_pop_sdz.png');
-knitr::include_graphics('figure/readme/figure_01-002b_plotdvsd_scat_sdz_pop.png');
-```
-
-The next block are similar but zoom in to the critical region where p-values switch from nonsignificant to significant.
+The first figure shows a $d$ vs. $d$ scatter plot of *rand* simulated data for $n=20$. The second uses the same data but zooms in to the critical region where p-values switch from nonsignificant to significant.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_01-003a_plotdvsd_zoom.png');
-knitr::include_graphics('figure/readme/figure_01-003b_plotdvsd_zoom.png');
+knitr::include_graphics('figure/readme/figure_001a_plotdvsd.png');
+knitr::include_graphics('figure/readme/figure_001b_plotdvsd_zoom.png');
 ```
 
-Next are four histograms for $d=0.2$ and $d=0.8$ by $n=20$ and $n=100$.  You may notice that the p-value color legends are in different places and have different sizes. Again, these are limitations of the code.
+Next are two histograms of *fixd* simulated data with different values for $d_{pop}$ and $n$.
 
-```{r out.width="25%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_02-001a_plothist_hist.png');
-knitr::include_graphics('figure/readme/figure_02-001b_plothist_hist.png');
-knitr::include_graphics('figure/readme/figure_02-002a_plothist_hist.png');
-knitr::include_graphics('figure/readme/figure_02-002b_plothist_hist.png');
+```{r out.width="50%",echo=FALSE,fig.show='asis'}
+knitr::include_graphics('figure/readme/figure_002a_plothist_blue.png');
+knitr::include_graphics('figure/readme/figure_002b_plothist_red.png');
 ```
 
-The next block are NULL and sampling distributions for $d=0.2$, $n=20$, and $d=0.8$, $n=100$.
+The next two are sampling distributions for the *het* model with different values for $d_{het}$, $sd_{het}$, and $n$. The first shows probability density, the second cumulative probability.
 
-```{r out.width="25%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_03-001a_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-001b_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-001c_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-001d_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-002a_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-002b_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-002c_plotpvsd_distn.png');
-knitr::include_graphics('figure/readme/figure_03-002d_plotpvsd_distn.png');
+```{r out.width="50%",echo=FALSE,fig.show='asis'}
+knitr::include_graphics('figure/readme/figure_003a_plotpvsd_den.png');
+knitr::include_graphics('figure/readme/figure_003b_plotpvsd_cum.png');
 ```
 
-The final block are line plots of mean significant observed effect size ($meand_{empi}$, $meand_{theo}$) with various smoothing functions applied/
+The final block are line plots. The first shows mean significant observed effect size inflation for the *fix* model. The second shows p-value inflation for the *het* model. The first has raw data; the second applies a smoothing function. Both figures depict simulated and analytic results to illustrate the concordance.
 
-```{r out.width="25%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_04-001_plotm_meand.png');
-knitr::include_graphics('figure/readme/figure_04-002_plotm_meand.png');
-knitr::include_graphics('figure/readme/figure_04-003_plotm_meand.png');
-knitr::include_graphics('figure/readme/figure_04-004_plotm_meand.png');
+```{r out.width="50%",echo=FALSE,fig.show='asis'}
+knitr::include_graphics('figure/readme/figure_004a_plotm_meand.png');
+knitr::include_graphics('figure/readme/figure_004b_plotm_pval.png');
 ```
 
 Finally, here is a table of supporting data.
 
 ```{r echo=FALSE}
-load('table/readme/table_05-001_table_support.RData');
-knitr::kable(tbl,caption='Table of supporting data',digits=2)
+load('table/readme/table_001_table_support.RData');
+knitr::kable(tbl,digits=2)
 ```
 
 ## Comments Please!
