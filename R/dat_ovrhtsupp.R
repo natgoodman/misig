@@ -17,13 +17,15 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## ---- Data Generation for ovrht ----
-dat_mndht=function() {
+## ---- Data Generation for ovrhtsupp ----
+dat_ovrhtsupp=function() {
   param(n.hetd,m.hetd,d.hetd,sd.hetd);
   dosim_hetd(n.hetd,m.hetd,d.hetd,sd.hetd);
-  param(n.meand,d.meand,sd.meand);
-  domeand_d2ht(n.meand,d.meand,sd.meand);
-  param(n.power,d.power,sd.power);
-  dopower_d2ht(n.power,d.power,sd.power);
+  ## mean significant effect size
+  domeand_hetd(n.hetd,d.hetd,sd.hetd);
+  domeand_d2ht(n.hetd,d.hetd,sd.hetd);
+  ## power
+  dopower_hetd(n.hetd,d.hetd,sd.hetd);
+  dopower_d2ht(n.hetd,d.hetd,sd.hetd);
   invisible();
 }
