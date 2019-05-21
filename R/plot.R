@@ -61,13 +61,8 @@ plotdvsd=
     plot(sim[,x],sim[,y],col=col,main=title,cex.main=cex.title,
        xlab=xlab,ylab=ylab,pch=19,cex=0.5,...);
     grid();
-    ## plot extra lines if desired. nop if vline, hline NULL
-    abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
-    ## write values along axes
-    if (vlab&!is.null(vline))
-      mtext(round(vline,vhdigits),side=1,at=vline,col=vhcol,line=0.25,cex=0.75);
-    if (hlab&!is.null(hline))
-      mtext(round(hline,vhdigits),side=2,at=hline,col=vhcol,line=0.25,cex=0.75);
+    ## plot extra lines & values if desired. nop if vline, hline NULL
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
     if (legend) pval_legend();
   }
@@ -115,13 +110,8 @@ plothist=
     if (!add) {
       box(); grid();
     } 
-    ## plot extra lines if desired. nop if vline, hline NULL
-    abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
-    ## write values along axes
-    if (vlab&!is.null(vline))
-      mtext(round(vline,vhdigits),side=1,at=vline,col=vhcol,line=0.25,cex=0.75);
-    if (hlab&!is.null(hline))
-      mtext(round(hline,vhdigits),side=2,at=hline,col=vhcol,line=0.25,cex=0.75);
+    ## plot extra lines & values if desired. nop if vline, hline NULL
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
     if (legend) pval_legend(x0=legend.x0);
   }
@@ -184,13 +174,8 @@ plotpvsd=
       segments(x0,y0,x1,y1,col=col,lwd=lwd)
     }
     grid();
-    ## plot extra lines if desired. nop if vline, hline NULL
-    abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
-    ## write values along axes
-    if (vlab&!is.null(vline))
-      mtext(round(vline,vhdigits),side=1,at=vline,col=vhcol,line=0.25,cex=0.75);
-    if (hlab&!is.null(hline))
-      mtext(round(hline,vhdigits),side=2,at=hline,col=vhcol,line=0.25,cex=0.75);
+    ## plot extra lines & values if desired. nop if vline, hline NULL
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
     ## fill tail if desired. already made sure we're doing density
     if (is.logical(fill.tail)&fill.tail) fill.tail=cq(upper,lower);
     if (!is.logical(fill.tail)) {
@@ -250,13 +235,8 @@ plotm=
     matplot(x,y,type='l',main=title,cex.main=cex.title,col=col,lty=lty,lwd=lwd,
             xaxt=xaxt,yaxt=yaxt,...);
     grid();
-    ## plot extra lines if desired. nop if vline, hline NULL
-    abline(v=vline,h=hline,lty=vhlty,col=vhcol,lwd=vhlwd);
-    ## write values along axes
-    if (vlab&!is.null(vline))
-      mtext(round(vline,vhdigits),side=1,at=vline,col=vhcol,line=0.25,cex=0.75);
-    if (hlab&!is.null(hline))
-      mtext(round(hline,vhdigits),side=2,at=hline,col=vhcol,line=0.25,cex=0.75);
+    ## plot extra lines & values if desired. nop if vline, hline NULL
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
     ## draw legend if desired
     if (is.null(legend)) legend=F
     else if (!is.logical(legend)) {
@@ -266,6 +246,17 @@ plotm=
     if (legend) do.call(plotm_legend,legend.args);
   }
 ## helper functions to plot horizontal and vertical line segments
+vhline=function(vline=NULL,hline=NULL,vlab=NULL,hlab=NULL,vhdigits=2,col=NA,...) {
+  xylim=par('usr');
+  vline=vline[which(between(vline,xylim[1],xylim[2]))];
+  hline=hline[which(between(hline,xylim[3],xylim[3]))];
+  abline(v=vline,h=hline,col=col,...);
+  ## write vlinealues along axes
+  if (vlab&!is.null(vline))
+    mtext(round(vline,vhdigits),side=1,at=vline,col=col,line=0.25,cex=0.75);
+  if (hlab&!is.null(hline))
+    mtext(round(hline,vhdigits),side=2,at=hline,col=col,line=0.25,cex=0.75);
+}
 hline=
   function(y,x0=0,x,col='black',lty='solid',lwd=1,cex=0.75,text=NULL,
            label=list(text=text,side=2,at=y,col=col,line=0.25,cex=cex,las=1)) {
