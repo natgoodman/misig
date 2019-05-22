@@ -1,9 +1,60 @@
 Revision history for misig repository
 ================
 Nathan (Nat) Goodman
-May 1, 2019
+May 22, 2019
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+Release 1.21 2019-05-22
+-----------------------
+
+Shortened README to contain only two figures per plot type; also added material for heterogeneous effect sizes
+
+Changed and new files
+
+-   `README.Rmd`
+    -   Shorten README to only two figures per plot type
+    -   Add material for heterogeneous effect size model
+    -   Change words about how many simulations are run, performance, and so forth
+-   `R/dat.R`
+    -   Finish transition from special purpose `save` and `load` (aka `get`) functions for top level data to general purpose `save_data` and `load_data` (aka `get_data`) functions
+    -   Add `dopower_hetd` function to compute power from `hetd` simulation
+    -   Add `dopval_hetd` function to compute p-values from `hetd` simulation
+    -   Add `dopval_d2ht` to compute p-values from `d2ht` distribution
+    -   Add `doci_d2ht` to compute confidence intervals from `d2ht` distribution
+-   `R/dat_ovrht.R`
+    -   Replace inline computation of `pval` and `ci` tables with call to new functions in `R/dat.R`
+-   `R/dat_ovrhtsupp.R`, `R/doc_ovrhtsupp.R`
+    -   Renamed from `R/dat_mndht.R`, `R/doc_mndht.R`
+    -   Change `mndht` to `ovrhtsupp` in function names
+    -   Replace `meand` and `power` params by `hetd` params
+-   `R/dat_readme.R`
+    -   Complete rewrite to use functions in `R/dat.R`
+-   `R/datman.R`
+    -   Remove obsolete special purpose `save` and `load`(aka `get`) functions for top level data files; code now uses general purpose `save_data` and `load_data` (aka `get_data`) functions
+    -   Add `base` argument to `save_data` and `load_data` (aka `get_data`) functions to make it easier to specify file names for top level data files
+-   `R/doc_ovrfx.R`
+    -   Remove obsolete computation of `meand` from simulation
+-   `R/doc_ovrht.R`
+    -   Change `get_data` calls to use new names of data files; see `R/dat_ovrht.R`
+    -   Change figure and function names from `infl` to `over` for stylistic consistency
+-   `R/doc_readme.R`
+    -   Extensive rewrite for new README.Rmd
+    -   Only plot two figures per plot type
+    -   Add code for heterogeneous effect size model
+-   `R/init.R`
+    -   Increase `m.fixd` for README from `1e2` to `1e3`
+    -   Add `hetd params` for README
+    -   Remove params for theoretical mean significant effect size and power; code now uses simulation params
+    -   Add params for `ovrht` `pval` and `ci` tables
+    -   Change `clean` and `sectpx` params for README to reflect current usage
+    -   Edit some comments for stylistic consistency
+-   `R/plot.R`
+    -   Improve handling of "extra" vertical and horizontal lines and labels: only render if within plot region
+-   `R/run.R`
+    -   Change `source` statements to reflect that `mndht` document renamed to `ovrhtsupp`
+-   `R/stats.R`
+    -   Fix typo in comment
+
 Release 1.20 2019-05-01
 -----------------------
 
