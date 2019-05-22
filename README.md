@@ -1,7 +1,7 @@
 Mistakes of Significance
 ================
 Nathan (Nat) Goodman
-May 17, 2019
+May 22, 2019
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 A collection of R scripts and documents exploring mistakes made by significance testing. The content at present are
