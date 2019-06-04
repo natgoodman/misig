@@ -22,6 +22,7 @@
 ##   sd.het is sd for noncentral d2ht distribution - default from sim if exists there
 ##   distribution is d2t or d2ht - default 'd2t' unless sd.het is set
 ## title is title
+## cex.title is what R calls cex.main. if 'auto' or NULL, use auto-scaling
 ## legend tells whether to draw pval legend
 ##   legend.xscale, legend.yscale are fractions of plat ares
 ##   legend.cex is cex for legend text
@@ -35,10 +36,11 @@ plotdvsd=
   function(sim,
            n=unique(sim$n),sd.het=if(exists('sd.het',sim))unique(sim$sd.het) else NULL,
            distribution=cq(d2t,d2ht),
-           title='',cex.title=1,x='d.sdz',y='d.pop',
+           title='',cex.title='auto',x='d.sdz',y='d.pop',
            col=NULL,
-           legend=T,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
-           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           legend=TRUE,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
+           vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            xlab=switch(x,
                        d.sdz="observed effect size (Cohen's d)",
                        d.pop="true effect size",
@@ -48,21 +50,27 @@ plotdvsd=
                        d.pop="true effect size",
                        NULL),
            ...) {
+    if (nrow(sim)==0) {
+      warning('sim is empty. nothing to plot');
+      return();
+    }
     if (is.null(col)) {
       if (missing(distribution)) distribution=if(is.null(sd.het)) 'd2t' else 'd2ht'
       else distribution=match.arg(distribution);
       if (length(n)==1&length(sd.het)<=1)
         col=d2col(n=n,sd.het=sd.het,distribution=distribution,d=sim$d.sdz)
       else {
-        if (length(n)!=1) warn('plothist need unique n to convert d to color');
-        if (length(sd.het)>1) warn('plothist need unique sd.het to convert d to color');
+        if (length(n)!=1) warning('plotdvsd needs unique n to convert d to color');
+        if (length(sd.het)>1) warning('plotdvsd needs unique sd.het to convert d to color');
         col='grey';
       }}
-    plot(sim[,x],sim[,y],col=col,main=title,cex.main=cex.title,
-       xlab=xlab,ylab=ylab,pch=19,cex=0.5,...);
+    if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
+    plot(sim[,x],sim[,y],col=col,main=title,cex.main=cex.title,xlab=xlab,ylab=ylab,pch=19,
+         cex=0.5,...);
     grid();
     ## plot extra lines & values if desired. nop if vline, hline NULL
-    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
+           lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
     if (legend) pval_legend();
   }
@@ -88,30 +96,37 @@ plothist=
   function(sim,
            n=unique(sim$n),sd.het=if(exists('sd.het',sim))unique(sim$sd.het) else NULL,
            distribution=cq(d2t,d2ht),
-           title='',cex.title=1,x='d.sdz',breaks=50,freq=F,add=F,
+           title='',cex.title='auto',x='d.sdz',breaks=50,freq=FALSE,add=FALSE,
            col=NULL,border='black',
-           legend=T,legend.x0=NULL,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
-           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           legend=TRUE,legend.x0=NULL,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
+           vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="density",
            ...) {
-    hist.obj=hist(sim[,x],breaks=breaks,plot=F);
+   if (nrow(sim)==0) {
+      warning('sim is empty. nothing to plot');
+      return();
+   }
+   hist.obj=hist(sim[,x],breaks=breaks,plot=FALSE);
     if (is.null(col)) {
       if (missing(distribution)) distribution=if(is.null(sd.het)) 'd2t' else 'd2ht'
       else distribution=match.arg(distribution);
       if (length(n)==1&length(sd.het)<=1)
         col=d2col(n=n,sd.het=sd.het,distribution=distribution,d=hist.obj$mids)
       else {
-        if (length(n)!=1) warn('plothist need unique n to convert d to color');
-        if (length(sd.het)>1) warn('plothist need unique sd.het to convert d to color');
+        if (length(n)!=1) warning('plothist needs unique n to convert d to color');
+        if (length(sd.het)>1) warning('plothist needs unique sd.het to convert d to color');
         col='grey';
       }}
+   if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     plot(hist.obj,col=col,border=border,freq=freq,main=title,cex.main=cex.title,
          xlab=xlab,ylab=ylab,add=add,...);
     if (!add) {
       box(); grid();
     } 
     ## plot extra lines & values if desired. nop if vline, hline NULL
-    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
+   vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
+          lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
     if (legend) pval_legend(x0=legend.x0);
   }
@@ -127,7 +142,7 @@ plothist=
 ## distribution is d2t or d2ht
 ## y is probability density or cumulative prob. can be values or keyword
 ## fill.tail tells whether to fill the distribution tail (density only)
-##   boolean or one or more of 'upper','lower','both'. T means c('upper','lower')
+##   boolean or one or more of 'upper','lower','both'. TRUE means c('upper','lower')
 ## add tells whether to add new plot to existing one
 ## xunit tells what to write along x-axis: d, t, or both
 ## title is title
@@ -140,20 +155,22 @@ plothist=
 ## vhdigits is number of digits for these values
 plotpvsd=
   function(n,d0=NULL,d.het=NULL,sd.het=NULL,distribution=cq(d2t,d2ht),y=cq(density,cumulative),
-           d,col,lwd,lwd.sig=4,lwd.nonsig=lwd.sig/2,dlim=c(-2,2),dinc=.005,add=F,fill.tail=F,
-           title='',cex.title=1,d.crit=d_crit(n),
+           d,col,lwd,lwd.sig=4,lwd.nonsig=lwd.sig/2,dlim=c(-2,2),dinc=.005,
+           add=FALSE,fill.tail=FALSE,
+           title='',cex.title='auto',d.crit=d_crit(n),
            legend=!add,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
-           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
+           vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="probability",
            ...) {
     if (missing(d)) d=seq(min(dlim),max(dlim),by=dinc);
     if (missing(distribution)) {
-      distribution=if(missing(d.het)&missing(sd.het)) 'd2t' else 'd2ht';
+      distribution=if(is.null(d.het)&is.null(sd.het)) 'd2t' else 'd2ht';
     }
     else distribution=match.arg(distribution);
     if (mode(y)=='character') {
       y=match.arg(y);
-      if (y!='density') fill.tail=F;
+      if (y!='density') fill.tail=FALSE;
       if (missing(ylab)) ylab=if(y=='density') 'probability density' else 'cumulative probability';
       if (distribution=='d2t') {
         y=if(y=='density') d_d2t(n,d,d0) else p_d2t(n,d,d0);
@@ -161,11 +178,12 @@ plotpvsd=
       else {
         y=if(y=='density') d_d2ht(n,d.het=d.het,sd.het=sd.het,d=d)
           else p_d2ht(n,d.het=d.het,sd.het=sd.het,d=d);
-      }
-    }
+      }}
+    if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     if (distribution=='d2t') pval=d2pval(n,d) else pval=d2htpval(n,sd.het,d);
     if (missing(col)) col=pval2col(pval);
     if (missing(lwd)) lwd=ifelse(pval<=0.05,lwd.sig,lwd.nonsig);
+    if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     l=length(d);
     if (!add) plot(d,y,type='n',xlab=xlab,ylab=ylab,main=title,cex.main=cex.title,...);
     if (l==1) points(d,y,col=col,pch=19)
@@ -175,7 +193,8 @@ plotpvsd=
     }
     grid();
     ## plot extra lines & values if desired. nop if vline, hline NULL
-    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
+           lty=vhlty,col=vhcol,lwd=vhlwd);
     ## fill tail if desired. already made sure we're doing density
     if (is.logical(fill.tail)&fill.tail) fill.tail=cq(upper,lower);
     if (!is.logical(fill.tail)) {
@@ -184,7 +203,7 @@ plotpvsd=
     }
     ## plot legend if desired
     if (legend) pval_legend();
-  }
+    }
 ## plot multiple lines - my adaptation of matplot - adapted from repwr/plotratm
 ## x is vector of x values
 ## y is vector or matrix of y values - like matplot, each line is column of y
@@ -193,24 +212,26 @@ plotpvsd=
 ## xaxt, yaxt control labels on axes - NOT YET IMPLEMENTED
 ##   's' or NULL means let R do it
 ##    else list of axis params, eg, at, labels
-##           title='',cex.title=1,
+##           title='',cex.title='auto',
 ## vline,hline are vectors of x or y positions for extra vertical or horizontal lines
 ## vhlty, vhcol, vhlwd are lty, col, lwd for these extra lines
 ## vlab, hlab contol writing vline, hline values along axes
 ## vhdigits is number of digits for these values
 ## smooth whether to smooth data to make plot prettier
-##   aspline, spline, loess, none, T, F. default is aspline. T means aspline. F means none
+##   aspline, spline, loess, none, TRUE, FALSE. default is aspline.
+##   TRUE means aspline. FALSE means none
 ##   spar is for spline
 ## legend tells whether and where to draw legend
-##   T or word like 'right' means draw legend, F or NULL means no legend
+##   TRUE or word like 'right' means draw legend, FALSE or NULL means no legend
 ## legend.title is legend title
 ## legend.args are further legend params
 plotm=
-  function(x,y,col='black',lty='solid',lwd=1,title='',cex.title=1,
+  function(x,y,col='black',lty='solid',lwd=1,title='',cex.title='auto',
            xaxt='s',yaxt='s',
-           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',vhlwd=1,vlab=T,hlab=T,vhdigits=2,
+           vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
+           vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            smooth=c(cq(aspline,spline,loess,none),TRUE,FALSE),spar=NULL,
-           legend=if(is.vector(y)) F else 'right',legend.title=NULL,
+           legend=if(is.vector(y)) FALSE else 'right',legend.title=NULL,
            legend.labels=if(is.vector(y)) NULL else colnames(y),
            legend.args=list(where=NULL,x=NULL,y=NULL,cex=0.8,
                             title=legend.title,labels=legend.labels,col=col,lty=lty,lwd=lwd),
@@ -224,6 +245,7 @@ plotm=
       stop("'y' must be vector or 2-dimensional matrix-like object");
       if (length(x)!=nrow(y)) stop("'x' and 'y' have different number of rows");
     }
+    if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     smooth=if(is.logical(smooth)) if(smooth) 'aspline' else 'none' else match.arg(smooth);
     if (smooth!='none') {
       x.smooth=seq(min(x),max(x),len=100);
@@ -236,9 +258,10 @@ plotm=
             xaxt=xaxt,yaxt=yaxt,...);
     grid();
     ## plot extra lines & values if desired. nop if vline, hline NULL
-    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,lty=vhlty,col=vhcol,lwd=vhlwd);
+    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
+           lty=vhlty,col=vhcol,lwd=vhlwd);
     ## draw legend if desired
-    if (is.null(legend)) legend=F
+    if (is.null(legend)) legend=FALSE
     else if (!is.logical(legend)) {
       legend.args$where=legend;
       legend=TRUE;
@@ -249,12 +272,12 @@ plotm=
 vhline=function(vline=NULL,hline=NULL,vlab=NULL,hlab=NULL,vhdigits=2,col=NA,...) {
   xylim=par('usr');
   vline=vline[which(between(vline,xylim[1],xylim[2]))];
-  hline=hline[which(between(hline,xylim[3],xylim[3]))];
+  hline=hline[which(between(hline,xylim[3],xylim[4]))];
   abline(v=vline,h=hline,col=col,...);
   ## write vlinealues along axes
-  if (vlab&!is.null(vline))
+  if (vlab&length(vline)>0)
     mtext(round(vline,vhdigits),side=1,at=vline,col=col,line=0.25,cex=0.75);
-  if (hlab&!is.null(hline))
+  if (hlab&length(hline)>0)
     mtext(round(hline,vhdigits),side=2,at=hline,col=col,line=0.25,cex=0.75);
 }
 hline=
@@ -294,7 +317,7 @@ pval_legend=
   x=c(x0,x1);
   y=seq(y0,y1,length.out=2*steps.pvcol+1)[1:(2*steps.pvcol)]
   z=t(as.matrix(rev(head(brk.pval,-1))));
-  image(x,y,z,add=T,breaks=brk.pval,col=col.pval);
+  image(x,y,z,add=TRUE,breaks=brk.pval,col=col.pval);
   ## add legend text
   x1=x1+strwidth(' ',cex=cex);
   text(x1,y0,0,adj=c(0,0),cex=cex)
@@ -332,7 +355,7 @@ fill_tail=
 
 pval2col=function(pval) {
   param(col.pval,brk.pval,min.pvcol);
-  col.pval[findInterval(-log10(clamp_pval(pval,min.pvcol)),brk.pval,all.inside=T)];
+  col.pval[findInterval(-log10(clamp_pval(pval,min.pvcol)),brk.pval,all.inside=TRUE)];
 }
 d2col=function(n,sd.het,distribution,d) {
   pval=if(distribution=='d2t') d2pval(n,d) else d2htpval(n,sd.het,d);
@@ -340,3 +363,9 @@ d2col=function(n,sd.het,distribution,d) {
 }
 clamp_pval=function(pval,min.pvcol) sapply(pval,function(pval) max(min(pval,1),min.pvcol));
 
+## auto-scale title
+cex_title=function(title) {
+  xyplt=par('plt');                     # dimensions of plot region
+  xplt=xyplt[2]-xyplt[1];               # width of plot region
+  min(1,xplt/strwidth(title,units='fig'));
+}
