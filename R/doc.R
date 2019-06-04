@@ -117,7 +117,19 @@ dotbl=
       save_tbl(tbl,file,obj.ok);
       tblinc()});
     tblname;
- }
+  }
+## construct figure title
+## use CAP arg names to reduce conflicts with partial arg matching
+figtitle=function(TEXT=NULL,...,SEP=' ') {
+  dots=unlist(list(...));
+  fig=paste(sep='','Figure ',figlabel());
+  TEXT=paste(collapse=SEP,TEXT);
+  if (!is.null(dots)) {
+    dots=paste(collapse=', ',sapply(names(dots),function(name) paste(sep='=',name,dots[name])));
+    TEXT=paste(collapse='. ',c(TEXT,dots));
+  }
+  paste(collapse="\n",c(fig,TEXT));
+}
 ## construct figure label, eg, S1-2c
 figlabel=function(extra=parent(extra,F),where=cq(content,filename)) {
   where=match.arg(where);
