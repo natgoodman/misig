@@ -1,0 +1,28 @@
+$meand1
+   n d.het sd.het meand meand.tval
+1 20   0.0      0  0.77       0.77
+6 20   0.5      0  0.87       0.87
+
+$pval1
+   n sd.het pval pval.tval over over.tval
+1 20      0 0.05      0.05    1         1
+
+$ci1
+    n sd.het   d ci.lo ci.hi ci.tval.lo ci.tval.hi over
+1  20      0 0.0 -0.62  0.62      -0.62       0.62    1
+16 20      0 0.5 -0.13  1.13      -0.13       1.13    1
+
+$meand2
+     n d.het sd.het meand meand.tval
+25 400   0.0    0.4  0.95       0.42
+30 400   0.5    0.4  1.04       0.63
+
+$pval2
+     n sd.het pval pval.tval over over.tval
+15 400    0.4 0.05      0.73    1     14.65
+
+$ci2
+     n sd.het   d ci.lo ci.hi ci.tval.lo ci.tval.hi over
+15 400    0.4 0.0  -0.8   0.8      -0.14       0.14 5.74
+30 400    0.4 0.5  -0.3   1.3       0.36       0.64 5.66
+
