@@ -15,14 +15,11 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## --- Generate Figures and Tables for misig README---
+## --- Generate Figures and Tables for misig README ---
 doc_readme=function(sect=NULL) {
   sect.all=cq(plotdvsd,plothist,plotpvsd,plotm,table);
   if (is.null(sect)) sect=sect.all else sect=pmatch_choice(sect,sect.all);
   sapply(sect,function(sect) {
-    ## compute section number. from stackoverflow.com/questions/5577727
-    ## sectnum=which(sect==sect.all)[1];
-    ## sect_start(sectnum); 
 ##### plotdvsd
     if (sect=='plotdvsd') {
       figblk_start();
@@ -30,15 +27,13 @@ doc_readme=function(sect=NULL) {
       d.crit=d_crit(n);
       sim=get_sim_rand(n=n);
       x='d.sdz'; y='d.pop';
-      title=title_readme(c('Scatter plot',y,'vs',x),n=n);
-      dofig(plotdvsd,NULL,sim=sim,x=x,y=y,vline=c(-d.crit,d.crit),xlim=c(-2,2),
-            title=title,cex.main=1);
+      title=figtitle(c('Scatter plot',y,'vs',x),n=n);
+      dofig(plotdvsd,NULL,sim=sim,x=x,y=y,vline=c(-d.crit,d.crit),xlim=c(-2,2),title=title);
       sim.zoom=subset(sim,subset=near(d.sdz,d.crit,0.10));
       x='d.sdz'; y='d.pop';
-      title=title_readme(c('Scatter plot.',y,'vs',x,'showing sharp boundary at',
+      title=figtitle(c('Scatter plot.',y,'vs',x,'showing sharp boundary at',
                            round(d.crit,digits=2)),n=n);
-      dofig(plotdvsd,'zoom',sim=sim.zoom,x=x,y=y,vline=d.crit,vlab=T,legend=F,
-            title=title,cex.main=0.9);
+      dofig(plotdvsd,'zoom',sim=sim.zoom,x=x,y=y,vline=d.crit,vlab=T,legend=F,title=title);
     }
 ##### plothist
     if (sect=='plothist') {
@@ -50,9 +45,8 @@ doc_readme=function(sect=NULL) {
         n.fig=n[i]; d.fig=d[i];
         d.crit=d_crit(n.fig);
         sim=get_sim_fixd(n=n.fig,d=d.fig);
-        title=title_readme('Histogram of observed effect size',d.pop=d.fig,n=n.fig);
-        dofig(plothist,figname[i],sim=sim,vline=c(-d.crit,d.fig,d.crit),title=title,cex.main=1,
-              breaks=20);
+        title=figtitle('Histogram of observed effect size',d.pop=d.fig,n=n.fig);
+        dofig(plothist,figname[i],sim=sim,vline=c(-d.crit,d.fig,d.crit),title=title,breaks=20);
       });
     }
 ##### plotpvsd 
@@ -67,9 +61,9 @@ doc_readme=function(sect=NULL) {
         n.fig=n[i]; d.fig=d[i]; sd.fig=sd[i]; y.fig=y[i]; 
         d.crit=d_htcrit(n.fig,sd.het=sd.fig);
         desc=paste(sep='','het distribution (',y.fig,')');
-        title=title_readme(desc,d.het=d.fig,sd.het=sd.fig,n=n.fig);
+        title=figtitle(desc,d.het=d.fig,sd.het=sd.fig,n=n.fig);
         dofig(plotpvsd,figname[i],n=n.fig,d.het=d.fig,sd.het=sd.fig,y=y.fig,
-              vline=c(-d.crit,d.crit),xlim=c(-1,2),title=title,cex.main=1);
+              vline=c(-d.crit,d.crit),xlim=c(-1,2),title=title);
       });
     }
 ##### plotm 
@@ -89,8 +83,8 @@ doc_readme=function(sect=NULL) {
       col=rep(col,2);
       lty=c(rep('dotted',len=length(d.fixd)),rep('solid',length(d.fixd)));
       lwd=2;     
-      title=title_readme('Line plot of mean significant observed effect size inflation (raw)');
-      dofig(plotm,'meand',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=F,title=title,cex.main=0.9,
+      title=figtitle('Line plot of mean significant observed effect size inflation (raw)');
+      dofig(plotm,'meand',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=F,title=title
             legend.labels=legend.labels,legend='topright',
             xlab='sample size',ylab='inflation (ratio of actual to correct)');
       param(n.hetd,sd.hetd);
@@ -107,8 +101,8 @@ doc_readme=function(sect=NULL) {
       col=rep(col,2);
       lty=c(rep('dotted',len=length(sd.hetd)),rep('solid',length(sd.hetd)));
       lwd=2;     
-      title=title_readme('Line plot of pval inflation (smooth=aspline)');
-      dofig(plotm,'pval',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=T,title=title,cex.main=1,
+      title=figtitle('Line plot of pval inflation (smooth=aspline)');
+      dofig(plotm,'pval',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=T,title=title,
             legend.labels=legend.labels,legend='topleft',
             xlab='sample size',ylab='inflation (ratio of actual to correct)');  
     }
@@ -137,14 +131,3 @@ doc_readme=function(sect=NULL) {
     }
   });
 } 
-## generate title for doc_readme
-## use CAP arg names to reduce conflicts with partial arg matching
-title_readme=function(TEXT=NULL,...,SEP=' ') {
-  dots=unlist(list(...));
-  fig=paste(sep='','Figure ',figlabel());
-  if (!is.null(dots)) {
-    dots=paste(collapse=', ',sapply(names(dots),function(name) paste(sep='=',name,dots[name])));
-    TEXT=paste(collapse='. ',c(TEXT,dots));
-  }
-  paste(collapse="\n",c(fig,TEXT));
-}
