@@ -15,21 +15,7 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-source('R/util.R');
-source('R/datman.R');
-source('R/dat.R');
-source('R/dat_ovrhtsupp.R');
-source('R/dat_ovrfx.R');
-source('R/dat_ovrht.R');
-source('R/dat_readme.R');
-source('R/doc.R');
-source('R/doc_ovrhtsupp.R');
-source('R/doc_ovrfx.R');
-source('R/doc_ovrht.R');
-source('R/doc_readme.R');
-source('R/init.R');
-source('R/plot.R');
-source('R/stats.R');
+source('R/source.R');                   # source the others
 
 ## ---- run ----
 ## run the program
