@@ -66,12 +66,11 @@ doc_ovrhtsupp=function(sect=parent(sect,NULL)) {
   vl=c(d.fig,-d.crit,d.crit,-d.htcrit,d.htcrit);
   hl=d.fig;
   xlim=c(-1,1.5);
-  dofig(plotdvsd,'big_picture',sim=sim,x=x,y=y,vline=vl,hline=hl,xlim=xlim,
-        title=title,cex.main=0.75);
+  dofig(plotdvsd,'big_picture',sim=sim,x=x,y=y,vline=vl,hline=hl,xlim=xlim,title=title);
   ## figure 2
   title=title_ovrhtsupp('Histogram of observed effect size',n=n.fig,d.het=d.fig,sd.het=sd.fig1);
   ylim=c(0,d_d2t(n=n.fig,d=d.fig,d0=d.fig));  # set ylim to match figure 3
-  dofig(plothist,'hist',sim=sim,vline=vl,title=title,cex.main=0.75,xlim=xlim,ylim=ylim);
+  dofig(plothist,'hist',sim=sim,vline=vl,title=title,xlim=xlim,ylim=ylim);
   ## figure 3
   figblk_start();
   n.fig=200; d.fig=c(0.3,0.3,0.3,0.7,0.7); sd.fig=c(0,0.1,0.2,0.1,0.2);
@@ -153,7 +152,7 @@ dtext=function(n,d.het,sd.het,label,y,side,cex=0.9,col='grey10') {
 ## plot meand, power (raw or inflation) split by d.het
 plot_byd=
   function(what=cq(meand,power),y=what,d.fig=NULL,sd.fig=0.2,
-           title=NULL,xlab='sample size',ylab=NULL,cex.main=0.75,legend='topright',...) {
+           title=NULL,xlab='sample size',ylab=NULL,legend='topright',...) {
     what=match.arg(what);
     y=match.arg(y,cq(meand,power,over));
     if (is.null(title)) title=title_byd(what,y,sd.fig);
@@ -185,9 +184,8 @@ plot_byd=
     col=rep(col,each=3);
     lty=rep(lty,l);
     lwd=rep(lwd,l);
-    plotm(x=x,y=y,title=title,cex.main=cex.main,lwd=lwd,lty=lty,col=col,        
-          legend=legend,legend.args=legend.args,
-          xlab=xlab,ylab=ylab,smooth=F,...); 
+    plotm(x=x,y=y,title=title,lwd=lwd,lty=lty,col=col,        
+          legend=legend,legend.args=legend.args,xlab=xlab,ylab=ylab,smooth=F,...); 
   }
 title_byd=function(what,y,sd.het) {
   desc=if (what=='meand') 'Mean significant effect size' else 'Power';
@@ -202,7 +200,7 @@ ylab_byd=function(what,y) {
 ## plot meand, power (raw or inflation) split by sd.het
 plot_bysd=
   function(what=cq(meand,power),y=what,d.fig=0.3,sd.fig=NULL,
-           title=NULL,xlab='sample size',ylab=NULL,cex.main=0.75,legend='topright',...) {
+           title=NULL,xlab='sample size',ylab=NULL,legend='topright',...) {
     what=match.arg(what);
     y=match.arg(y,cq(meand,power,over));
     if (is.null(title)) title=title_bysd(what,y,d.fig);
@@ -232,9 +230,8 @@ plot_bysd=
     col=c(rep(col,each=2),'black');
     lty=c(rep(cq(solid,dashed),l),'dotted');
     lwd=c(rep(c(2,2),l),1);
-    plotm(x=x,y=y,title=title,cex.main=cex.main,lwd=lwd,lty=lty,col=col,        
-          legend=legend,legend.args=legend.args,
-          xlab=xlab,ylab=ylab,smooth=F,...); 
+    plotm(x=x,y=y,title=title,lwd=lwd,lty=lty,col=col,        
+          legend=legend,legend.args=legend.args,xlab=xlab,ylab=ylab,smooth=F,...); 
   }
 title_bysd=function(what,y,d.het) {
   desc=if (what=='meand') 'Mean significant effect size' else 'Power';
