@@ -11,7 +11,7 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## ---- Data Generation for readme ----
+## ---- Data Generation for README ----
 dat_readme=function(...) {
   ## do all types of simulations
   param(n.fixd,m.fixd,d.fixd);
@@ -36,7 +36,7 @@ dat_readme=function(...) {
   dopower_hetd(n.hetd,d.hetd,sd.hetd);
   ## theoretical
   dopval_d2ht(n.hetd,sd.hetd);
-  doci_d2ht(n.hetd,sd.hetd,d.hetd);
+  doci_d2ht(n.hetd,d.hetd,sd.hetd);
   domeand_d2ht(n.hetd,d.hetd,sd.hetd);
   dopower_d2ht(n.hetd,d.hetd,sd.hetd);
 
