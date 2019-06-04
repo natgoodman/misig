@@ -52,24 +52,23 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
 
   ## draw the figures
   ## figure 1
-  title=title_ovrfx('P-values improve as observed effect size grows more extreme',n=n.fig1);
+  title=figtitle('P-values improve as observed effect size grows more extreme',n=n.fig1);
   x='d.sdz'; y='d.pop';
   sim=get_sim_rand(n=n.fig1);
-  dofig(plotdvsd,'big_picture',sim=sim,x=x,y=y,vline=c(-d.crit1,d.crit1),xlim=c(-2,2),
-        title=title,cex.main=1);
+  dofig(plotdvsd,'big_picture',sim=sim,x=x,y=y,vline=c(-d.crit1,d.crit1),xlim=c(-2,2),title=title);
   ## figure 2
-  title=title_ovrfx('Histogram of observed effect size',d=d.fig1,n=n.fig1);
+  title=figtitle('Histogram of observed effect size',d=d.fig1,n=n.fig1);
   sim=get_sim_fixd(n=n.fig1,d=d.fig1);
   ylim=c(0,d_d2t(n=100,d=0.3,d0=0.3));  # set ylim to match figure 3
-  dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.main=1,
+  dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,
         xlim=c(-2,2),ylim=ylim);
-  ## dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.main=1,
+  ## dofig(plothist,'hist',sim=sim,vline=c(-d.crit1,d.fig1,d.crit1),title=title,cex.title=1,
   ##       legend.x0=-1.85,xlim=c(-2,2),ylim=c(0, d_d2t(n=100,d=0.3,d0=0.3)));
   ## figure 3
-  title=title_ovrfx('Sampling distributions show impact of increasing n and d');
+  title=figtitle('Sampling distributions show impact of increasing n and d');
   dofig(plotsmpldist,'smpl_dist',vline=c(-d.crit1,d.fig1,d.crit1),title=title);
   ## figure 4
-  title=title_ovrfx('Average observed effect size improves as n increases');
+  title=figtitle('Average observed effect size improves as n increases');
   x=seq(min(n.fixd),max(n.fixd),by=1);
   y=do.call(cbind,lapply(meand.t.fit,function(fit) predict(fit,x)$y));
   col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(meand.t.byd));
@@ -79,19 +78,11 @@ doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   col=rep(col,2);
   lty=c(rep('solid',len=3),rep('dotted',3));
   lwd=2;
-  dofig(plotmeand,'meand',x=x,y=y,title=title,cex.main=1,lwd=lwd,lty=lty,col=col,        
+  dofig(plotmeand,'meand',x=x,y=y,title=title,lwd=lwd,lty=lty,col=col,        
         legend='topright',legend.labels=legend.labels,
         meand20=meand20,nover=nover,ylim=c(0.3,meand20[3]),
         xlab='sample size',ylab='effect size');
   invisible();
-}
-## generate title for doc_ovrfx
-title_ovrfx=function(desc=NULL,d=NULL,n=NULL) {
-  fig=paste(sep='','Figure ',figlabel());
-  paste(collapse="\n",
-        c(fig,
-          paste(sep='. ',desc,
-                paste(collapse=', ',c(if(!is.null(d))paste_nv(d),if(!is.null(n))paste_nv(n))))));
 }
 ## plot sampling distributions (figure 3)
 ## mostly hard-coded because no easy way to automate placement of text
