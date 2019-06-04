@@ -18,7 +18,7 @@
 ## process parameters and store in param environment.
 ## create output directories if necessary.
 ## supp's are placeholders
-doc.all=cq(readme,ovrfx,ovrht,ovrfxsupp,ovrhtsupp,readmesupp);
+doc.all=cq(readme,readmesupp,ovrfx,ovrht,ovrfxsupp,ovrhtsupp);
 init=function(
   ## doc parameters 
   doc='readme',                             # controls sim defaults, data, figure subdirs
@@ -26,35 +26,40 @@ init=function(
   run.id=NULL,                              # to separate runs for tests
   ## random-d 
   n.rand=switch(docx,                       # sample sizes
-                readme=c(20,100),ovrfx=20),
+                readme=c(20,100),readmesupp=c(20,100),ovrfx=20),
   m.rand=switch(docx,                       # number of populations
-                readme=1e3, ovrfx=1e5),
+                readme=1e3,readmesupp=1e3,ovrfx=1e5),
   d.gen=switch(docx,                        # function to generate population effect sizes
-               readme=runif,ovrfx=runif),
+               readme=runif,readmesupp=runif,ovrfx=runif),
   d.args=switch(docx,                       # arguments passed to d.gen
                 readme=list(n=m.rand,min=-3,max=3),
+                readmesupp=list(n=m.rand,min=-3,max=3),
                 ovrfx=list(n=m.rand,min=-3,max=3)),
   d.rand=switch(docx,                       # population effect sizes. call generating function
                 readme=do.call(d.gen,d.args),
+                readmesupp=do.call(d.gen,d.args),
                 ovrfx=do.call(d.gen,d.args)),
   ## fixed-d 
   n.fixd=switch(docx,                       # sample sizes
                 readme=seq(20,100,by=20),
+                readmesupp=seq(20,100,by=20),
                 ovrfx=seq(20,200,by=20)), 
   m.fixd=switch(docx,                       # number of studies per d
-                readme=1e3,ovrfx=1e4),
+                readme=1e3,readmesupp=1e3,ovrfx=1e4),
   d.fixd=switch(docx,                       # population effect sizes
                 readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
+                readmesupp=c(0,0.2,0.5,0.8),# supp needs 0 to compute pvals
                 ovrfx=c(0.3,0.5,0.7)),
   ## het-d 
   n.hetd=switch(docx,                       # sample sizes
-                readme=c(20,seq(100,400,by=100)),ovrht=200,ovrhtsupp=200),
+                readme=c(20,seq(100,400,by=100)),readmesupp=c(20,seq(100,400,by=100)),
+                ovrht=200,ovrhtsupp=200),
   m.hetd=switch(docx,                       # number of studies per d.het
-                readme=1e3,ovrht=1e5,ovrhtsupp=1e5),
+                readme=1e3,readmesupp=1e3,ovrht=1e5,ovrhtsupp=1e5),
   d.hetd=switch(docx,                       # centers of het pop effect sizes
-                readme=c(0,0.5),ovrht=0,ovrhtsupp=0.3),
+                readme=c(0,0.5),readmesupp=c(0,0.5),ovrht=0,ovrhtsupp=0.3),
   sd.hetd=switch(docx,                      # standard deviation of het pop distribution
-                 readme=c(0,0.2,0.4),ovrht=0.2,ovrhtsupp=0.2),
+                 readme=c(0,0.2,0.4),readmesupp=c(0,0.2,0.4),ovrht=0.2,ovrhtsupp=0.2),
   ## pval & ci tables (ovrht) - others use simulation params
   n.ovrht=switch(docx,                       # sample sizes
                  ovrht=seq(20,400,by=10)),
@@ -75,6 +80,7 @@ init=function(
   outdir=c(datadir,                          # output dirs needed by doc. all need datadir
            switch(docx,
                   readme=c(sim.rand.dir,sim.fixd.dir,sim.hetd.dir),
+                  readmesupp=c(sim.rand.dir,sim.fixd.dir,sim.hetd.dir),
                   ovrfx=c(sim.rand.dir,sim.fixd.dir),
                   ovrht=c(sim.hetd.dir),
                   ovrhtsupp=c(sim.hetd.dir))),
@@ -106,7 +112,8 @@ init=function(
   end=NULL                       # placeholder for last parameter
   ) {
   doc=docx;                      # to avoid confusion later
-
+  ## source doc-specific files
+  source_doc(doc);
   ## extend d.rand to cover m
   if(!is.null(d.rand)) d.rand=rep(d.rand,len=m.rand);
   ## round various d params to avoid imprecise decimals 
