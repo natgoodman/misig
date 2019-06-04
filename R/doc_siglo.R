@@ -63,13 +63,12 @@ doc_siglo=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   sim=get_sim(n=n.fig1);
   sim.pos_dsdz=subset(sim,subset=d.sdz>=0);
   dofig(plotdvsd,'big_picture',sim=sim.pos_dsdz,x=x,y=y,d.crit=d.crit1,d.pop=d.fig1,xlim=c(0,2),
-        title=title,cex.main=1);
+        title=title);
   ## figure 2
   title=title_siglo('Sharp boundary between nonsignificant and significant p-values');
   sim.zoom_in=subset(sim,subset=near(d.sdz,d.crit1,0.05));
   dofig(plotdvsd,'zoom_in',sim=sim.zoom_in,x=x,y=y,d.crit=d.crit1,d.pop=d.fig1,legend=F,
-        vline=d.crit1,vlab=F,
-        title=title,cex.main=1)
+        vline=d.crit1,vlab=F,title=title);
   ## figure 3
   title=title_siglo('Critical and average observed effect sizes improve as n increases',n=NULL);
   ## y=data.frame(
@@ -80,12 +79,12 @@ doc_siglo=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   legend.labels=
     c('critical effect size',
       'mean significant effect size for d.pop=0.3','mean significant effect size for d.pop=0.5');
-  ## dofig(plotm,'dcrit_dmean',x=n,y=y,title=title,cex.main=1,lwd=2,col=col,legend='topright',
+  ## dofig(plotm,'dcrit_dmean',x=n,y=y,title=title,cex.title=1,lwd=2,col=col,legend='topright',
   ##       legend.labels=
   ##         c('critical d','mean d for d.pop=0.3','mean d for d.pop=0.5','mean d for d.pop=0.7'),
   ##       xlab='sample size',ylab='effect size',
   ##       vline=round(c(n.fig1,n.crit3,n.crit5)),hline=c(0.3,0.5,0.7));
-  dofig(plotdvsn,'dcrit_dmean',x=n,y=y,title=title,cex.main=1,lwd=2,col=col,
+  dofig(plotdvsn,'dcrit_dmean',x=n,y=y,title=title,lwd=2,col=col,
         legend='topright',legend.labels=legend.labels,
         n.crit=c(n.crit3,n.crit5),n.over=c(n.over3,n.over5),
         xlab='sample size',ylab='effect size');
