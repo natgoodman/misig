@@ -146,16 +146,20 @@ wrap_fun=function(fun,funfun=NULL,...) {
   do.call(fun,args);
 }
 
-## like match.arg but uses prefix matching and, if several.ok, returns 'em all
-pmatch_choice=function(arg,choices,several.ok=T,none.ok=F) {
-  ## m=startsWith(choices,arg);
-  m=apply(do.call(cbind,lapply(arg,function(arg) startsWith(choices,arg))),1,any);
-  if (!any(m)&&!none.ok) stop(paste(sep=' ',"'arg' matched none of",paste(collapse=', ',choices)));
-  if (!several.ok&&sum(m)>1)
-    stop(paste(sep=' ',"'arg' matched several of",paste(collapse=', ',choices),
-               "but 'several.ok' is FALSE"));
-  choices[m];
-}
+## like match.arg but uses general matching and, if several.ok, returns 'em all
+pmatch_choice=
+  function(arg,choices,several.ok=T,none.ok=F,start=T,ignore.case=T,perl=F,fixed=F,invert=F) {
+    ## m=startsWith(choices,arg);
+    pat=if(start) paste0('^',arg) else arg;
+    m=grep(pat,choices,ignore.case=ignore.case,perl=perl,value=T,fixed=fixed,invert=invert);
+    if (length(m)==0&&!none.ok)
+      stop(paste(sep=' ',"'arg' matched none of",paste(collapse=', ',choices),
+           "but 'none.ok' is FALSE"));
+    if (length(m)>1&&!several.ok)
+      stop(paste(sep=' ',"'arg' matched several of",paste(collapse=', ',choices),
+                 "but 'several.ok' is FALSE"));
+    if (length(m)==0) NULL else m;
+  }
 ## quote names in paramter list. code adapted from base::rm
 cq=function(...) {
  dots=match.call(expand.dots=FALSE)$...
@@ -226,6 +230,16 @@ splinem=function(x,y,xout,spar=NULL,...) {
   colnames(yout)=colnames(y);
   yout;
 }
+## with case
+## like 'with' but works on vectors. I use it inside apply(cases,1,function(case)...)
+## note that plain 'with' works fine when applied to cases as a whole
+## withcase=function(case,...) with(data.frame(t(case)),...)
+withcase=function(case,...) {
+  case=data.frame(t(case));
+  assign('case',case,envir=parent.frame(n=1)); # so case will be data frame in called code
+  with(case,...);
+}  
+
 ## repeat rows or columns of 2-dimensional matrix-like object. like rep
 ## like rep, ... can be times, length.out, or each
 ## based on StackOverflow https://stackoverflow.com/questions/11121385/repeat-rows-of-a-data-frame
