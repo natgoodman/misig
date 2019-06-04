@@ -23,6 +23,6 @@ dat_ovrht=function() {
   ## generate pval and ci tables
   param(n.ovrht,d.ovrht,sd.ovrht);
   dopval_d2ht(n.ovrht,sd.ovrht);
-  doci_d2ht(n.ovrht,sd.ovrht,d.ovrht);
+  doci_d2ht(n.ovrht,d.ovrht,sd.ovrht);
   invisible();
 }
