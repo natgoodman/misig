@@ -45,38 +45,30 @@ doc_ovrht=function(sect=parent(sect,NULL)) {
   ## draw the figures
   ## figure 1
   n.fig=200; d.fig=0; sd.fig=0.2;
-  title=title_ovrht('Het histogram and conventional sampling distribution under the null.',
-                    paste_nv('sd.het',sd.fig),paste_nv('n',n.fig));
+  title=figtitle('Het histogram and conventional sampling distribution under the null',
+                 sd.het=sd.fig,n=n.fig);
   sim=get_sim_hetd(n=n.fig,d=d.fig,sd=sd.fig);
   dofig(plothist_d2t,'hist_d2t',sim=sim,title=title,d=d.fig,n=n.fig);
   ## figure 2
-  title=title_ovrht('P-value inflation worsens as sd.het and n increase');
+  title=figtitle('P-value inflation worsens as sd.het and n increase');
   dofig(plotpval_over,'pval_inflation',pval=pval,title=title);
   ## figure 3
-  title=title_ovrht('Confidence interval inflation worsens as sd.het and n increase');
+  title=figtitle('Confidence interval inflation worsens as sd.het and n increase');
   dofig(plotci_over,'ci_inflation',ci=ci,title=title);
   ## figure 4
-  title=title_ovrht('Conventional and het sampling distributions for two values of n');
+  title=figtitle('Conventional and het sampling distributions for two values of n');
   n.fig=c(20,200); d.fig=0; sd.fig=0.2;
   dofig(plotd2t_d2ht,'d2t_d2ht',title=title,n=c(20,200),d=d.fig,sd.het=0.2);
     
   invisible();
 }
-## generate title for doc_ovrht
-title_ovrht=function(...,sep=' ') {
-  fig=paste(sep='','Figure ',figlabel());
-  desc=paste(sep=sep,...);
-  if (length(desc)==0) desc=NULL;
-  paste(collapse="\n",c(fig,desc));
-}
-
 ## figure 1. histogram and d_d2t distribution
 plothist_d2t=
-  function(sim,title,n,d,xlim=d+c(-1,1),ylim=c(0,d_d2t(n=n,d=0)),cex.main=0.8,
+  function(sim,title,n,d,xlim=d+c(-1,1),ylim=c(0,d_d2t(n=n,d=0)),
            col.hist='grey90',border.hist='grey80',
            ci.col='black',ci.lty='dotted',ci.lwd=2,
            ...) {
-    plothist(sim=sim,col=col.hist,border=border.hist,title=title,cex.main=cex.main,
+    plothist(sim=sim,col=col.hist,border=border.hist,title=title,
              xlim=xlim,ylim=ylim,ylab='probability density');
     d.crit=d_crit(n);
     plotpvsd(n=n,add=T,dinc=1e-3,vline=c(-d.crit,d.crit),...)
@@ -92,10 +84,10 @@ plotpval_over=function(pval,title,lwd=2) {
     pval=subset(pval,subset=(sd.het!=0));
     pval.bysd=split(pval,pval$sd.het);
     n=unique(pval$n);
-    y=do.call(cbind,lapply(pval.bysd,function(pval) pval$over));
+    y=do.call(cbind,lapply(pval.bysd,function(pval) pval$over.tval));
     col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(pval.bysd));
     legend.labels=paste(sep='=','sd.het',names(pval.bysd));
-    plotm(x=n,y=y,title=title,cex.main=1,lwd=lwd,col=col,smooth='spline',
+    plotm(x=n,y=y,title=title,lwd=lwd,col=col,smooth='spline',
           legend='topleft',legend.labels=legend.labels,
           xlab='sample size',ylab='inflation (ratio of correct to conventional value)');
 }
@@ -107,16 +99,15 @@ plotci_over=function(ci,title,lwd=2) {
     y=do.call(cbind,lapply(ci.bysd,function(ci) ci$over));
     col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),names(ci.bysd));
     legend.labels=paste(sep='=','sd.het',names(ci.bysd));
-    plotm(x=n,y=y,title=title,cex.main=1,lwd=lwd,col=col,smooth='spline',
+    plotm(x=n,y=y,title=title,lwd=lwd,col=col,smooth='spline',
           legend='topleft',legend.labels=legend.labels,
           xlab='sample size',ylab='inflation (ratio of correct to conventional value)');
 }
 ## figure 4. sampling distributions
 ## mostly hard-coded because no easy way to automate placement of text
 plotd2t_d2ht=
-  function(title,n,d,sd.het,xlim=d+c(-1,1),ylim=c(0,d_d2t(n=n[2],d=0)),cex.main=0.8,
-           col.d2ht='grey70') {
-    plotpvsd(n=n[1],title=title,cex.main=cex.main,xlim=xlim,ylim=ylim,ylab='probability density');
+  function(title,n,d,sd.het,xlim=d+c(-1,1),ylim=c(0,d_d2t(n=n[2],d=0)),col.d2ht='grey70') {
+    plotpvsd(n=n[1],title=title,xlim=xlim,ylim=ylim,ylab='probability density');
     plotpvsd(n=n[2],add=T);
     plotpvsd(n=n[1],sd.het=sd.het,col=col.d2ht,add=T);
     plotpvsd(n=n[2],sd.het=sd.het,col=col.d2ht,add=T);
