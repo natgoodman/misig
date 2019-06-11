@@ -1,0 +1,46 @@
+$pval1
+      n sd.het pval pval.tval over over.tval
+136 200    0.2 0.05      0.38    1       7.6
+
+$ci1
+      n sd.het d ci.lo ci.hi ci.tval.lo ci.tval.hi over
+19  200    0.0 0 -0.20  0.20       -0.2        0.2 1.00
+136 200    0.2 0 -0.44  0.44       -0.2        0.2 2.24
+
+$pval2
+      n sd.het pval pval.tval over over.tval
+58  200   0.05 0.05      0.08    1      1.59
+175 200   0.40 0.05      0.63    1     12.68
+
+$ci2
+      n sd.het d ci.lo ci.hi ci.tval.lo ci.tval.hi over
+58  200   0.05 0 -0.22  0.22       -0.2        0.2 1.12
+175 200   0.40 0 -0.81  0.81       -0.2        0.2 4.12
+
+$pval3
+     n sd.het pval pval.tval over over.tval
+40  20   0.05 0.05      0.05    1      1.05
+48 100   0.05 0.05      0.06    1      1.29
+58 200   0.05 0.05      0.08    1      1.59
+78 400   0.05 0.05      0.11    1      2.19
+
+$ci3
+     n sd.het d ci.lo ci.hi ci.tval.lo ci.tval.hi over
+40  20   0.05 0 -0.63  0.63      -0.62       0.62 1.01
+48 100   0.05 0 -0.29  0.29      -0.28       0.28 1.06
+58 200   0.05 0 -0.22  0.22      -0.20       0.20 1.12
+78 400   0.05 0 -0.17  0.17      -0.14       0.14 1.22
+
+$pval4
+      n sd.het pval pval.tval over over.tval
+118  20    0.2 0.05      0.10    1      1.90
+156 400    0.2 0.05      0.51    1     10.26
+
+$ci4
+      n sd.het d ci.lo ci.hi ci.tval.lo ci.tval.hi over
+118  20    0.2 0 -0.73  0.73      -0.62       0.62 1.18
+156 400    0.2 0 -0.42  0.42      -0.14       0.14 3.00
+
+$end
+[1] NA
+
