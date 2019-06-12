@@ -147,7 +147,8 @@ init_doc=function(
   outpfx=switch(param(doc),supp='S',NULL),          # prefix before figure or table number
   outsfx=letters,                                   # suffix in figure and table blocks
   sectpfx=switch(param(doc),readme=F,F),            # add section number to prefix eg, S1
-  sectnum=1,                                        # section number. incremented in docs
+  sectnum=1,                                        # section number. usually set in docs
+  sect=NULL,
   ## figures
   figpfx=outpfx,
   figsfx=outsfx,
