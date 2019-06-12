@@ -1,7 +1,7 @@
 ---
 title: "Revision history for misig repository"
 author: "Nathan (Nat) Goodman"
-date: "May 22, 2019"
+date: "June 12, 2019"
 output:
   html_document: default
   github_document:
@@ -12,6 +12,77 @@ citecolor: green
 urlcolor: blue
 ---
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+
+## Release 1.30 2019-06-12
+
+First real version of README supplement
+
+Major code changes
+
+- Improve code for figure titles: generic `figtitle` function to generate figure titles instead of doc-specific functions; auto-scaling instead of setting `cex.main`
+- Start cleanup of figure/table numbering scheme
+
+
+New files
+
+- `READMEsupp.Rmd`
+    - Source file for README supplement
+
+- `R/dat_readmesupp.R`, `R/doc_readmesupp.R`
+    - Data and document generation functions for README supplement
+
+- `R/source.R`
+    - Handle problem of name collisions among doc-specific functions through `source_all` function that sources correct doc-specific files for current doc
+
+Changed files 
+
+- `README.Rmd`
+    - Incorporate new scheme for programmatically inserting figures
+    - Add doc codes for README and README supplement in table
+    - Change order of simulations in document to match order in code
+
+- `R/dat.R`
+    - Clean up setting of `verbose` in data generation functions
+    - Implement data generation functions for all four statistics of interest, all simulation types, and both data generation models
+    - Start incorporating new `withcase` function to `lapply` loops; expect more later
+
+- `R/dat_ovrht.R`
+    - Minor changes for stylistic consistency
+    
+- `R/dat_readme.R`
+    - Remove data generation functions not mentioned in README document, now that README supplement exists
+    
+- `R/doc.R`
+    - Implement 'section block' figure/table numbering scheme, in which each section is a figure or table block; a step toward cleaning up figure/table numbering scheme
+    - Add `figtitle` function to generate figure titles; replaces previous doc-specific functions
+    
+- `R/doc_ovrfx.R`, `R/doc_ovrht.R`
+    - Remove `cex.main` from function args in favor of auto-scaling
+    - Replace doc-specific `title_ovrfx`, `title_ovrht` by `figtitle`
+    
+- `R/doc_readme.R`
+    - Remove `cex.main` from function args in favor of auto-scaling
+    - Replace doc-specific `title_readme` by `figtitle`
+    - Incorporate new 'section block' figure/table numbering scheme
+
+- `R/init.R`
+    - Add params for README supplement
+    - Add call to new `source_doc` function to source doc-specific files
+    - Add `sect` param in `init_doc` function to support new 'section block' figure/table numbering scheme
+
+- `R/plot.R`
+    - Implement auto-scaling of titles via `cex_title` function
+    - Add checks for empty plot inputs in `plotdvsd`, `plothist` functions
+    - Add checks in `vhline` function for lines and labels outside plot area to avoid writing labels in the margins
+    - Replace `T`, `F` by full words `TRUE`, `FALSE` after discovering that R doesn't always treat these as synonyms
+    - Add `vhdigits` arg to top level plot functions and propagate to `vhline` function
+    
+- `R/run.R`
+    - Move sourcing of other files to `R/source.R` to address name collisions among doc-specific functions
+    
+- `R/util.R`
+    - Extend `pmatch_choice` function to (optionally) match patterns in the middle of the text; I thought I'd use this in `doc_readmesupp` but didn't
+    - Add `withcase` function to improve `lapply` loops operating on rows of `cases` data frame; still not happy with it; expect further changes
 
 ## Release 1.21 2019-05-22
 
@@ -144,7 +215,7 @@ Changed files
 
 - `R/util.R`
     - Add `spar` param to `splinem` smoothing function
-    - Add `ignore` param to `nvq` to ignore NULL and non-existant names
+    - Add `ignore` param to `nvq` to ignore NULL and non-existent names
 
 Known bugs
 
