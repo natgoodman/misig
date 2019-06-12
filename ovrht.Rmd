@@ -3,10 +3,10 @@ title: "Your P-Values are Too Small! And So Are Your Confidence Intervals!"
 author: "Nathan (Nat) Goodman"
 date: "May 1, 2019"
 output:
-  pdf_document: default
   html_document:
     css: css/html_document.css
     highlight: kate
+  pdf_document: default
   word_document: default
 linkcolor: cyan
 citecolor: green
