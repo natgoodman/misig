@@ -1,7 +1,7 @@
 ---
 title: "Mistakes of Significance"
 author: "Nathan (Nat) Goodman"
-date: "May 22, 2019"
+date: "June 12, 2019"
 output:
   html_document:
     css: css/html_document.css
@@ -70,7 +70,9 @@ The `doc` arguments for each document are
 | -------------------------- | -------------------------- |
 | [When You Select Significant Findings, You’re Selecting Inflated Estimates](https://replicationnetwork.com/2019/02/16/goodman-when-youre-selecting-significant-findings-youre-selecting-inflated-estimates/) | `ovrfx` |
 | [Your P-Values are Too Small! And So Are Your Confidence Intervals!](https://replicationnetwork.com/2019/05/01/your-p-values-are-too-small-and-so-are-your-confidence-intervals/) | `ovrht` |
-| supplementary material for the blog posts TBD | TBD |
+| [README](https://natgoodman.github.io/misig) | `readme` |
+| [Supplementary Material for README](https://natgoodman.github.io/misig/readmesupp.stable.html)| `readmesupp` |
+| supplementary material for blog posts TBD | TBD |
 
 ## Nomenclature
 
@@ -90,8 +92,8 @@ The `doc` arguments for each document are
 
 The program performs three types of simulations.
 
-1. *rand*. Randomly selects a large number of $d_{pop}$s, sets $n$ to a range of values, and simulates one study for each $d_{pop}$ and $n$.
-2. *fixd*. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
+1. *fixd*. Fixes $d_{pop}$ to a few values of interest, sets $n$ to a range of values, and simulates many studies for each $d_{pop}$ and $n$.
+2. *rand*. Randomly selects a large number of $d_{pop}$s, sets $n$ to a range of values, and simulates one study for each $d_{pop}$ and $n$.
 3. *hetd*. Sets $d_{het}$ and $sd_{het}$ to a few values of interest, and selects a large number of $d_{pop}$s from normal distributions with mean $d_{het}$ and standard deviation $sd_{het}$. Then sets $n$ to a range of values, and simulates one study for each $d_{pop}$ and $n$.
 
 The program implements two data generation models: 
@@ -100,6 +102,12 @@ The program implements two data generation models:
 2. *heterogeneous effect (het)*  which assumes that each time we do the study, we’re sampling from a different population with a different true effect size
 
 ## Figures and Tables
+
+```{r echo=FALSE,include=FALSE,cache=FALSE}
+## setup variables for figures
+fig=list.files('figure/readme',full.names=T)
+fig=split(fig,regmatches(fig,regexpr("figure_\\d+",fig)))
+```
 
 The default mode produces figures that illustrate the kinds of graphs the program can produce.
 
@@ -111,35 +119,31 @@ The default mode produces figures that illustrate the kinds of graphs the progra
 The first figure shows a $d$ vs. $d$ scatter plot of *rand* simulated data for $n=20$. The second uses the same data but zooms in to the critical region where p-values switch from nonsignificant to significant.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_001a_plotdvsd.png');
-knitr::include_graphics('figure/readme/figure_001b_plotdvsd_zoom.png');
+knitr::include_graphics(fig$figure_001);
 ```
 
 Next are two histograms of *fixd* simulated data with different values for $d_{pop}$ and $n$.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_002a_plothist_blue.png');
-knitr::include_graphics('figure/readme/figure_002b_plothist_red.png');
+knitr::include_graphics(fig$figure_002);
 ```
 
 The next two are sampling distributions for the *het* model with different values for $d_{het}$, $sd_{het}$, and $n$. The first shows probability density, the second cumulative probability.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_003a_plotpvsd_den.png');
-knitr::include_graphics('figure/readme/figure_003b_plotpvsd_cum.png');
+knitr::include_graphics(fig$figure_003);
 ```
 
 The final block are line plots. The first shows mean significant observed effect size inflation for the *fix* model. The second shows p-value inflation for the *het* model. The first has raw data; the second applies a smoothing function. Both figures depict simulated and analytic results to illustrate the concordance.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
-knitr::include_graphics('figure/readme/figure_004a_plotm_meand.png');
-knitr::include_graphics('figure/readme/figure_004b_plotm_pval.png');
+knitr::include_graphics(fig$figure_004);
 ```
 
 Finally, here is a table of supporting data.
 
 ```{r echo=FALSE}
-load('table/readme/table_001_table_support.RData');
+load('table/readme/table_001a_table_support.RData');
 knitr::kable(tbl,digits=2)
 ```
 
