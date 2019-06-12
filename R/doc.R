@@ -49,8 +49,7 @@ dodoc=
 ##   matched by plot-function args. eg, 'd' matches 'doc', 'x' matches 'xtra'
 ##   choose argument names carefully!
 dofig=
-  function(figfun,figname=NULL,title=NULL,extra=parent(extra,F),
-           sect=parent(sect,NULL),sectnum=parent(sectnum,NULL),sect.desc=parent(sect.desc,NULL),
+  function(figfun,figname=NULL,title=NULL,extra=parent(extra,F),sect=param(sect),
            ...) {
     param(figextra,save.fig,figscreen,fignew);
     if (extra&!figextra) return();
@@ -81,8 +80,7 @@ dofig=
       dev.png=dev.cur();
     }
     if (is.function(title)) title=wrap_fun(title,...);
-    ## if (is.null(title)) fignum=figname(name,sect,sectnum);  # set fignum for standard plot title
-    ## draw the figure!
+     ## draw the figure!
     ## wrap_fun(figfun,...);
     figfun(title=title,...);
     if (plot.to.file&plot.to.screen) 
@@ -98,7 +96,7 @@ dofig=
   }
 ## save one or more tables.
 dotbl=
-  function(...,sect=parent(sect,NULL),list=character(),obj.ok=F) {
+  function(...,sect=param(sect),list=character(),obj.ok=F) {
     dots=match.call(expand.dots=FALSE)$...;  # doesn't evaluate dots
     parent.env=parent.frame(n=1);            # for empty name
     if (length(dots) &&
@@ -165,11 +163,13 @@ tbllabel=function(where=cq(content,filename)) {
   paste(collapse='-',c(pfx,paste(collapse='',c(tblnum,sfx))));
 }
 ## manage figure,table numbers, blocks
-sect_start=function(sectnum) {
-  ## start section with blocks turned off
-  param(sectnum=sectnum,figblk=NULL,tblblk=NULL,xfigblk=NULL);
-  ## reset fignum if we're doing section-specific numbering
-  if (param(sectpfx)) param(fignum=1);
+sect_start=function(sect,sect.all) {
+  ## compute section number. from stackoverflow.com/questions/5577727
+  sectnum=which(sect==sect.all)[1];
+  ## reset fignum if we're doing section-specific numbering else set to sectnum
+  if (param(sectpfx)) fignum=1 else fignum=sectnum;
+  ## each section is a block
+  param(sect=sect,sectnum=sectnum,fignum=fignum,figblk=1,tblblk=1,xfigblk=1);
 }
 figinc=function(extra=parent(extra,F))
   if (extra) {
@@ -181,9 +181,9 @@ figinc=function(extra=parent(extra,F))
   }
 figblk_start=function(extra=parent(extra,F)) {
   if (extra) return(xfigblk_start());
-  param(figblk,fignum);
-  ## if already in block, end it
-  if (!is.null(figblk)) param(fignum=fignum+1);
+  ## param(figblk,fignum);
+  ## ## if already in block, end it
+  ## if (!is.null(figblk)) param(fignum=fignum+1);
   param(figblk=1);
 }
 figblk_end=function(extra=parent(extra,F)) {
@@ -193,9 +193,9 @@ figblk_end=function(extra=parent(extra,F)) {
   if (!is.null(figblk)) param(figblk=NULL,fignum=fignum+1);
 }
 xfigblk_start=function() {
-  param(xfigblk,xfignum);
-  ## if already in block, end it
-  if (!is.null(xfigblk)) param(xfignum=xfignum+1);
+  ## param(xfigblk,xfignum);
+  ## ## if already in block, end it
+  ## if (!is.null(xfigblk)) param(xfignum=xfignum+1);
   param(xfigblk=1);
 }
 xfigblk_end=function() {
@@ -208,9 +208,9 @@ tblinc=function() {
     if (!is.null(tblblk)) param(tblblk=tblblk+1) else param(tblnum=tblnum+1);
 }
 tblblk_start=function() {
-  param(tblblk,tblnum);
-  ## if already in block, end it
-  if (!is.null(tblblk)) param(tblnum=tblnum+1);
+  ## param(tblblk,tblnum);
+  ## ## if already in block, end it
+  ## if (!is.null(tblblk)) param(tblnum=tblnum+1);
   param(tblblk=1);
 }
 tblblk_end=function() {
