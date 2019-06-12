@@ -20,9 +20,9 @@ doc_readme=function(sect=NULL) {
   sect.all=cq(plotdvsd,plothist,plotpvsd,plotm,table);
   if (is.null(sect)) sect=sect.all else sect=pmatch_choice(sect,sect.all);
   sapply(sect,function(sect) {
+    sect_start(sect,sect.all);
 ##### plotdvsd
     if (sect=='plotdvsd') {
-      figblk_start();
       n=min(param(n.rand));
       d.crit=d_crit(n);
       sim=get_sim_rand(n=n);
@@ -37,7 +37,6 @@ doc_readme=function(sect=NULL) {
     }
 ##### plothist
     if (sect=='plothist') {
-      figblk_start();
       n=range(param(n.fixd));
       d=range(param(d.fixd));
       figname=cq(blue,red);
@@ -51,7 +50,6 @@ doc_readme=function(sect=NULL) {
     }
 ##### plotpvsd 
     if (sect=='plotpvsd') {
-      figblk_start();
       n=range(param(n.hetd));
       d=range(param(d.hetd));
       sd=range(param(sd.hetd));
@@ -68,7 +66,6 @@ doc_readme=function(sect=NULL) {
     }
 ##### plotm 
     if (sect=='plotm') {
-      figblk_start();
       param(n.fixd,d.fixd);
       meand.simu=get_data(meand.fixd);
       meand.theo=get_data(meand.d2t);
@@ -84,7 +81,7 @@ doc_readme=function(sect=NULL) {
       lty=c(rep('dotted',len=length(d.fixd)),rep('solid',length(d.fixd)));
       lwd=2;     
       title=figtitle('Line plot of mean significant observed effect size inflation (raw)');
-      dofig(plotm,'meand',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=F,title=title
+      dofig(plotm,'meand',x=x,y=y,col=col,lty=lty,lwd=lwd,smooth=F,title=title,
             legend.labels=legend.labels,legend='topright',
             xlab='sample size',ylab='inflation (ratio of actual to correct)');
       param(n.hetd,sd.hetd);
