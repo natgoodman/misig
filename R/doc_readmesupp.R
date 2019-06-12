@@ -17,17 +17,19 @@
 #################################################################################
 ## --- Generate Figures and Tables for misig README supplement ---
 doc_readmesupp=function(sect=NULL) {
-  sect.all=cq(plotdvsd,plothist,plotpvsd,plotm,plotcustom,table);
-  if (is.null(sect)) sect=sect.all else sect=pmatch_choice(sect,sect.all);
+  ## sim must be first to get order right
+  cases=expand.grid(sim=cq(fixd,rand,hetd),plot=cq(plotdvsd,plothist,plotpvsd,plotm),
+                    stringsAsFactors=FALSE);
+  sect.all=c(paste(sep='.',cases$plot,cases$sim),cq(plotcustom.ovrfx,plotcustom.ovrht,table));
+  ## remove cases we omit: plotpvsd.rand, plotm.rand - each instance has different d.pop
+  sect.all=setdiff(sect.all,cq(plotpvsd.rand,plotm.rand));
+  if (is.null(sect)) sect=sect.all else sect=pmatch_choice(sect,sect.all,start=FALSE);
   sapply(sect,function(sect) {
-    ## compute section number. from stackoverflow.com/questions/5577727
-    sectnum=which(sect==sect.all)[1];
-    sect_start(sectnum); 
+    sect_start(sect,sect.all);
 ##### plotdvsd
     ## each sim type expected to have >= 2 cases
-    if (sect=='plotdvsd') {
+    if (sect=='plotdvsd.fixd') {
       ## fixd doesn't make much sense since there's no d.pop spread, but why not?
-      figblk_start();
       param(n.fixd,d.fixd);
       ## use small n else all points significant
       cases=data.frame(n=sort(n.fixd)[1:2],d=range(d.fixd),zoom=c(FALSE,FALSE,TRUE,TRUE));
@@ -35,16 +37,18 @@ doc_readmesupp=function(sect=NULL) {
         sim=get_sim_fixd(n=n,d=d);
         figdvsd(sim=sim,stext='fixd',d.crit=d_crit(n),zoom=zoom,n=n,d.pop=d);
       }));
+    }
+    if (sect=='plotdvsd.rand') {
       ## rand
-      figblk_start();
       n=range(param(n.rand));
       cases=data.frame(n=range(param(n.rand)),zoom=c(FALSE,FALSE,TRUE,TRUE));
       apply(cases,1,function(case) withcase(case, {
         sim=get_sim_rand(n=n);
         figdvsd(sim=sim,stext='rand',d.crit=d_crit(n),zoom=zoom,n=n);
       }));
+      }
+    if (sect=='plotdvsd.hetd') {
       ## hetd
-      figblk_start();
       param(n.hetd,d.hetd,sd.hetd);
       cases=data.frame(n=range(n.hetd),d=range(d.hetd),sd=range(sd.hetd[sd.hetd!=0]),
                        zoom=c(FALSE,FALSE,TRUE,TRUE));
@@ -54,9 +58,8 @@ doc_readmesupp=function(sect=NULL) {
       }));
     }
 ##### plothist
-    if (sect=='plothist') {
+    if (sect=='plothist.fixd') {
       ## fixd
-      figblk_start();
       param(n.fixd,d.fixd);
       ## use small n else all points significant
       cases=data.frame(n=sort(n.fixd)[1:2],d=range(d.fixd),zoom=c(FALSE,FALSE,TRUE,TRUE));
@@ -64,16 +67,18 @@ doc_readmesupp=function(sect=NULL) {
         sim=get_sim_fixd(n=n,d=d);
         fighist(sim=sim,stext='fixd',d.crit=d_crit(n),zoom=zoom,n=n,d.pop=d);
       }));
+    }
+    if (sect=='plothist.rand') {
       ## rand
-      figblk_start();
       n=range(param(n.rand));
       cases=data.frame(n=range(param(n.rand)),zoom=c(FALSE,FALSE,TRUE,TRUE));
       apply(cases,1,function(case) withcase(case, {
         sim=get_sim_rand(n=n);
         fighist(sim=sim,stext='rand',d.crit=d_crit(n),zoom=zoom,n=n);
       }));
+    }
+    if (sect=='plothist.hetd') {
       ## hetd
-      figblk_start();
       param(n.hetd,d.hetd,sd.hetd);
       cases=data.frame(n=range(n.hetd),d=range(d.hetd),sd=range(sd.hetd[sd.hetd!=0]),
                        zoom=c(FALSE,FALSE,TRUE,TRUE));
@@ -84,18 +89,17 @@ doc_readmesupp=function(sect=NULL) {
       }));
     }
 ##### plotpvsd 
-    if (sect=='plotpvsd') {
+    if (sect=='plotpvsd.fixd') {
       ## fixd
-      figblk_start();
       param(n.fixd,d.fixd);
       ## use small n else all points significant
       cases=data.frame(n=sort(n.fixd)[1:2],d=range(d.fixd));
       apply(cases,1,function(case) withcase(case, {
         figpvsd(mtext='fixd',d.crit=d_crit(n),n=n,d0=d);
       }));
-      ## rand - can't do it - each instance has different d.pop
+    }
+    if (sect=='plotpvsd.hetd') {
       ## hetd
-      figblk_start();
       param(n.hetd,d.hetd,sd.hetd);
       cases=data.frame(n=range(n.hetd),d=range(d.hetd),sd=range(sd.hetd[sd.hetd!=0]));
       apply(cases,1,function(case) withcase(case, {
@@ -103,9 +107,8 @@ doc_readmesupp=function(sect=NULL) {
       }));
     }
 ##### plotm
-    if (sect=='plotm') {
+    if (sect=='plotm.fixd') {
       ## fixd
-      figblk_start();
       sapply(cq(none,aspline,spline),function(smooth) {
         ## these show concordance of simulated vs theoretical results
         ## meand
@@ -116,13 +119,14 @@ doc_readmesupp=function(sect=NULL) {
         figm_simutheo(simu,theo,stat='pval',mtext='fixd',ylim=c(0,0.1),smooth=smooth);
         ## power
         simu=get_data(power.fixd); theo=get_data(power.d2t);
-        figm_simutheo(simu,theo,stat='power',mtext='fixd',smooth=smooth);
+        figm_simutheo(simu,theo,stat='power',mtext='fixd',smooth=smooth,legend='right');
         ## this shows ci coverage for all vs sig
         ci=get_data(ci.fixd); ci=subset(ci,subset=d.pop>0);
         figm_ci(ci,mtext='fixd',legend='right',smooth=smooth);
       });
+    }
+   if (sect=='plotm.hetd') {
       ## hetd
-      figblk_start();
       sapply(cq(none,aspline,spline),function(smooth) {
         ## meand
         simu=get_data(meand.hetd); theo=get_data(meand.d2ht);
@@ -141,18 +145,18 @@ doc_readmesupp=function(sect=NULL) {
         figm_ci(ci,mtext='hetd',legend='bottomright',smooth=smooth,by='sd.het',d.het=0.5);
       });
     }
-    if (sect=='plotcustom') {
-      ## custom plots from other docs
+    ## custom plots from other docs
+    if (sect=='plotcustom.ovrfx') {
       ## from ovrfx
-      figblk_start();
-      dofig(plotsmpldist,'ovrfx_smpldist');
-      dofig(plotmeand,'ovrfx_meand');
+      dofig(plotsmpldist,'smpldist');
+      dofig(plotmeand,'meand');
+      }
+    if (sect=='plotcustom.ovrht') {
       ## from ovrht
-      figblk_start();
-      dofig(plothist_d2t,'ovrht_histd2t');
-      dofig(plotpval_over,'ovrht_pvalover');
-      dofig(plotci_over,'ovrht_ciover');
-      dofig(plotd2t_d2ht,'ovrht_sampldist');
+      dofig(plothist_d2t,'histd2t');
+      dofig(plotpval_over,'pvalover');
+      dofig(plotci_over,'ciover');
+      dofig(plotd2t_d2ht,'sampldist');
     }
     if (sect=='table') {
       ## flat table
@@ -214,11 +218,11 @@ figdvsd=function(sim,stext,d.crit,zoom,...) {
     } 
     x='d.sdz'; y='d.pop';
     title=figtitle(c('Scatter plot',y,'vs',x,ztext),sim=stext,...);
-    figname=paste(collapse='_',c('pop_sdz',stext,if(zoom) 'zoom'));
+    figname=paste(collapse='_',c('pop_sdz',if(zoom) 'zoom'));
     dofig(plotdvsd,figname,sim=sim,x=x,y=y,vline=c(-d.crit,d.crit),title=title);
     x='d.pop'; y='d.sdz';
     title=figtitle(c('Scatter plot',y,'vs',x,ztext),sim=stext,...);
-    figname=paste(collapse='_',c('sdz_pop',stext,if(zoom) 'zoom'));
+    figname=paste(collapse='_',c('sdz_pop',if(zoom) 'zoom'));
     dofig(plotdvsd,figname,sim=sim,x=x,y=y,hline=c(-d.crit,d.crit),title=title);
     return();
 }
@@ -236,7 +240,7 @@ fighist=function(sim,stext,d.crit,zoom,zbreaks=10,zdigits=3,...) {
     vhdigits=zdigits;
   } 
   title=figtitle(c('Histogram of observed effect size',ztext),sim=stext,...);
-  figname=paste(collapse='_',c('hist',stext,if(zoom) 'zoom'));
+  figname=paste(collapse='_',c('hist',if(zoom) 'zoom'));
   dofig(plothist,figname,sim=sim,vline=c(-d.crit,d.crit),breaks=breaks,legend=legend,
         title=title,vhdigits=vhdigits);
   return();
@@ -245,12 +249,12 @@ fighist=function(sim,stext,d.crit,zoom,zbreaks=10,zdigits=3,...) {
 figpvsd=function(n,d0=NULL,d.het=NULL,sd.het=NULL,mtext,d.crit,...) {
   title=figtitle('Sampling distribution (density)',model=mtext,
                  n=n,d0=d0,d.het=d.het,sd.het=sd.het,...);
-  figname=paste(collapse='_',c('dens',mtext));
+  figname='dens';
   dofig(plotpvsd,figname,n=n,d0=d0,d.het=d.het,sd.het=sd.het,y='dens',
         vline=c(-d.crit,d0,d.het,d.crit),title=title);
   title=figtitle('Sampling distribution (cumulative)',model=mtext,
                  n=n,d0=d0,d.het=d.het,sd.het=sd.het,...);
-  figname=paste(collapse='_',c('cum',mtext));
+  figname='cum';
   dofig(plotpvsd,figname,n=n,d0=d0,d.het=d.het,sd.het=sd.het,y='cum',
         vline=c(-d.crit,d0,d.het,d.crit),title=title);
   return();
@@ -288,7 +292,7 @@ figm_simutheo=
     lwd=2;
     title=figtitle(c('Line plot of simulated and theoretical',stat),
                    model=mtext,smooth=smooth,d0=d0,d.het=d.het,sd.het=sd.het);
-    figname=paste(collapse='_',c(stat,mtext,smooth));
+    figname=paste(collapse='_',c(stat,smooth));
     dofig(plotm,figname,x=n,y=y,col=col,lty=lty,lwd=lwd,smooth=smooth,
           title=title,legend.labels=legend.labels,legend=legend,xlab=xlab,ylab=ylab,...);
     return();
@@ -315,7 +319,7 @@ figm_ci=function(ci,mtext,by=cq(d.pop,sd.het),smooth='none',
   lwd=2;
   title=figtitle('Line plot of ci coverage',
                  model=mtext,smooth=smooth,d.pop=d.pop,d.het=d.het,sd.het=sd.het);
-  figname=paste(collapse='_',c('ci',mtext,smooth));
+  figname=paste(collapse='_',c('ci',smooth));
   dofig(plotm,figname,x=n,y=y,col=col,lty=lty,lwd=lwd,smooth=smooth,
         title=title,legend.labels=legend.labels,legend=legend,xlab=xlab,ylab=ylab,...);
   return();
