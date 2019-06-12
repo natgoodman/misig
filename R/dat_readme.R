@@ -28,17 +28,14 @@ dat_readme=function(...) {
   ## theoretical 
   domeand_d2t(n.fixd,d.fixd);
 
-  ## het effect scenario - pval, ci, meand, power
+  ## het effect scenario - pval, meand
   ## simulation (hetd)
   dopval_hetd(n.hetd,sd.hetd);
   ## doci_hetd(n.hetd,d.hetd,sd.hetd);
   domeand_hetd(n.hetd,d.hetd,sd.hetd);
-  dopower_hetd(n.hetd,d.hetd,sd.hetd);
   ## theoretical
   dopval_d2ht(n.hetd,sd.hetd);
-  doci_d2ht(n.hetd,d.hetd,sd.hetd);
   domeand_d2ht(n.hetd,d.hetd,sd.hetd);
-  dopower_d2ht(n.hetd,d.hetd,sd.hetd);
 
   invisible();
 }
