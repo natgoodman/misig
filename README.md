@@ -1,7 +1,7 @@
 Mistakes of Significance
 ================
 Nathan (Nat) Goodman
-May 22, 2019
+June 12, 2019
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 A collection of R scripts and documents exploring mistakes made by significance testing. The content at present are
@@ -77,7 +77,15 @@ The `doc` arguments for each document are
 <td><code>ovrht</code></td>
 </tr>
 <tr class="odd">
-<td>supplementary material for the blog posts TBD</td>
+<td><a href="https://natgoodman.github.io/misig">README</a></td>
+<td><code>readme</code></td>
+</tr>
+<tr class="even">
+<td><a href="https://natgoodman.github.io/misig/readmesupp.stable.html">Supplementary Material for README</a></td>
+<td><code>readmesupp</code></td>
+</tr>
+<tr class="odd">
+<td>supplementary material for blog posts TBD</td>
 <td>TBD</td>
 </tr>
 </tbody>
@@ -157,8 +165,8 @@ Nomenclature
 
 The program performs three types of simulations.
 
-1.  *rand*. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s, sets *n* to a range of values, and simulates one study for each *d*<sub>*p**o**p*</sub> and *n*.
-2.  *fixd*. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
+1.  *fixd*. Fixes *d*<sub>*p**o**p*</sub> to a few values of interest, sets *n* to a range of values, and simulates many studies for each *d*<sub>*p**o**p*</sub> and *n*.
+2.  *rand*. Randomly selects a large number of *d*<sub>*p**o**p*</sub>s, sets *n* to a range of values, and simulates one study for each *d*<sub>*p**o**p*</sub> and *n*.
 3.  *hetd*. Sets *d*<sub>*h**e**t*</sub> and *s**d*<sub>*h**e**t*</sub> to a few values of interest, and selects a large number of *d*<sub>*p**o**p*</sub>s from normal distributions with mean *d*<sub>*h**e**t*</sub> and standard deviation *s**d*<sub>*h**e**t*</sub>. Then sets *n* to a range of values, and simulates one study for each *d*<sub>*p**o**p*</sub> and *n*.
 
 The program implements two data generation models:
@@ -196,7 +204,7 @@ Finally, here is a table of supporting data.
 
 | what       |  d.crit|  md20\_0.2|  md20\_0.5|  md20\_0.8|  ov20\_0.2|  ov20\_0.5|  ov20\_0.8|  nov\_0.2|  nov\_0.5|  nov\_0.8|
 |:-----------|-------:|----------:|----------:|----------:|----------:|----------:|----------:|---------:|---------:|---------:|
-| meand.fixd |    0.64|       0.80|       0.87|       0.98|       3.98|       1.75|       1.23|    175.31|     46.74|     17.95|
+| meand.fixd |    0.64|       0.81|       0.85|       0.99|       4.04|       1.70|       1.24|    175.57|     45.72|     18.58|
 | meand.d2t  |    0.64|       0.79|       0.86|       0.98|       3.97|       1.72|       1.22|    166.70|     46.64|     16.69|
 
 Comments Please!
