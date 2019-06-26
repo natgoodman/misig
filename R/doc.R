@@ -43,16 +43,13 @@ dodoc=
 ## utility functions to make figures and tables for documents
 ## run plot function, save if required, label result with name
 ## title -- can be NULL, string, or function -- if function, call to get actual title
-##   needed to generate correct titles for extra figures
 ## extra -- figure is 'extra' - will not be included in document
 ## CAUTION: ... interacts with partial argument matching to cause dofig args to be
 ##   matched by plot-function args. eg, 'd' matches 'doc', 'x' matches 'xtra'
 ##   choose argument names carefully!
 dofig=
-  function(figfun,figname=NULL,title=NULL,extra=parent(extra,F),sect=param(sect),
-           ...) {
+  function(figfun,figname=NULL,title=NULL,sect=param(sect),...) {
     param(figextra,save.fig,figscreen,fignew);
-    if (extra&!figextra) return();
     file=filename_fig(figlabel(where='filename'),sect,figname);
     plot.to.file=((is.na(save.fig)&!file.exists(file))|(!is.na(save.fig)&save.fig));
     plot.to.screen=figscreen;           # for stylistic consistency
@@ -129,26 +126,25 @@ figtitle=function(TEXT=NULL,...,SEP=' ') {
   paste(collapse="\n",c(fig,TEXT));
 }
 ## construct figure label, eg, S1-2c
-figlabel=function(extra=parent(extra,F),where=cq(content,filename)) {
+figlabel=function(extra=FALSE,where=cq(content,filename)) {
   where=match.arg(where);
-  param(sectpfx,sectnum);
-  if (extra) {
-    param(xfigpfx,xfignum,xfigsfx,xfigblk);
+  param(figextra,sectpfx,sectnum,figpfx,fignum,figsfx,figblk);
+  if (figextra) {
+    param(xfigpfx,xfigsfx);
     pfx=xfigpfx;
-    sfx=if(!is.null(xfigblk)) xfigsfx[xfigblk] else NULL;
-    num=xfignum;
+    figsfx=xfigsfx;
   } else {
-    param(figpfx,fignum,figsfx,figblk);
     pfx=figpfx;
-    sfx=if(!is.null(figblk)) figsfx[figblk] else NULL;
-    num=fignum;
   }
+  sfx=if(!is.null(figblk)) lblsfx(figblk,figsfx) else NULL;
+  num=fignum;
   if (where=='filename') {
     num=sprintf('%03i',num);
     if (!is.null(sectnum)) sectnum=sprintf('%02i',sectnum);
   }
   pfx=if(sectpfx) paste(collapse='',c(pfx,sectnum)) else pfx;
-  paste(collapse='-',c(pfx,paste(collapse='',c(num,sfx))));
+  numsfx=paste(collapse='',c(num,sfx));
+  if (where=='filename') paste(collapse='',c(pfx,numsfx)) else paste(collapse='-',c(pfx,numsfx));
 }
 ## construct table label, eg, S1-2c
 tbllabel=function(where=cq(content,filename)) {
@@ -159,8 +155,23 @@ tbllabel=function(where=cq(content,filename)) {
     sectnum=sprintf('%02i',sectnum);
   }
   pfx=if(sectpfx) paste(collapse='',c(tblpfx,sectnum)) else tblpfx;
-  sfx=if(!is.null(tblblk)) tblsfx[tblblk] else NULL;
+  sfx=if(!is.null(tblblk)) lblsfx(tblblk,tblsfx) else NULL;
   paste(collapse='-',c(pfx,paste(collapse='',c(tblnum,sfx))));
+}
+## construct label suffix. handles big blk nums - arise in doc_ovrhtsupp
+lblsfx=function(i,sfx) {
+  base=length(sfx);
+  if (i<base) return(sfx[i]);           # usual cases
+  if (base==1) return(strrep(sfx,i));   # silly degenerate case
+  out=NULL; 
+  while(i>0) {
+    ## loop essentially does decimal to base conversion
+    i=i-1;                              # 'cuz R uses 1-offset indexing
+    digit=i%%base;
+    i=i%/%base;
+    out=c(digit,out);
+  }
+  paste(collapse='',sfx[out+1]);
 }
 ## manage figure,table numbers, blocks
 sect_start=function(sect,sect.all) {
@@ -171,7 +182,7 @@ sect_start=function(sect,sect.all) {
   ## each section is a block
   param(sect=sect,sectnum=sectnum,fignum=fignum,figblk=1,tblblk=1,xfigblk=1);
 }
-figinc=function(extra=parent(extra,F))
+figinc=function(extra=FALSE)
   if (extra) {
     param(xfigblk,xfignum);
     if (!is.null(xfigblk)) param(xfigblk=xfigblk+1) else param(xfignum=xfignum+1);
@@ -179,14 +190,14 @@ figinc=function(extra=parent(extra,F))
     param(figblk,fignum);
     if (!is.null(figblk)) param(figblk=figblk+1) else param(fignum=fignum+1);
   }
-figblk_start=function(extra=parent(extra,F)) {
+figblk_start=function(extra=FALSE) {
   if (extra) return(xfigblk_start());
   ## param(figblk,fignum);
   ## ## if already in block, end it
   ## if (!is.null(figblk)) param(fignum=fignum+1);
   param(figblk=1);
 }
-figblk_end=function(extra=parent(extra,F)) {
+figblk_end=function(extra=FALSE) {
   if (extra) {xfigblk_end(); return(); }
   param(figblk,fignum);
   ## do nothing if not in block, else end it
@@ -219,12 +230,12 @@ tblblk_end=function() {
   if (!is.null(tblblk)) param(tblblk=NULL,tblnum=tblnum+1);
 }
 outblk_start=function() {
-  figblk_start(extra=F);
+  figblk_start(extra=FALSE);
   xfigblk_start();
   tblblk_start();
 }
 outblk_end=function() {
-  figblk_end(extra=F);
+  figblk_end(extra=FALSE);
   xfigblk_end();
   tblblk_end();
 }
