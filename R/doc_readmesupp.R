@@ -9,9 +9,9 @@
 ##
 ## Copyright (C) 2019 Nat Goodman.
 ## 
-## Generate figures and tables for ovrfx blog post
+## Generate figures and tables for readme supplement
 ##
-## This software is open source, distributed under the MIT License. See LICENSE
+## This software is open source distributed under the MIT License. See LICENSE
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
@@ -114,12 +114,12 @@ doc_readmesupp=function(sect=NULL) {
         ## meand
         simu=get_data(meand.fixd); theo=get_data(meand.d2t);
         figm_simutheo(simu,theo,stat='meand',mtext='fixd',smooth=smooth);
-        ## pval
-        simu=get_data(pval.fixd); theo=get_data(pval.d2t);
-        figm_simutheo(simu,theo,stat='pval',mtext='fixd',ylim=c(0,0.1),smooth=smooth);
         ## power
         simu=get_data(power.fixd); theo=get_data(power.d2t);
         figm_simutheo(simu,theo,stat='power',mtext='fixd',smooth=smooth,legend='right');
+        ## pval
+        simu=get_data(pval.fixd); theo=get_data(pval.d2t);
+        figm_simutheo(simu,theo,stat='pval',mtext='fixd',ylim=c(0,0.1),smooth=smooth);
         ## this shows ci coverage for all vs sig
         ci=get_data(ci.fixd); ci=subset(ci,subset=d.pop>0);
         figm_ci(ci,mtext='fixd',legend='right',smooth=smooth);
@@ -128,18 +128,19 @@ doc_readmesupp=function(sect=NULL) {
    if (sect=='plotm.hetd') {
       ## hetd
       sapply(cq(none,aspline,spline),function(smooth) {
+        ## these show concordance of simulated vs theoretical results
         ## meand
         simu=get_data(meand.hetd); theo=get_data(meand.d2ht);
         simu=subset(simu,subset=d.het==0); theo=subset(theo,subset=d.het==0); 
         figm_simutheo(simu,theo,stat='meand',mtext='hetd',smooth=smooth,by='sd.het',d.het=0);
-        ## pval. pval.tval - more interesting
-        simu=get_data(pval.hetd); theo=get_data(pval.d2ht);
-        figm_simutheo(simu,theo,stat='pval',mtext='hetd',by='sd.het',ylim=c(0,0.1),smooth=smooth);
         ## power
         simu=get_data(power.hetd); theo=get_data(power.d2ht);
         simu=subset(simu,subset=d.het==0.5); theo=subset(theo,subset=d.het==0.5); 
         figm_simutheo(simu,theo,stat='power',mtext='hetd',smooth=smooth,by='sd.het',
                       legend='right',d.het=0.5);
+        ## pval. pval.tval - more interesting
+        simu=get_data(pval.hetd); theo=get_data(pval.d2ht);
+        figm_simutheo(simu,theo,stat='pval',mtext='hetd',by='sd.het',ylim=c(0,0.1),smooth=smooth);
         ## this shows ci coverage for all vs sig
         ci=get_data(ci.hetd); ci=subset(ci,subset=d.het==0.5);
         figm_ci(ci,mtext='hetd',legend='bottomright',smooth=smooth,by='sd.het',d.het=0.5);
