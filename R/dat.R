@@ -164,6 +164,7 @@ domeand_d2ht=function(n,d.het,sd.het,base='meand.d2ht',verbose=param(verbose)) {
   ## also compute with conventional pvalues
   meand.tval=with(cases,meand_d2ht(n,d.het,sd.het,d.crit=d_crit(n)));
   meand=data.frame(cases,meand,meand.tval);
+  meand=cbind(meand,with(meand,data.frame(over=meand/d.het,over.tval=meand.tval/d.het)));
   save_data(meand,base=base);
   invisible(meand);
 }
@@ -171,14 +172,15 @@ domeand_d2ht=function(n,d.het,sd.het,base='meand.d2ht',verbose=param(verbose)) {
 ## empirical from fixd simulation
 dopower_fixd=function(n,d0,base='power.fixd',verbose=param(verbose)) {
   cases=expand.grid(n=n,d0=d0);
-  power=do.call(rbind,apply(cases,1,function(case) withcase(case, {
+  power=do.call(rbind,apply(cases,1,function(case) {
+    n=case['n']; d0=case['d0'];
     if (verbose) print(paste(sep=' ','>>> dopower_fixd',nvq(n,d0)));
     sim=get_sim_fixd(n=n,d=d0);
     d.crit=d_crit(n=n);
     power=length(which(sim$d.sdz>=d.crit))/nrow(sim);
     power.d2t=power_d2t(n,d0);
     data.frame(case,power,power.d2t);
-  })));
+  }));
   save_data(power,base=base);
   invisible(power);
 }
@@ -187,7 +189,8 @@ dopower_rand=function(n,base='power.rand',verbose=param(verbose)) { }
 ## empirical from hetd simulation
 dopower_hetd=function(n,d.het,sd.het,base='power.hetd',verbose=param(verbose)) {
   cases=expand.grid(n=n,d.het=d.het,sd.het=sd.het);
-  power=do.call(rbind,apply(cases,1,function(case) withcase(case, {
+  power=do.call(rbind,apply(cases,1,function(case) {
+    n=case['n']; d.het=case['d.het']; sd.het=case['sd.het'];
     if (verbose) print(paste(sep=' ','>>> dopower_hetd',nvq(n,d.het,sd.het)));
     sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
     ## compute with ht pvals
@@ -200,7 +203,7 @@ dopower_hetd=function(n,d.het,sd.het,base='power.hetd',verbose=param(verbose)) {
     power.d2t=power_d2t(n,d.het);
     data.frame(case,power,power.tval,power.d2t,
                over=power/power.d2t,over.tval=power.tval/power.d2t);
-  })));
+  }));
   save_data(power,base=base);
   invisible(power);
 }
@@ -245,7 +248,8 @@ dopval_rand=function(n,base='pval.rand',verbose=param(verbose)) { }
 ## empirical from hetd simulation
 dopval_hetd=function(n,sd.het,sig.level=param(sig.level),base='pval.hetd',verbose=param(verbose)) {
   cases=expand.grid(n=n,sd.het=sd.het);
-  pval=do.call(rbind,apply(cases,1,function(case) withcase(case, {
+  pval=do.call(rbind,apply(cases,1,function(case) {
+    n=case['n']; sd.het=case['sd.het'];
     if (verbose) print(paste(sep=' ','>>> dopval_hetd',nvq(n,sd.het)));
     sim=get_sim_hetd(n=n,d=0,sd=sd.het);
     ## compute with ht pvals
@@ -255,7 +259,7 @@ dopval_hetd=function(n,sd.het,sig.level=param(sig.level),base='pval.hetd',verbos
     d.crit=d_crit(n=n);
     pval.tval=length(which(abs(sim$d.sdz)>=d.crit))/nrow(sim);
     data.frame(case,pval,pval.tval,over=pval/sig.level,over.tval=pval.tval/sig.level);
-  })));
+  }));
   save_data(pval,base=base);
   invisible(pval);
 }
@@ -281,31 +285,38 @@ dopval_d2ht=function(n,sd.het,sig.level=param(sig.level),base='pval.d2ht',verbos
 ########## confidence interval
 ## empiricals test coverage
 ## empirical from fixd simulation
-doci_fixd=function(n,d0,conf.level=param(conf.level),base='ci.fixd',verbose=param(verbose)) {
-  cases=expand.grid(n=n,d.pop=d0);
-  ci=do.call(rbind,apply(cases,1,function(case) withcase(case, {
-    if (verbose) print(paste(sep=' ','>>> doci_fixd',nvq(n,d.pop)));
-    sim=get_sim_fixd(n=n,d=d.pop);
-    ci=with(sim,t(ci_d2t(n,d.sdz)));
-    sim$ci.lo=ci[,1]; sim$ci.hi=ci[,2];
-    sim$cover=with(sim,between(d.pop,ci.lo,ci.hi));
-    sim$pval=with(sim,d2pval(n,d.sdz));
-    cover=length(which(sim$cover))/nrow(sim);
-    sim.sig=subset(sim,subset=pval<=0.05);
-    cover.sig=length(which(sim.sig$cover))/nrow(sim.sig);
-    data.frame(case,cover,cover.sig,over=cover/conf.level,over.sig=cover.sig/conf.level);
-  })));
-  save_data(ci,base=base);
-  invisible(ci);
-}
+doci_fixd=
+  function(n,d0,conf.level=param(conf.level),m.ci=param(m.ci),base='ci.fixd',
+           verbose=param(verbose)) {
+    cases=expand.grid(n=n,d.pop=d0);
+    ci=do.call(rbind,apply(cases,1,function(case) {
+      n=case['n']; d.pop=case['d.pop'];
+      if (verbose) print(paste(sep=' ','>>> doci_fixd',nvq(n,d.pop)));
+      sim=get_sim_fixd(n=n,d=d.pop);
+      ## downsample if necessary
+      if (!is.null(m.ci)&&m.ci<nrow(sim)) sim=sim[sample.int(nrow(sim),m.ci),];
+      ci=with(sim,t(ci_d2t(n,d.sdz)));
+      sim$lo=ci[,1]; sim$hi=ci[,2];
+      sim$cover=with(sim,between(d.pop,lo,hi));
+      sim$pval=with(sim,d2pval(n,d.sdz));
+      cover=length(which(sim$cover))/nrow(sim);
+      sim.sig=subset(sim,subset=pval<=0.05);
+      cover.sig=length(which(sim.sig$cover))/nrow(sim.sig);
+      data.frame(case,cover,cover.sig,over=cover/conf.level,over.sig=cover.sig/conf.level);
+    }));
+    save_data(ci,base=base);
+    invisible(ci);
+  }
 ## empirical from rand simulation
-doci_rand=function(n,base='ci.rand',verbose=param(verbose)) {
+doci_rand=function(n,m.ci=param(m.ci),base='ci.rand',verbose=param(verbose)) {
   ci=do.call(rbind,lapply(n,function(n) {
     if (verbose) print(paste(sep=' ','>>> doci_rand',nvq(n)));
     sim=get_sim_rand(n=n);
+    ## downsample if necessary
+    if (!is.null(m.ci)&&m.ci<nrow(sim)) sim=sim[sample.int(nrow(sim),m.ci),];
     ci=with(sim,t(ci_d2t(n,d.sdz)));
-    sim$ci.lo=ci[,1]; sim$ci.hi=ci[,2];
-    sim$cover=with(sim,between(d.pop,ci.lo,ci.hi));
+    sim$lo=ci[,1]; sim$hi=ci[,2];
+    sim$cover=with(sim,between(d.pop,lo,hi));
     sim$pval=with(sim,d2pval(n,d.sdz));
     cover=length(which(sim$cover))/nrow(sim);
     sim.sig=subset(sim,subset=pval<=0.05);
@@ -317,18 +328,22 @@ doci_rand=function(n,base='ci.rand',verbose=param(verbose)) {
 }
 ## empirical from hetd simulation
 doci_hetd=
-  function(n,d.het,sd.het,conf.level=param(conf.level),base='ci.hetd',verbose=param(verbose)) {
+  function(n,d.het,sd.het,conf.level=param(conf.level),m.ci=param(m.ci),base='ci.hetd',
+           verbose=param(verbose)) {
     cases=expand.grid(n=n,d.het=d.het,sd.het=sd.het);
-    ci=do.call(rbind,apply(cases,1,function(case) withcase(case, {
+    ci=do.call(rbind,apply(cases,1,function(case) {
+      n=case['n']; d.het=case['d.het']; sd.het=case['sd.het'];
       if (verbose) print(paste(sep=' ','>>> doci_hetd',nvq(n,d.het,sd.het)));
       sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
+      ## downsample if necessary
+      if (!is.null(m.ci)&&m.ci<nrow(sim)) sim=sim[sample.int(nrow(sim),m.ci),];
       ci=with(sim,t(ci_d2ht(n,sd.het,d=d.sdz)));
-      sim$ci.lo=ci[,1]; sim$ci.hi=ci[,2];
-      sim$cover=with(sim,between(d.het,ci.lo,ci.hi));
+      sim$lo=ci[,1]; sim$hi=ci[,2];
+      sim$cover=with(sim,between(d.het,lo,hi));
       cover=length(which(sim$cover))/nrow(sim);
-      ci.tval=with(sim,t(ci_d2t(n,d=d.sdz)));
-      sim$ci.tval.lo=ci.tval[,1]; sim$ci.tval.hi=ci.tval[,2];
-      sim$cover.tval=with(sim,between(d.het,ci.tval.lo,ci.tval.hi));
+      tval=with(sim,t(ci_d2t(n,d=d.sdz)));
+      sim$tval.lo=tval[,1]; sim$tval.hi=tval[,2];
+      sim$cover.tval=with(sim,between(d.het,tval.lo,tval.hi));
       cover.tval=length(which(sim$cover.tval))/nrow(sim);
 
       sim$pval=with(sim,d2htpval(n,sd.het,d.sdz));
@@ -341,7 +356,7 @@ doci_hetd=
       data.frame(case,cover,cover.tval,cover.sig,cover.tsig,
                  over=cover/conf.level,over.tval=cover.tval/conf.level,
                  over.sig=cover.sig/conf.level,over.tsig=cover.tsig/conf.level);
-    })));
+    }));
     save_data(ci,base=base);
     invisible(ci);
   }
@@ -350,7 +365,8 @@ doci_d2t=function(n,d0,conf.level=param(conf.level),base='ci.d2t',verbose=param(
   if (verbose) print('>>> doci_d2t');
   cases=expand.grid(n=n,d0=d0);
   ci=with(cases,t(ci_d2t(n=n,d=d0,conf.level=conf.level)));
-  ci=data.frame(cases,ci.lo=ci[,1],ci.hi=ci[,2]);
+  lo=ci[,1]; hi=ci[,2]; ci=hi-lo;
+  ci=data.frame(cases,lo,hi,ci);
   save_data(ci,base=base);
   invisible(ci);
 }
@@ -360,8 +376,10 @@ doci_d2ht=function(n,d,sd.het,conf.level=param(conf.level),base='ci.d2ht',verbos
   cases=expand.grid(n=n,sd.het=sd.het,d=d);
   ci=with(cases,t(ci_d2ht(n=n,sd.het=sd.het,d=d,conf.level=conf.level)));
   ci.d2t=with(cases,t(ci_d2t(n,d)));
-  over=(ci[,2]-ci[,1])/(ci.d2t[,2]-ci.d2t[,1]);
-  ci=data.frame(cases,ci.lo=ci[,1],ci.hi=ci[,2],ci.tval.lo=ci.d2t[,1],ci.tval.hi=ci.d2t[,2],over);
+  lo=ci[,1]; hi=ci[,2]; ci=hi-lo;
+  tval.lo=ci.d2t[,1]; tval.hi=ci.d2t[,2]; tval.ci=tval.hi-tval.lo;
+  over=ci/tval.ci;
+  ci=data.frame(cases,lo,hi,ci,tval.lo,tval.hi,tval.ci,over);
   save_data(ci,base=base);
   invisible(ci);
 }
