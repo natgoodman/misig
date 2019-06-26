@@ -112,11 +112,11 @@ ci_d2t=function(n,d,simplify=T,conf.level=param(conf.level)) {
 }
 ci_d2t_=Vectorize(function(n,d,conf.level) {
   p0=(1-conf.level)/2; p1=1-p0;
-  ci.lo=suppressWarnings(
+  lo=suppressWarnings(
     uniroot(function(d0) p_d2t(n,d,d0,lower.tail=F)-p0,interval=c(-10,10))$root);
-  ci.hi=suppressWarnings(
+  hi=suppressWarnings(
     uniroot(function(d0) p_d2t(n,d,d0,lower.tail=F)-p1,interval=c(-10,10))$root);
-  c(ci.lo,ci.hi);
+  c(lo,hi);
 })
 ## my adaptation of prediction interval function from
 ## https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5028066/ and predictionInterval pacakge
@@ -199,13 +199,13 @@ ci_d2ht=function(n,sd.het=0,d,simplify=T,conf.level=param(conf.level)) {
 }
 ci_d2ht_=Vectorize(function(n,sd.het,d,conf.level) {
   p0=(1-conf.level)/2; p1=1-p0;
-  ci.lo=suppressWarnings(
+  lo=suppressWarnings(
     uniroot(function(d.het)
       p_d2ht(n,d.het=d.het,sd.het=sd.het,d=d,lower.tail=F)-p0,interval=c(-10,10))$root);
-  ci.hi=suppressWarnings(
+  hi=suppressWarnings(
     uniroot(function(d.het)
       p_d2ht(n,d.het=d.het,sd.het=sd.het,d=d,lower.tail=F)-p1,interval=c(-10,10))$root);
-  c(ci.lo,ci.hi);
+  c(lo,hi);
 })
 ## mean signficant effect size
 meand_d2ht=Vectorize(
