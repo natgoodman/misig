@@ -19,7 +19,7 @@
 
 ## no sections. only 4 figures
 ## n.fig is sample size for which figures plotted
-doc_ovrht=function(sect=parent(sect,NULL)) {
+doc_ovrht=function(sect=NULL) {
   ## support statements in text or drawn on figures
   pval=get_data(pval.d2ht);
   ci=get_data(ci.d2ht);
