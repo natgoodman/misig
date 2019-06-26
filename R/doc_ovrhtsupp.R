@@ -10,17 +10,558 @@
 ##
 ## Copyright (C) 2019 Nat Goodman.
 ## 
-## Generate figures and tables for ovrht blog post
+## Generate figures and tables for ovrht supplement
 ##
 ## This software is open source, distributed under the MIT License. See LICENSE
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## --- Generate Figures and Tables for ovrht Blog Post ---
+## --- Generate Figures and Tables for ovrht supplement ---
 
-## no sections. only 4 figures
-## n.fig is sample size for which figures plotted
-doc_ovrhtsupp=function(sect=parent(sect,NULL)) {
+doc_ovrhtsupp=function(sect=NULL) {
+  param(figextra);
+  ## sect.all=cq(smpldist,plotpvsd,plotm,plotover);
+  sect.all=c(paste(sep='.','conc',cq(smpldist,meand,power,pval,ci)),
+             paste(sep='.','main',cq(meand,power,pval,ci)));
+  if (is.null(sect)) sect=sect.all else sect=pmatch_choice(sect,sect.all,start=FALSE);
+  sapply(sect,function(sect) {
+    sect_start(sect,sect.all);
+##### plothist - really plothist overlaid with d2ht
+    if (sect=='conc.smpldist') {
+      param(n.hetd,d.hetd,sd.hetd);
+      ## start with 4 cases, then select 1st, last unless figextra. TODO: are these the best?
+      cases=data.frame(n=rep(range(n.hetd),each=2),d.het=d.hetd[1:4],
+                       sd.het=range(sd.hetd[sd.hetd!=0]));
+      if (!figextra) cases=cases[c(1,4),];
+      apply(cases,1,function(case) withcase(case,{
+        title=figtitle('Het histogram and sampling distribution',n=n,d.het=d.het,sd.het=sd.het);
+        dofig(plothist_d2ht,'hist',n=n,d.het=d.het,sd.het=sd.het,title=title);
+      }));
+      if (figextra)
+        apply(cases,1,function(case) withcase(case,{
+          title=figtitle('Simulated vs. theoretical quantiles',n=n,d.het=d.het,sd.het=sd.het);
+          dofig(plotqq_d2ht,'qq',n=n,d.het=d.het,sd.het=sd.het,title=title);
+        }));
+      ## QQ plot entire dataset
+      cases=expand.grid(n=n.hetd,d.het=d.hetd,sd.het=sd.hetd);
+      title=figtitle('Simulated vs. theoretical quantiles across entire dataset');
+      dofig(plotqq_d2ht,'qq',cases=cases,title=title);
+    }
+    if (sect=='conc.meand') {
+      param(d.hetd,sd.hetd);
+      simu=get_data(meand.hetd);
+      theo=get_data(meand.d2ht);
+      ## want 4 cases if extra, else 1 "middle" value
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
+      sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
+      cases=expand.grid(stat=sall(meand),what=cq(raw,ovr),stringsAsFactors=FALSE);
+      apply(cases,1,function(case) {
+        stat=case['stat']; what=case['what'];
+        if (what=='ovr') {
+          ## remove d.het==0 'cuz over is Inf
+          simu=subset(simu,subset=d.het!=0);
+          theo=subset(theo,subset=d.het!=0); 
+        }
+        ## do it by sd.het for each d.het
+        sapply(d.het,function(d) {
+          simu=subset(simu,subset=d.het==d);
+          theo=subset(theo,subset=d.het==d); 
+          title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
+                           'by sd.het'),d.het=d);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(dhet,d_pretty(d))));
+          lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.01)
+          dofig(plotm_conc,figname,simu=simu,theo=theo,stat=stat,by='sd.het',title=title,
+                ylab=slab(stat,what,'(ratio of actual to correct)'),ylim=lim);
+        });
+        ## do it by d.het for each sd.het
+        sapply(sd.het,function(sd) {
+          simu=subset(simu,subset=sd.het==sd);
+          theo=subset(theo,subset=sd.het==sd); 
+          title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),'by d.het'),
+                         sd.het=sd);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(sdhet,sd_pretty(sd))));
+          lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.01)
+          dofig(plotm_conc,figname,simu=simu,theo=theo,stat=stat,by='d.het',title=title,
+                ylab=slab(stat,what,'(ratio of actual to correct)'),ylim=lim);
+        })});
+      apply(cases,1,function(case) {
+        stat=case['stat']; what=case['what'];
+        ## dot plot entire dataset
+        ## CAUTION: doesn't fit usual pattern of 4 figures per row. dunno if problem
+        if (what=='ovr') {
+          ## remove d.het==0 'cuz over is Inf
+          simu=subset(simu,subset=d.het!=0);
+          theo=subset(theo,subset=d.het!=0); 
+        }
+        title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
+                         'across entire dataset'));
+        figname=paste(collapse='.',c('plotxy',sfig(stat,what)));
+        dofig(plotxy_conc,figname,simu=simu,theo=theo,stat=stat,title=title);
+      });
+    }
+    if (sect=='conc.power') {
+      param(d.hetd,sd.hetd);
+      simu=get_data(power.hetd);
+      theo=get_data(power.d2ht);
+      ## want 4 cases if extra, else 1 "middle" value
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
+      sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
+      cases=expand.grid(stat=sall(power),what=cq(raw,ovr),stringsAsFactors=FALSE);
+      apply(cases,1,function(case) {
+        stat=case['stat']; what=case['what'];
+        ## do it by sd.het for each d.het
+        sapply(d.het,function(d) {
+          simu=subset(simu,subset=d.het==d);
+          theo=subset(theo,subset=d.het==d);
+          title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
+                           'by sd.het'),d.het=d);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(dhet,d_pretty(d))));
+          lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.01)
+          dofig(plotm_conc,figname,simu=simu,theo=theo,stat=stat,by='sd.het',title=title,
+                ylab=slab(stat,what,'(ratio of actual to conventional)'),legend='right',ylim=lim);
+        });
+        ## do it by d.het for each sd.het 
+        sapply(sd.het,function(sd) {
+          simu=subset(simu,subset=sd.het==sd);
+          theo=subset(theo,subset=sd.het==sd);
+          title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),'by d.het'),
+                         sd.het=sd);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(sdhet,sd_pretty(sd))));
+          lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.01)
+          dofig(plotm_conc,figname,simu=simu,theo=theo,stat=stat,by='d.het',title=title,
+                ylab=slab(stat,what,'(ratio of actual to conventional)'),legend='right',ylim=lim);
+        })});
+      apply(cases,1,function(case) {
+        stat=case['stat']; what=case['what'];
+        ## dot plot entire dataset
+        ## CAUTION: doesn't fit usual pattern of 4 figures per row. dunno if problem
+        title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
+                         'across entire dataset'));
+        figname=paste(collapse='.',c('plotxy',sfig(stat,what)));
+        dofig(plotxy_conc,figname,simu=simu,theo=theo,stat=stat,title=title,
+              xlim=c(0,1),ylim=c(0,1));
+      });
+    }
+    if (sect=='conc.pval') {
+      simu=get_data(pval.hetd);
+      theo=get_data(pval.d2ht);
+      cases=expand.grid(stat=sall(pval),what=cq(raw,ovr),stringsAsFactors=FALSE);
+      apply(cases,1,function(case) {
+        stat=case['stat']; what=case['what'];
+        ## pval doesn't have d.het, since always calculated under NULL
+        title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
+                         'by sd.het'),d.het=d);
+        figname=sfig(stat,what);
+        lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.01)
+        dofig(plotm_conc,figname,simu=simu,theo=theo,stat=stat,by='sd.het',title=title,
+              ylab=slab(stat,what,'(ratio of actual to conventional)'),legend='topleft',ylim=lim);
+      });
+      apply(cases,1,function(case) {
+        stat=case['stat']; what=case['what'];
+        ## dot-plot entire dataset
+        title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
+                         'across entire dataset'));
+        figname=paste(collapse='.',c('plotxy',sfig(stat,what)));
+        lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.01)
+        dofig(plotxy_conc,figname,simu=simu,theo=theo,stat=stat,title=title,xlim=lim,ylim=lim,
+              mergecol=cq(n,sd.het));
+      });
+    }
+    if (sect=='conc.ci') {
+      ## not much can be checked.
+      ## 'simulated' data computes coverage (aka capture rate) for theoretical ci's
+      param(conf.level);
+      simu=get_data(ci.hetd);
+      ## want 4 cases if extra, else 2 "middle" values
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,2);
+      sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,2);
+      stat='cover';
+      ## do it by sd.het for each d.het
+      sapply(d.het,function(d) {
+        simu=subset(simu,subset=d.het==d);
+        title=figtitle('CI coverage (aka capture percentage) by sd.het',d.het=d);
+        figname=paste_nv(dhet,d_pretty(d));
+        lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.1)
+        dofig(plotm_concci,figname,simu=simu,stat=stat,by='sd.het',title=title,ylim=lim);
+      });
+      ## do it by d.het for each sd.het 
+      sapply(sd.het,function(sd) {
+        simu=subset(simu,subset=sd.het==sd);
+        title=figtitle('CI coverage (aka capture percentage) by d.het',sd.het=sd);
+        figname=paste_nv(sdhet,sd_pretty(sd));
+        lim=round_rng(range(simu[[stat]],theo[[stat]]),u=.1)
+        dofig(plotm_concci,figname,simu=simu,stat=stat,by='d.het',title=title,ylim=lim);
+      });
+    }
+    if (sect=='main.meand') {
+      param(d.hetd,sd.hetd);
+      theo=get_data(meand.d2ht);
+      theo=subset(theo,subset=(d.het!=0)); # since over=Inf
+      d.hetd=d.hetd[d.hetd!=0];            # since over=Inf
+      sd.hetd=sd.hetd[sd.hetd!=0];         # since baseline
+      ## want 1 case for normal, all cases (3 for now) if extra
+      ## TODO: may need to pad with empty plot... to maintain 4 figs per row
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
+      sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
+      stat='meand';
+      sapply(cq(raw,ovr),function(what) {
+        ## do it by sd.het for each d.het
+        sapply(d.het,function(d) {
+          theo=subset(theo,subset=d.het==d); 
+          title=figtitle(c(stit(stat,what),'by sd.het'),d.het=d);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(dhet,d_pretty(d))));
+          dofig(plotm_mainbysd,figname,theo=theo,stat=swat(stat,what),title=title,
+                ylab=slab(stat,what,'(ratio of actual to correct)'));
+        });
+        ## do it by d.het for each sd.het
+        sapply(sd.het,function(sd) {
+          theo=subset(theo,subset=(sd.het%in%c(0,sd))); 
+          title=figtitle(c(stit(stat,what),'by d.het'),sd.het=sd);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(sdhet,sd_pretty(sd))));
+          dofig(plotm_mainbyd,figname,theo=theo,stat=swat(stat,what),title=title,
+                ylab=slab(stat,what,'(ratio of actual to correct)'));
+        })});
+    }
+    if (sect=='main.power') {
+      param(d.hetd,sd.hetd);
+      theo=get_data(power.d2ht);
+      ## want 1 case for normal, 4 cases if extra
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
+      sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
+      stat='power';
+      sapply(cq(raw,ovr),function(what) {
+        ## do it by sd.het for each d.het
+        sapply(d.het,function(d) {
+          theo=subset(theo,subset=d.het==d); 
+          title=figtitle(c(stit(stat,what),'by sd.het'),d.het=d);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(dhet,d_pretty(d))));
+          dofig(plotm_mainbysd,figname,theo=theo,stat=swat(stat,what),title=title,legend='right',
+                ylab=slab(stat,what,'(ratio of actual to conventional)'));
+        });
+        ## do it by d.het for each sd.het
+        sapply(sd.het,function(sd) {
+          theo=subset(theo,subset=(sd.het%in%c(0,sd))); 
+          title=figtitle(c(stit(stat,what),'by d.het'),sd.het=sd);
+          figname=paste(collapse='.',c(sfig(stat,what),paste_nv(sdhet,sd_pretty(sd))));
+          dofig(plotm_mainbyd,figname,theo=theo,stat=swat(stat,what),title=title,legend='topright',
+                ylab=slab(stat,what,'(ratio of actual to conventional)'));
+        })});
+    }
+    if (sect=='main.pval') {
+      ## pval doesn't have d.het, since always calculated under NULL
+      param(d.hetd,sd.hetd);
+      theo=get_data(pval.d2ht);
+      ## want 1 case for normal, 4 cases if extra
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
+      stat='pval';
+      sapply(cq(raw,ovr),function(what) {
+        title=figtitle(c(stit(stat,what),'by sd.het'));
+        figname=sfig(stat,what);
+        dofig(plotm_mainbysd,figname,theo=theo,stat=swat(stat,what),title=title,legend='topleft',
+              ylab=slab(stat,what,'(ratio of correct to conventional)'));
+        });
+    }
+    if (sect=='main.ci') {
+      param(d.hetd,sd.hetd,conf.level);
+      theo=get_data(ci.d2ht);
+      ## TODO: why does ci use 'd' instead of d.het?
+      ##       rename it d.het so code will work
+      colnames(theo)[which(colnames(theo)=='d')]='d.het';
+      ## want 1 case for normal, 4 cases if extra
+      d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
+      sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
+      stat='ci';
+      what='raw';
+      ## do it by sd.het for each d.het
+      sapply(d.het,function(d) {
+        theo=subset(theo,subset=d.het==d); 
+        title=figtitle(c(stit(stat,what),'by sd.het'),d.het=d);
+        figname=paste(collapse='.',c(sfig(stat,what),paste_nv(dhet,d_pretty(d))));
+        dofig(plotm_mainbysd,figname,theo=theo,stat=swat(stat,what),title=title,legend='right',
+              ylab=slab(stat,what,'(ratio of actual to conventional)'));
+      });
+      ## do it by d.het for each sd.het
+      sapply(sd.het,function(sd) {
+        theo=subset(theo,subset=(sd.het%in%c(0,sd))); 
+        title=figtitle(c(stit(stat,what),'by d.het'),sd.het=sd);
+        figname=paste(collapse='.',c(sfig(stat,what),paste_nv(sdhet,sd_pretty(sd))));
+        dofig(plotm_mainbyd,figname,theo=theo,stat=swat(stat,what),title=title,legend='topright',
+              ylab=slab(stat,what,'(ratio of actual to conventional)'));
+      });
+      what='ovr';
+      ## do it by sd.het for each d.het
+      sapply(d.het,function(d) {
+        theo=subset(theo,subset=d.het==d); 
+        title=figtitle(c(stit(stat,what),'by sd.het'),d.het=d);
+        figname=paste(collapse='.',c(sfig(stat,what),paste_nv(dhet,d_pretty(d))));
+        dofig(plotm_main,figname,theo=theo,stat='over',by='sd.het',title=title,legend='topleft',
+              ylab=slab(stat,what,'(ratio of actual to conventional)'));
+      });
+      ## do it by d.het for each sd.het
+      sapply(sd.het,function(sd) {
+        theo=subset(theo,subset=(sd.het==sd)); 
+        title=figtitle(c(stit(stat,what),'by d.het'),sd.het=sd);
+        figname=paste(collapse='.',c(sfig(stat,what),paste_nv(sdhet,sd_pretty(sd))));
+        dofig(plotm_main,figname,theo=theo,stat='over',by='d.het',title=title,legend='topleft',
+                ylab=slab(stat,what,'(ratio of actual to conventional)'));
+      });
+    }
+    return();
+  })}
+
+plothist_d2ht=
+  function(n,d.het,sd.het,d.crit=NULL,xlim=d.het+c(-1.5,1.5),ylim=NULL,title=NULL,
+           col.hist='grey90',border.hist='grey80',...){
+    if (is.null(d.crit)) d.crit=d_htcrit(n,sd.het);
+    if (is.null(ylim)) ylim=c(0,d_d2ht(n=n,d.het=d.het,sd.het=sd.het,d=d.het));
+    sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
+    plothist(sim=sim,col=col.hist,border=border.hist,title=title,
+             xlim=xlim,ylim=ylim,ylab='probability density');
+    if (is.null(d.crit)) d.crit=d_htcrit(n,sd.het);
+    plotpvsd(n=n,d.het=d.het,sd.het=sd.het,add=T,dinc=1e-3,vline=c(-d.crit,d.crit),...)
+    invisible();
+  }
+## if cases set, do entire dataset (ie, all cases) 
+plotqq_d2ht=
+  function(n,d.het,sd.het,cases,p=seq(0.01,0.99,by=.01),xlim=NULL,ylim=NULL,title=NULL,
+           xlab='theoretical quantiles from het sampling distribution',ylab='simulated quantiles',
+           cex=1,cex.cases=0.5,pch=19,col='black',
+           col.diag='red',lty.diag='dotted',lwd.diag=1,...) {
+    if (missing(cases)) {
+      x=q_d2ht(n=n,d.het=d.het,sd.het=sd.het,p=p);
+      sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
+      y=quantile(sim$d.sdz,probs=p);
+    } else {
+      qq=do.call(rbind,apply(cases,1,function(case) {
+        ## do it old school - withcase() doesn't propogate enclosing variables (sigh)
+        n=case['n']; d.het=case['d.het']; sd.het=case['sd.het'];
+        x=q_d2ht(n=n,d.het=d.het,sd.het=sd.het,p=p);
+        sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
+        y=quantile(sim$d.sdz,probs=p);
+        data.frame(x,y)}));
+      x=qq$x;
+      y=qq$y;
+      cex=cex.cases;
+    }
+    ## cor=cor(x,y);
+    if (is.null(xlim)) xlim=range(x,y);
+    if (is.null(ylim)) ylim=range(x,y);
+    plot(x,y,xlim=xlim,ylim=ylim,main=title,cex.main=cex_title(title),
+         xlab=xlab,ylab=ylab,pch=pch,cex=cex,col=col);
+    abline(a=0,b=1,col=col.diag,lty=lty.diag,lwd=lwd.diag);
+    grid();
+  }
+## wrapper for plotm to show concordance of simulated vs theoretical results
+## available statistics: meand, pval, power
+plotm_conc=
+  function(simu,theo,stat,by=cq(d.het,sd.het),smooth='aspline',d.het=NULL,sd.het=NULL,title=NULL,
+           legend='topright',xlab='sample size',ylab=stat,...) {
+    n=unique(simu$n);
+    if (missing(by)&length(intersect(by,names(simu)))==0) by=NULL;
+    if (!is.null(by)) {
+      by=match.arg(by);
+      simu.by=split(simu,simu[[by]]);
+      theo.by=split(theo,theo[[by]]);
+      ## grab stat colums from each group
+      y=do.call(cbind,c(lapply(simu.by,function(simu) simu[,stat]),
+                        lapply(theo.by,function(theo) theo[,stat])));
+      legend.labels=
+        c(paste0('simu. ',by,'=',names(simu.by)),paste0('theo. ',by,'=',names(theo.by)));
+      ncol=length(simu.by);      
+    } else {
+      ## grab stat column from each source
+      y=cbind(simu[,stat],theo[,stat]);
+      legend.labels=cq(simu,theo);
+      ncol=1;
+    }
+    if (length(n)==0&is.null(y)) plotempty(title=title,xlab=xlab,ylab=ylab)
+    else {
+      if (is.logical(smooth)) smooth=if (smooth) 'aspline' else 'none';
+      col=setNames(RColorBrewer::brewer.pal(max(3,ncol),'Set1'),ncol);
+      col=rep(col,2);
+      lty=c(rep('dotted',len=ncol),rep('solid',len=ncol));
+      lwd=2;
+      plotm(x=n,y=y,col=col,lty=lty,lwd=lwd,smooth=smooth,
+            title=title,legend.labels=legend.labels,legend=legend,xlab=xlab,ylab=ylab,...);
+    }
+    return();
+  }
+## wrapper for plotm to show concordance of simulated ci with expectation
+plotm_concci=
+  function(simu,stat,by=cq(d.het,sd.het),smooth='aspline',d.het=NULL,sd.het=NULL,title=NULL,
+           legend='topright',xlab='sample size',ylab='CI coverage(aka capture rate)',...) {
+    param(conf.level);
+    n=unique(simu$n);
+    if (missing(by)&length(intersect(by,names(simu)))==0) by=NULL;
+    if (!is.null(by)) {
+      by=match.arg(by);
+      simu.by=split(simu,simu[[by]]);
+      ## grab stat colums from each group
+      y=do.call(cbind,lapply(simu.by,function(simu) simu[,stat]));
+      legend.labels=paste0('simu. ',by,'=',names(simu.by));
+      ncol=length(simu.by);      
+    } else {
+      ## grab stat column from each source
+      y=cbind(simu[,stat]);
+      legend.labels=cq(simu);
+      ncol=1;
+    }
+    if (is.logical(smooth)) smooth=if (smooth) 'aspline' else 'none';
+    col=setNames(RColorBrewer::brewer.pal(max(3,ncol),'Set1'),ncol);
+    lty=rep('dotted',len=ncol);
+    lwd=2;
+    plotm(x=n,y=y,col=col,lty=lty,lwd=lwd,smooth=smooth,
+          hline=conf.level,vhcol='black',vhlty='solid',
+          title=title,legend.labels=legend.labels,legend=legend,xlab=xlab,ylab=ylab,...);
+    return();
+  }
+## dot plot to show concordance of simulated and theoretical results
+plotxy_conc=
+  function(simu,theo,stat,xlim=NULL,ylim=NULL,title=NULL,mergecol=cq(n,d.het,sd.het),
+           xlab='theoretical values from het sampling distribution',ylab='simulated values',
+           cex=1,pch=19,col='black',col.diag='red',lty.diag='dotted',lwd.diag=1,...) {
+    xy=merge(simu,theo,by=mergecol,suffixes=cq(.simu,.theo));
+    x=xy[[paste(sep='.',stat,'theo')]];
+    y=xy[[paste(sep='.',stat,'simu')]];
+    ## cor=cor(x,y);
+    if (is.null(xlim)) xlim=range(x,y);
+    if (is.null(ylim)) ylim=range(x,y);
+    plot(x,y,xlim=xlim,ylim=ylim,main=title,cex.main=cex_title(title),
+         xlab=xlab,ylab=ylab,pch=pch,cex=cex,col=col);
+    abline(a=0,b=1,col=col.diag,lty=lty.diag,lwd=lwd.diag);
+    grid();
+  }
+## wrapper for plotm to show inflation.
+## only used for ci
+plotm_main=
+  function(theo,stat,by=cq(d.het,sd.het),smooth='aspline',d.het=NULL,sd.het=NULL,title=NULL,
+           legend='topright',xlab='sample size',
+           ylab=paste(sep=' ',stat,'inflation (ratio of actual to correct)'),...) {
+    n=unique(simu$n);
+    if (missing(by)&length(intersect(by,names(simu)))==0) by=NULL;
+    if (!is.null(by)) {
+      by=match.arg(by);
+      theo.by=split(theo,theo[[by]]);
+      ## grab stat colums from each group
+      y=do.call(cbind,lapply(theo.by,function(theo) theo[,stat]));
+      legend.labels=c(paste0(stat,' ',by,'=',names(theo.by)));
+      ncol=length(theo.by);      
+    } else {
+      ## grab stat column from each source
+      y=theo[,stat];
+      legend.labels=stat;
+      ncol=1;
+    }
+    if (is.logical(smooth)) smooth=if (smooth) 'aspline' else 'none';
+    col=setNames(RColorBrewer::brewer.pal(max(3,ncol),'Set1'),ncol);
+    lty='solid';
+    lwd=2;
+    plotm(x=n,y=y,col=col,lty=lty,lwd=lwd,smooth=smooth,
+          title=title,legend.labels=legend.labels,legend=legend,xlab=xlab,ylab=ylab,...);
+    return();
+  }
+## wrapper for plotm to show stat (raw or inflation) with het and conventional pvals and baseline
+## available statistics: meand, pval, power
+plotm_mainbysd=
+  function(theo,stat,smooth='aspline',d.het=NULL,sd.het=NULL,title=NULL,
+           legend='topright',xlab='sample size',
+           ylab=paste(sep=' ',stat,'inflation (ratio of actual to correct)'),
+           lty.bsln='dotted',lwd.bsln=1.5,...) {
+    
+    theo.bsln=split(theo,theo$sd.het==0);
+    stat2=c(stat,paste0(stat,'.tval'));
+    bsln=theo.bsln[['TRUE']][,stat];
+    theo=theo.bsln[['FALSE']];
+
+    theo.bysd=split(theo,theo$sd.het);
+    theo.bysd=lapply(theo.bysd,function(theo) theo[,stat2])
+    x=unique(theo$n);
+    ## grab stat colums from each group
+    y=cbind(do.call(cbind,theo.bysd),bsln);  
+
+    ncol=length(theo.bysd);      
+    sd.het=names(theo.bysd);
+    
+    if (is.logical(smooth)) smooth=if (smooth) 'aspline' else 'none';
+    col=setNames(RColorBrewer::brewer.pal(max(3,ncol),'Set1'),ncol);
+    lty=c(cq(solid,dashed),lty.bsln);
+    legend.args=list(labels=c('colors (represent sd.het)',paste_nv('sd.het'),
+                              'line types',
+                              'het p-values','conventional p-values','baseline'),
+                     col=c('black',col,'black',rep('grey20',3)),
+                     lty=c(NA,rep('solid',ncol),NA,lty),
+                     lwd=c(NA,rep(2,ncol),NA,2,2,lwd.bsln));
+    col=c(rep(col,each=2),'black');
+    lty=c(rep(cq(solid,dashed),ncol),lty.bsln);
+    lwd=c(rep(c(2,2),ncol),lwd.bsln);
+    plotm(x=x,y=y,title=title,lwd=lwd,lty=lty,col=col,smooth=smooth,       
+          legend=legend,legend.args=legend.args,xlab=xlab,ylab=ylab,...); 
+  }
+plotm_mainbyd=
+  function(theo,stat,smooth='aspline',d.het=NULL,sd.het=NULL,title=NULL,
+           legend='topright',xlab='sample size',
+           ylab=paste(sep=' ',stat,'inflation (ratio of actual to correct)'),
+           lty.bsln='dotted',lwd.bsln=1.5,...) {
+    stat2=c(stat,paste0(stat,'.tval'));
+    theo.byd=split(theo,theo$d.het);    
+    x=unique(theo$n);
+    theo.byd=lapply(theo.byd,function(theo) {
+      theo.bsln=split(theo,theo$sd.het==0);
+      bsln=theo.bsln[['TRUE']][,stat];
+      theo=theo.bsln[['FALSE']][,stat2]
+      cbind(theo,bsln);
+    });
+    ncol=length(theo.byd);      
+    d.het=names(theo.byd);
+    y=do.call(cbind,theo.byd);  
+    col=RColorBrewer::brewer.pal(max(ncol,3),'Set1')[1:l];
+    lty=c(cq(solid,dashed),lty.bsln);
+    lwd=c(2,2,lwd.bsln);
+    legend.args=list(labels=c('colors (represent d.het)',
+                              paste_nv('d.het'),
+                              'line types',
+                              'het p-values','conventional p-values','baseline'),
+                     col=c('black',col,'black',rep('grey20',3)),
+                     lty=c(NA,rep('solid',ncol),NA,lty),
+                     lwd=c(NA,rep(lwd,ncol),NA,lwd));
+    col=rep(col,each=3);
+    lty=rep(lty,ncol);
+    lwd=rep(lwd,ncol);
+    plotm(x=x,y=y,title=title,lwd=lwd,lty=lty,col=col,smooth=smooth,        
+          legend=legend,legend.args=legend.args,xlab=xlab,ylab=ylab,...); 
+  }
+
+
+## generate standard vector of stats for base, eg, 'meand'
+sall=function(stat) {
+  stat=as.character(pryr::subs(stat));
+  c(stat,paste0(stat,'.tval'));
+}
+## for figname. shorten stat 
+sfig=function(stat,what=cq(raw,ovr)) {
+  what=match.arg(what);
+  head=if (stat=='over'|what=='ovr') 'ovr' else NULL;
+  tail=if (grepl('tval',stat)) 'tvl' else NULL;
+  if (all(is.null(c(head,tail)))) NULL else paste(collapse='.',c(head,tail));
+}
+## for figure title. surround stat with ', append 'inflation' if what is 'ovr'
+stit=function(stat,what=cq(raw,ovr)) {
+  what=match.arg(what);
+  stat=paste0("'",stat,"'");
+  if (what=='raw') stat else c(stat,'inflation')
+}
+## for ylab. append 'inflation', desc if what is 'ovr'
+slab=function(stat,what=cq(raw,ovr),desc=NULL) {
+  what=match.arg(what);
+  paste(collapse=' ',c(stat,if(what=='ovr') c('inflation',desc)));
+}
+## for plotting. get column name
+swat=function(stat,what=cq(raw,ovr)) {
+  what=match.arg(what);
+  if (match.arg(what)=='raw') stat else 'over';
+}
+    
+foo=function() {
   ## NG 19-04-15: use general get_data instead of special get_meand_theo
   ##   first step toward full switchover to save_data/get_data
   ## meand=get_meand_theo();
