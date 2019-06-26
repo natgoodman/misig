@@ -102,13 +102,15 @@ save_sim_hetd=function(sim,n,d,sd,file=NULL) {
   param(save.sim,save.txt.sim);
   if (is.null(file))
     file=filename(param(sim.hetd.dir),base='sim',
-                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+                  tail=paste(sep=',',paste_nv(n),
+                             paste_nv(d,d_pretty(d)),paste_nv(sd,sd_pretty(sd))));
   save_(sim,file,save=save.sim,save.txt=save.txt.sim);
 }
 load_sim_hetd=function(file=NULL,n,d,sd) {
   if (is.null(file))
     file=filename(param(sim.hetd.dir),base='sim',
-                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+                  tail=paste(sep=',',paste_nv(n),
+                             paste_nv(d,d_pretty(d)),paste_nv(sd,sd_pretty(sd))));
   load_(file,'sim');
 }
 get_sim_hetd=load_sim_hetd;
@@ -118,13 +120,13 @@ save_interp_hetd=function(interp,n,d,sd,file=NULL) {
   param(save.interp,save.txt.interp);
   if (is.null(file))
     file=filename(param(interp.hetd.dir),base='interp',
-                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),sd_pretty(sd)));
   save_(interp,file,save=save.interp,save.txt=save.txt.interp);
 }
 load_interp_hetd=function(file=NULL,n,d,sd) {
   if (is.null(file))
     file=filename(param(interp.hetd.dir),base='interp',
-                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),paste_nv(sd)));
+                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),sd_pretty(sd)));
   interp=load_(file,'interp');
   approxfun(interp)
 }
