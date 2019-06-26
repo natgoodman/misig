@@ -14,7 +14,6 @@
 #################################################################################
 
 ## ---- Plot Functions ----
-## NG 19-01-09. presently just for siglo document
 ## plot d.y vs d.x, typically d.pop vs d.sdz, colored by pval
 ## sim is data frame of simulation results
 ## params for generating pval colors
@@ -108,16 +107,16 @@ plothist=
       return();
    }
    hist.obj=hist(sim[,x],breaks=breaks,plot=FALSE);
-    if (is.null(col)) {
-      if (missing(distribution)) distribution=if(is.null(sd.het)) 'd2t' else 'd2ht'
-      else distribution=match.arg(distribution);
-      if (length(n)==1&length(sd.het)<=1)
-        col=d2col(n=n,sd.het=sd.het,distribution=distribution,d=hist.obj$mids)
-      else {
-        if (length(n)!=1) warning('plothist needs unique n to convert d to color');
-        if (length(sd.het)>1) warning('plothist needs unique sd.het to convert d to color');
-        col='grey';
-      }}
+   if (is.null(col)) {
+     if (missing(distribution)) distribution=if(is.null(sd.het)) 'd2t' else 'd2ht'
+     else distribution=match.arg(distribution);
+     if (length(n)==1&length(sd.het)<=1)
+       col=d2col(n=n,sd.het=sd.het,distribution=distribution,d=hist.obj$mids)
+     else {
+       if (length(n)!=1) warning('plothist needs unique n to convert d to color');
+       if (length(sd.het)>1) warning('plothist needs unique sd.het to convert d to color');
+       col='grey';
+     }}
    if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     plot(hist.obj,col=col,border=border,freq=freq,main=title,cex.main=cex.title,
          xlab=xlab,ylab=ylab,add=add,...);
@@ -236,7 +235,7 @@ plotm=
            legend.args=list(where=NULL,x=NULL,y=NULL,cex=0.8,
                             title=legend.title,labels=legend.labels,col=col,lty=lty,lwd=lwd),
            ...) {
-    if (is.null(x)) stop("Nothing to plot: 'x' is NULL");
+    if (length(x)==0) stop("Nothing to plot: 'x' is empty");
     if (is.vector(y)) {
       if (length(x)!=length(y)) stop("'x' and 'y' lengths differ");
       y=as.matrix(y);
@@ -268,6 +267,20 @@ plotm=
     }
     if (legend) do.call(plotm_legend,legend.args);
   }
+## empty plot -kust title & axes
+plotempty=
+  function(title='',cex.title='auto',xlab='x',ylab='y',xlim=c(0,1),ylim=c(0,1),
+           xaxp=c(xlim,1),yaxp=c(ylim,1),...) {
+    if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
+    plot(x=NULL,y=NULL,type='n',main=title,cex.main=cex.title,xlab=xlab,ylab=ylab,
+         xlim=xlim,ylim=ylim,xaxp=xaxp,yaxp=yaxp,...);
+    xylim=par('usr');                   # limits of disply region
+    xmid=mean(xylim[1:2]);
+    ymid=mean(xylim[3:4]);
+    text(xmid,ymid,'PLOT DELIBERATELY LEFT BLANK',adj=c(0.5,0.5));
+    invisible();
+}
+
 ## helper functions to plot horizontal and vertical line segments
 vhline=function(vline=NULL,hline=NULL,vlab=NULL,hlab=NULL,vhdigits=2,col=NA,...) {
   xylim=par('usr');
@@ -297,34 +310,34 @@ vline=
 pval_legend=
   function(x.scale=parent(legend.xscale,1/8),y.scale=parent(legend.yscale,1/3),x0=NULL,
            cex=parent(legend.cex,0.75)) {
-  param(brk.pval,col.pval,steps.pvcol,sig.level);
-  ## plt=par('usr');                       # plot region in user coordinates
-  ## names(plt)=cq(left,right,bottom,top);
-  xtkl=par('xaxp');                    # x tick locations
-  ytkl=par('yaxp');                    # y tick locations
-  names(xtkl)=names(ytkl)=cq(lo,hi,num);
-  if (is.null(x0)) x0=xtkl['lo'];
-  width=x.scale*(xtkl['hi']-x0);
-  x1=x0+width;
-  y1=ytkl['hi'];
-  height=y.scale*(y1-ytkl['lo']);
-  y0=y1-height;
-  ## image sometimes leaves blank space when y0 is between tick marks. roundoff problem, I think
-  ## works better to stretch y0 to next lower tick
-  tkl=seq(ytkl['lo'],y1,len=ytkl['num']+1);
-  y0=tkl[findInterval(y0,tkl)];
-  height=y1-y0;                         # adjust height for new y0
-  x=c(x0,x1);
-  y=seq(y0,y1,length.out=2*steps.pvcol+1)[1:(2*steps.pvcol)]
-  z=t(as.matrix(rev(head(brk.pval,-1))));
-  image(x,y,z,add=TRUE,breaks=brk.pval,col=col.pval);
-  ## add legend text
-  x1=x1+strwidth(' ',cex=cex);
-  text(x1,y0,0,adj=c(0,0),cex=cex)
-  text(x1,y0+height/2,sig.level,adj=c(0,0.5),cex=cex)
-  text(x1,y0+height,1,adj=c(0,1),cex=cex)
-  y1=y1+strheight('p-value',cex=cex);
-  text(x0+width/2,y1,"p-value",adj=c(0.5,0.5),cex=cex);
+    param(brk.pval,col.pval,steps.pvcol,sig.level);
+    ## plt=par('usr');                       # plot region in user coordinates
+    ## names(plt)=cq(left,right,bottom,top);
+    xtkl=par('xaxp');                    # x tick locations
+    ytkl=par('yaxp');                    # y tick locations
+    names(xtkl)=names(ytkl)=cq(lo,hi,num);
+    if (is.null(x0)) x0=xtkl['lo'];
+    width=x.scale*(xtkl['hi']-x0);
+    x1=x0+width;
+    y1=ytkl['hi'];
+    height=y.scale*(y1-ytkl['lo']);
+    y0=y1-height;
+    ## image sometimes leaves blank space when y0 is between tick marks. roundoff problem, I think
+    ## works better to stretch y0 to next lower tick
+    tkl=seq(ytkl['lo'],y1,len=ytkl['num']+1);
+    y0=tkl[findInterval(y0,tkl)];
+    height=y1-y0;                         # adjust height for new y0
+    x=c(x0,x1);
+    y=seq(y0,y1,length.out=2*steps.pvcol+1)[1:(2*steps.pvcol)]
+    z=t(as.matrix(rev(head(brk.pval,-1))));
+    image(x,y,z,add=TRUE,breaks=brk.pval,col=col.pval);
+    ## add legend text
+    x1=x1+strwidth(' ',cex=cex);
+    text(x1,y0,0,adj=c(0,0),cex=cex)
+    text(x1,y0+height/2,sig.level,adj=c(0,0.5),cex=cex)
+    text(x1,y0+height,1,adj=c(0,1),cex=cex)
+    y1=y1+strheight('p-value',cex=cex);
+    text(x0+width/2,y1,"p-value",adj=c(0.5,0.5),cex=cex);
   }
 ## draw plotm legend. adapted from repwr/mess_legend
 plotm_legend=
