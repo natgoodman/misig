@@ -50,22 +50,28 @@ init=function(
                 readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
                 readmesupp=c(0,0.2,0.5,0.8),# supp needs 0 to compute pvals
                 ovrfx=c(0.3,0.5,0.7)),
-  ## het-d 
+  ## het-d
   n.hetd=switch(docx,                       # sample sizes
                 readme=c(20,seq(100,400,by=100)),readmesupp=c(20,seq(100,400,by=100)),
-                ovrht=200,ovrhtsupp=200),
+                ovrht=200,ovrhtsupp=seq(20,200,by=20)),
   m.hetd=switch(docx,                       # number of studies per d.het
                 readme=1e3,readmesupp=1e3,ovrht=1e5,ovrhtsupp=1e5),
   d.hetd=switch(docx,                       # centers of het pop effect sizes
-                readme=c(0,0.5),readmesupp=c(0,0.5),ovrht=0,ovrhtsupp=0.3),
+                readme=c(0,0.5),readmesupp=c(0,0.5),
+                ovrht=0,
+                ovrhtsupp=c(0,0.3,0.5,0.7)),# CAUTION: doc_ovrhtsupp expects >= 4 values
   sd.hetd=switch(docx,                      # standard deviation of het pop distribution
-                 readme=c(0,0.2,0.4),readmesupp=c(0,0.2,0.4),ovrht=0.2,ovrhtsupp=0.2),
+                 readme=c(0,0.2,0.4),readmesupp=c(0,0.2,0.4),
+                 ovrht=0.2,
+                 ovrhtsupp=c(0,0.1,0.2,0.4)),# CAUTION: doc_ovrhtsupp expects >= 4 values
   ## pval & ci tables (ovrht) - others use simulation params
   n.ovrht=switch(docx,                       # sample sizes
                  ovrht=seq(20,400,by=10)),
   d.ovrht=switch(docx,ovrht=0),             # centers of het pop effect sizes (ci only)
   sd.ovrht=switch(docx,                      # standard deviation of het pop distribution
-                 ovrht=c(0,0.05,0.1,0.2,0.4)),
+                  ovrht=c(0,0.05,0.1,0.2,0.4)),
+  ## ci downsample (ovrhtsupp) - downsample sim results when computing ci, else too slow
+  m.ci=switch(docx,ovrhtsupp=1e3),
   ## data generation function
   datfun=get(paste(sep='_','dat',docx)),
   ## analysis parameters
@@ -144,10 +150,10 @@ init_doc=function(
   figdir=dirname('figure',param(doc),subdoc,param(run.id)), # directory for figures
   tbldir=dirname('table',param(doc),subdoc,param(run.id)),  # directory for tables
   ## output modifiers
-  outpfx=switch(param(doc),supp='S',NULL),          # prefix before figure or table number
-  outsfx=letters,                                   # suffix in figure and table blocks
-  sectpfx=switch(param(doc),readme=F,F),            # add section number to prefix eg, S1
-  sectnum=1,                                        # section number. usually set in docs
+  outpfx=NULL,                  # prefix before figure or table number - NOT USED
+  outsfx=letters,               # suffix in figure and table blocks
+  sectpfx=F,                    # add section number to prefix eg, S1 - NOT USED
+  sectnum=1,                    # section number. usually set in docs
   sect=NULL,
   ## figures
   figpfx=outpfx,
@@ -162,8 +168,8 @@ init_doc=function(
   ## xtra figures - not included in document
   xfigpfx='X',
   xfigsfx=outsfx,
-  xfignum=1,
-  xfigblk=NULL,                 # index into xfigsfx if in figure block
+  ## xfignum=1,                 # extras now use same numbers and blocks as regulars
+  ## xfigblk=NULL,              # ditto
   ## for pval colors
   steps.pvcol=100,              # number of colors in color ramp
   min.pvcol=1e-4,               # min pval in ramp - smaller pvals mapped to min
@@ -179,7 +185,7 @@ init_doc=function(
   figscreen=if(param(doc)=='readme') T else !save.fig,
                                  # plot figures on screen
   fignew=figscreen,              # plot each figure in new window
-  figextra=T,                    # plot extra figures, too
+  figextra=F,                    # plot extra figures
   ## doc generation function
   docfun=get(paste(collapse='',c('doc_',param(doc),subdoc))),
   docsect=NULL,                  # all document sections. set by docfun
