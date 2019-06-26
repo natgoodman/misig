@@ -49,9 +49,10 @@ paste_id=function(base,id=NULL,sep='.') {
   if (is.na(id)) return(base);
   paste(sep=sep,base,id);
 }  
-## pretty print typical values of n, d & m
+## pretty print typical values of n, d, sd & m
 n_pretty=function(n) as.character(n);
 d_pretty=function(d) sprintf('%3.2f',d);
+sd_pretty=function(sd) sprintf('%3.2f',sd);
 m_pretty=function(m) {
   if (round(log10(m))==log10(m)) sub('e\\+0{0,1}','e',sprintf("%0.0e",m),perl=TRUE)
   else as.character(m);
@@ -235,10 +236,29 @@ splinem=function(x,y,xout,spar=NULL,...) {
 ## note that plain 'with' works fine when applied to cases as a whole
 ## withcase=function(case,...) with(data.frame(t(case)),...)
 withcase=function(case,...) {
-  case=data.frame(t(case));
+  case=data.frame(t(case),stringsAsFactors=FALSE);
   assign('case',case,envir=parent.frame(n=1)); # so case will be data frame in called code
   with(case,...);
 }  
+
+## round up or down to nearest multiple of u. from https://grokbase.com/t/r/r-help/125c2v4e14/
+round_up=function(x,u) ceiling(x/u)*u;
+round_dn=function(x,u) floor(x/u)*u;
+## x can be range or single number (lower bound)
+round_rng=function(x,y,u) 
+  if (missing(y)) c(round_dn(x[1],u),round_up(x[2],u)) else c(round_dn(x,u),round_up(y,u))
+
+## pick n items from x approx evenly spaced
+pick=function(x,n.want,n.min=1,rep.ok=FALSE,exclude=NULL) {
+  x=x[x%notin%exclude];
+  if (length(x)<n.min) stop('too few elements in x');
+  if (length(x)<n.want&!rep.ok) x
+  else {
+    step=1/(n.want+1);
+    probs=seq(step,by=step,len=n.want)
+    unname(quantile(x,probs=probs,type=1))
+  };
+}
 
 ## repeat rows or columns of 2-dimensional matrix-like object. like rep
 ## like rep, ... can be times, length.out, or each
@@ -264,6 +284,8 @@ near=function(x,target,tol=.01) between(x,target-tol,target+tol)
 ## debugging functions
 ## TODO: BREAKPOINT is sooo feeble :(
 BREAKPOINT=browser;
+## traceback with args I like
+tback=function(max.lines=2) traceback(max.lines=max.lines)
 devs.close=function() for (dev in dev.list()) dev.off(dev)
 ## display color palette
 pal=function(col,border="light gray",...) {
