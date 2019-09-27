@@ -19,13 +19,13 @@ fig=split(fig,regmatches(fig,regexpr("figure_\\d+",fig)))
 ```
 ## Introduction
 
-This document contains supplementary material for the [README document](https://natgoodman.github.io/misig) associated with [this repo](https://github.com/natgoodman/misig). It's not meant to be read as a standalone document. It's more of a "usage test" demonstrating that all major functions work in the limited setting of this document. It proved it's worth in this regard, driving out several bugs and leading to software improvements.
+This document contains supplementary material for the [README document](https://natgoodman.github.io/misig/README.stable.html) associated with [this repo](https://github.com/natgoodman/misig). It's not meant to be read as a standalone document. It's more of a "usage test" demonstrating that all major functions work in the limited setting of this document. It proved it's worth in this regard, driving out several bugs and leading to software improvements.
 
 The document exercises all capabilities of the program: simulation and other data generation, plotting of figures, and saving of summary results. It has figures showing each plot function applied to each kind of data that can be sensibly displayed using that function. Some figures are included for completeness even though they may not be terribly informative. It also illustrates custom plots from the blog posts. 
 
 The figures as displayed in the document are tiny - drawn at 25% scale - to reduce screen real estate. The underlying image data is full scale, however, and readers can expand the figures if desired.
 
-The simulations driving the figures too small to yield stable results - $10^3$ iterations vs. $10^4$ or $10^5$ in the blog posts. This explains why some of the figures are so jumpy.
+The simulations driving the figures are too small to yield stable results - $10^3$ iterations vs. $10^4$ or $10^5$ in the blog posts. This explains why some of the figures are so jumpy.
 
 ## Overview
 
@@ -137,7 +137,7 @@ knitr::include_graphics(fig$figure_008);
 The next figures are line plots for each of the four statistics across the two data generation models. For *meand*, *p-values*, and *power*, the figures show  concordance of simulated and theoretical results. For *confidence intervals*, the figures show coverage (the fraction of intervals that contain the true mean, $d_{pop}$) for all results and significant results. For each statistic, there are figures using three different smoothing methods: 
 
 1. none
-2 `aspline` is from the `akima` package
+2. `aspline` is from the `akima` package
 3. `spline` is base R's `smooth.spline`
 
 <center>
