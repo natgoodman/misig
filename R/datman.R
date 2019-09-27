@@ -29,10 +29,9 @@ load_=function(file,what) {
   what=load(file=filename(base=base,suffix='RData')); # what is name of saved data
   get(what);                          # return it
 }
-##### data - top-level data saved in datadir
+##### top-level data saved in datadir
 ## base does not include path
-save_data=function(what,file=NULL,data=NULL,base=NULL,
-                   save=param(save.data),save.txt=param(save.txt)) {
+save_data=function(what,file=NULL,data=NULL,base=NULL) {
   param(datadir,save.data,save.txt.data);
   what=as.character(pryr::subs(what));
   if (missing(data) && exists(what,envir=parent.frame(n=1)))
@@ -70,50 +69,69 @@ load_data=function(...,file=NULL,base=NULL,list=character()) {
   if (length(names)==1) return(val[[1]]) else names;
 }
 get_data=load_data;
-##### sim_rand
-save_sim_rand=function(sim,n,file=NULL) {
+##### sim file functions
+### save, get, other manipulation
+##
+## save regular sim file
+save_sim=function(sim,...,what,file=NULL) {
+  ## what=as.character(pryr::subs(what));
   param(save.sim,save.txt.sim);
-  if (is.null(file)) file=filename(param(sim.rand.dir),base='sim',tail=nvq(n));
+  if (is.null(file)) {
+    tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+    file=filename_sim(what,tail=tail);
+  }
   save_(sim,file,save=save.sim,save.txt=save.txt.sim);
 }
-load_sim_rand=function(file=NULL,n) {
-  if (is.null(file)) file=filename(param(sim.rand.dir),base='sim',tail=nvq(n));
+## save inner loop files
+save_sim_tmp=function(sim,...,file=NULL) {
+  if (is.null(file)) {
+    tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+    file=filename_sim_tmp(tail=tail);
+  }
+  save(sim,file=file);
+}
+## load (aka get) regular sim file
+load_sim=get_sim=function(...,what,file=NULL) {
+  if (is.null(file)) {
+    tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+    file=filename_sim(what,tail=tail);
+  }
   load_(file,'sim');
 }
-get_sim_rand=load_sim_rand;
-##### sim_fixd
-save_sim_fixd=function(sim,n,d,file=NULL) {
-  param(save.sim,save.txt.sim);
-  if (is.null(file))
-    file=filename(param(sim.fixd.dir),base='sim',
-                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d))));
-  save_(sim,file,save=save.sim,save.txt=save.txt.sim);
+## consolidate inner loop sim files. file is name of output (permanent) sim file
+cat_sim=function(...,what,file=NULL) {
+  if (is.null(file)) {
+    tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+    file=filename_sim(what,tail=tail);
+  }
+  pattern=sub('^sim\\.','^sim\\.i=[0-9]+\\.',basename(file));
+  files=list.files(param(tmpdir),full.names=T,pattern=pattern);
+  sim=do.call(rbind,lapply(files,function(file) load_(file,'sim')));
+  save_sim(sim,file=file);
+  file.remove(files);
+  invisible(sim);
 }
-load_sim_fixd=function(file=NULL,n,d) {
-  if (is.null(file))
-    file=filename(param(sim.fixd.dir),base='sim',
-                  tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d))));
-  load_(file,'sim');
+### filenames
+filename_sim=function(what,...,tail=NULL) {
+  if (is.null(tail)) tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+  ## DOTS=c(match.call(expand.dots=FALSE)$...,unlist(DOTS));
+  dir=param(list=paste(sep='.','sim',what,'dir'));
+  filename(dir,basename_sim(tail=tail));
 }
-get_sim_fixd=load_sim_fixd;
-
-##### sim_hetd
-save_sim_hetd=function(sim,n,d,sd,file=NULL) {
-  param(save.sim,save.txt.sim);
-  if (is.null(file))
-    file=filename(param(sim.hetd.dir),base='sim',
-                  tail=paste(sep=',',paste_nv(n),
-                             paste_nv(d,d_pretty(d)),paste_nv(sd,sd_pretty(sd))));
-  save_(sim,file,save=save.sim,save.txt=save.txt.sim);
+filename_sim_tmp=function(...,tail=NULL) {
+  if (is.null(tail)) tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+  filename(param(tmpdir),basename_sim(tail=tail));
 }
-load_sim_hetd=function(file=NULL,n,d,sd) {
-  if (is.null(file))
-    file=filename(param(sim.hetd.dir),base='sim',
-                  tail=paste(sep=',',paste_nv(n),
-                             paste_nv(d,d_pretty(d)),paste_nv(sd,sd_pretty(sd))));
-  load_(file,'sim');
+basename_sim=function(...,tail=NULL) {
+  base='sim';
+  if (is.null(tail)) tail=nvq_file(DOTS=match.call(expand.dots=FALSE)$...);
+  filename(base=base,tail=tail,suffix='RData');
 }
-get_sim_hetd=load_sim_hetd;
+## load (aka get) specific sim file type. wrappers for load_sim.
+## TODO: replace by generic load_sim
+load_sim_rand=get_sim_rand=function(file=NULL,n) load_sim(n,what='rand',file=file);
+load_sim_fixd=get_sim_fixd=function(file=NULL,n,d) load_sim(n,d,what='fixd',file=file);
+load_sim_hetd=get_sim_hetd=function(file=NULL,n,d,sd) load_sim(n,d,sd,what='hetd',file=file);
 
 ##### interp_hetd. interp is approx data, NOT function, 'cuz it's dangerour to save approxfun
 save_interp_hetd=function(interp,n,d,sd,file=NULL) {
@@ -123,39 +141,13 @@ save_interp_hetd=function(interp,n,d,sd,file=NULL) {
                   tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),sd_pretty(sd)));
   save_(interp,file,save=save.interp,save.txt=save.txt.interp);
 }
-load_interp_hetd=function(file=NULL,n,d,sd) {
+load_interp_hetd=get_interp_hetd=function(file=NULL,n,d,sd) {
   if (is.null(file))
     file=filename(param(interp.hetd.dir),base='interp',
                   tail=paste(sep=',',paste_nv(n),paste_nv(d,d_pretty(d)),sd_pretty(sd)));
   interp=load_(file,'interp');
   approxfun(interp)
 }
-get_interp_hetd=load_interp_hetd;
-
-## TODO 19-05-09: delete commented out code when I'm sure I'm happy with the new way
-## ##### meand_empi
-## save_meand_empi=function(meand,file=NULL) {
-##   param(save.meand,save.txt.meand);
-##   if (is.null(file)) file=filename(param(datadir),base='meand.empi');
-##   save_(meand,file,save=save.meand,save.txt=save.txt.meand);
-## }
-## load_meand_empi=function(file=NULL) {
-##   if (is.null(file)) file=filename(param(datadir),base='meand.empi');
-##   load_(file,'meand');
-## }
-## get_meand_empi=load_meand_empi;
-## ##### meand_theo
-## save_meand_theo=function(meand,file=NULL) {
-##   param(save.meand,save.txt.meand);
-##   if (is.null(file)) file=filename(param(datadir),base='meand.theo');
-##   save_(meand,file,save=save.meand,save.txt=save.txt.meand);
-## }
-## load_meand_theo=function(file=NULL) {
-##   if (is.null(file)) file=filename(param(datadir),base='meand.theo');
-##   load_(file,'meand');
-## }
-## get_meand_theo=load_meand_theo;
-
 ##### table - saved in tbldir
 save_tbl=function(tbl,file,obj.ok=F) {
   param(save.tbl,save.txt.tbl);
