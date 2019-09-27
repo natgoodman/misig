@@ -24,15 +24,24 @@ source_dflt=function(files=SOURCE) {
   sapply(files,source);
   invisible();
 }
-source_dflt();
 ## source doc-specific files
 source_doc=function(doc=param(doc)) {
   docr=paste(sep='.',doc,'R');
   source(paste(sep='_','R/dat',docr));
   source(paste(sep='_','R/doc',docr));
+  ## these files exist for some docs
+  source_ifexists(paste(sep='_','R/docfun',docr));
+  source_ifexists(paste(sep='_','R/plot',docr));
+  source_ifexists(paste(sep='_','R/stats',docr));
 }
+## source optional doc-specific files
+source_ifexists=function(file) if (file.exists(file)) source(file);
+                         
 ## source all files 
-source_all=function(files=SOURCE,doc=param(doc)) {
+## NG 19-09-10: can't call param(doc) in empty workspace - param.env doens't exist
+## source_all=function(files=SOURCE,doc=param(doc)) {
+source_all=function(files=SOURCE) {
   source_dflt(files);
-  source_doc(doc);
+  if (exists('param.env')) source_doc();
 }
+source_all();
