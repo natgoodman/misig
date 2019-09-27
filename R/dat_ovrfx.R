@@ -19,8 +19,8 @@
 ## ---- Data Generation for ovrfx ----
 dat_ovrfx=function() {
   ## do simulation
-  param(n.rand,m.rand,d.rand);
-  dosim_rand(n.rand,m.rand,d.rand);
+  param(n.rand,m.rand,d.gen,d.args);
+  dosim_rand(n.rand,m.rand,d.gen,d.args);
   param(n.fixd,m.fixd,d.fixd);
   dosim_fixd(n.fixd,m.fixd,d.fixd);
   ## compute mean significant effect size
