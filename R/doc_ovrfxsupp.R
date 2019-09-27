@@ -17,9 +17,10 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
+## TODO: still just copy of overhtsupp!!
 ## --- Generate Figures and Tables for ovrfx supplement ---
 
-doc_ovrhtsupp=function(sect=NULL) {
+doc_ovrfxsupp=function(sect=NULL) {
   param(figextra);
   ## sect.all=cq(smpldist,plotpvsd,plotm,plotover);
   sect.all=c(paste(sep='.','simutheo',cq(smpldist,meand,power,pval,ci)),
@@ -34,15 +35,15 @@ doc_ovrhtsupp=function(sect=NULL) {
       cases=data.frame(n=rep(range(n.hetd),each=2),d.het=d.hetd[1:4],
                        sd.het=range(sd.hetd[sd.hetd!=0]));
       if (!figextra) cases=cases[c(1,4),];
-      apply(cases,1,function(case) withcase(case,{
+      withrows(cases,case,{
         title=figtitle('Het histogram and sampling distribution',n=n,d.het=d.het,sd.het=sd.het);
         dofig(plothist_d2ht,'hist',n=n,d.het=d.het,sd.het=sd.het,title=title);
-      }));
+      });
       if (figextra)
-        apply(cases,1,function(case) withcase(case,{
+        withrows(cases,case,{
           title=figtitle('Simulated vs. theoretical quantiles',n=n,d.het=d.het,sd.het=sd.het);
           dofig(plotqq_d2ht,'qq',n=n,d.het=d.het,sd.het=sd.het,title=title);
-        }));
+        });
       ## QQ plot entire dataset
       cases=expand.grid(n=n.hetd,d.het=d.hetd,sd.het=sd.hetd);
       title=figtitle('Simulated vs. theoretical quantiles across entire dataset');
@@ -56,8 +57,7 @@ doc_ovrhtsupp=function(sect=NULL) {
       d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
       sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
       cases=expand.grid(stat=sall(meand),what=cq(raw,ovr),stringsAsFactors=FALSE);
-      apply(cases,1,function(case) {
-        stat=case['stat']; what=case['what'];
+      withrows(cases,case,{
         if (what=='ovr') {
           ## remove d.het==0 'cuz over is Inf
           simu=subset(simu,subset=d.het!=0);
@@ -85,8 +85,7 @@ doc_ovrhtsupp=function(sect=NULL) {
           dofig(plotm_simutheo,figname,simu=simu,theo=theo,stat=stat,by='d.het',title=title,
                 ylab=slab(stat,what,'(ratio of actual to correct)'),ylim=lim);
         })});
-      apply(cases,1,function(case) {
-        stat=case['stat']; what=case['what'];
+      withrows(cases,case,{
         ## dot plot entire dataset
         ## CAUTION: doesn't fit usual pattern of 4 figures per row. dunno if problem
         if (what=='ovr') {
@@ -108,8 +107,7 @@ doc_ovrhtsupp=function(sect=NULL) {
       d.het=if(figextra) pick(d.hetd,4) else pick(d.hetd,1);
       sd.het=if(figextra) pick(sd.hetd,4) else pick(sd.hetd,1);
       cases=expand.grid(stat=sall(power),what=cq(raw,ovr),stringsAsFactors=FALSE);
-      apply(cases,1,function(case) {
-        stat=case['stat']; what=case['what'];
+      withrows(cases,case,{
         ## do it by sd.het for each d.het
         sapply(d.het,function(d) {
           simu=subset(simu,subset=d.het==d);
@@ -132,8 +130,7 @@ doc_ovrhtsupp=function(sect=NULL) {
           dofig(plotm_simutheo,figname,simu=simu,theo=theo,stat=stat,by='d.het',title=title,
                 ylab=slab(stat,what,'(ratio of actual to conventional)'),legend='right',ylim=lim);
         })});
-      apply(cases,1,function(case) {
-        stat=case['stat']; what=case['what'];
+      withrows(cases,case,{
         ## dot plot entire dataset
         ## CAUTION: doesn't fit usual pattern of 4 figures per row. dunno if problem
         title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
@@ -147,8 +144,7 @@ doc_ovrhtsupp=function(sect=NULL) {
       simu=get_data(pval.hetd);
       theo=get_data(pval.d2ht);
       cases=expand.grid(stat=sall(pval),what=cq(raw,ovr),stringsAsFactors=FALSE);
-      apply(cases,1,function(case) {
-        stat=case['stat']; what=case['what'];
+      withrows(cases,case,{
         ## pval doesn't have d.het, since always calculated under NULL
         title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
                          'by sd.het'),d.het=d);
@@ -157,8 +153,7 @@ doc_ovrhtsupp=function(sect=NULL) {
         dofig(plotm_simutheo,figname,simu=simu,theo=theo,stat=stat,by='sd.het',title=title,
               ylab=slab(stat,what,'(ratio of actual to conventional)'),legend='topleft',ylim=lim);
       });
-      apply(cases,1,function(case) {
-        stat=case['stat']; what=case['what'];
+      withrows(cases,case,{
         ## dot-plot entire dataset
         title=figtitle(c('Concordance of simulated and theoretical',stit(stat,what),
                          'across entire dataset'));
@@ -333,13 +328,11 @@ plotqq_d2ht=
       sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
       y=quantile(sim$d.sdz,probs=p);
     } else {
-      qq=do.call(rbind,apply(cases,1,function(case) {
-        ## do it old school - withcase() doesn't propogate enclosing variables (sigh)
-        n=case['n']; d.het=case['d.het']; sd.het=case['sd.het'];
+      qq=withrows(cases,case,{
         x=q_d2ht(n=n,d.het=d.het,sd.het=sd.het,p=p);
         sim=get_sim_hetd(n=n,d=d.het,sd=sd.het);
         y=quantile(sim$d.sdz,probs=p);
-        data.frame(x,y)}));
+        data.frame(x,y)})g;
       x=qq$x;
       y=qq$y;
       cex=cex.cases;
@@ -657,7 +650,7 @@ foo=function() {
 title_ovrhtsupp=function(...,sep=' ',n=NULL,d.het=NULL,sd.het=NULL) {
   fig=paste(sep='','Figure ',figlabel());
   desc=paste(sep=sep,...);
-  nv=nvq(sep=', ',ignore=T,n,d.het,sd.het);
+  nv=nvq(sep=', ',IGNORE=T,n,d.het,sd.het);
   if (!nzchar(nv)) nv=NULL;
   paste(collapse="\n",c(fig,paste(collapse='. ',c(desc,nv))));
 }

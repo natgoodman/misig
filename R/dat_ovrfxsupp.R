@@ -18,7 +18,8 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## ---- Data Generation for ovrhtsupp ----
+## TODO: still just copy of overhtsupp!!
+## ---- Data Generation for ovrfxsupp ----
 dat_ovrhtsupp=function() {
   param(n.hetd,m.hetd,d.hetd,sd.hetd);
   dosim_hetd(n.hetd,m.hetd,d.hetd,sd.hetd);
