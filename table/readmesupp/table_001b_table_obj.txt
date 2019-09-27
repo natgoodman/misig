@@ -1,28 +1,34 @@
 $meand1
-   n d.het sd.het meand meand.tval
-1 20   0.0      0  0.77       0.77
-6 20   0.5      0  0.87       0.87
+   n d.het sd.het meand meand.tval meand.all over over.tval over.all
+1 20   0.0      0  0.77       0.77      0.00  Inf       Inf      NaN
+6 20   0.5      0  0.87       0.87      0.51 1.74      1.74     1.02
 
 $pval1
-   n sd.het pval pval.tval over over.tval
-1 20      0 0.05      0.05    1         1
+    n sig.level sd.het pval pval.tval over over.tval
+1  20      0.00      0 0.00      0.00    1         1
+6  20      0.00      0 0.01      0.01    1         1
+11 20      0.05      0 0.05      0.05    1         1
+16 20      0.50      0 0.50      0.50    1         1
 
 $ci1
-    n sd.het   d ci.lo ci.hi ci.tval.lo ci.tval.hi over
-1  20      0 0.0 -0.62  0.62      -0.62       0.62    1
-16 20      0 0.5 -0.13  1.13      -0.13       1.13    1
+    n sd.het d.het    lo   hi   ci lo.tval hi.tval ci.tval over
+1  20      0   0.0 -0.62 0.62 1.24   -0.62    0.62    1.24    1
+16 20      0   0.5 -0.13 1.13 1.26   -0.13    1.13    1.26    1
 
 $meand2
-     n d.het sd.het meand meand.tval
-25 400   0.0    0.4  0.95       0.42
-30 400   0.5    0.4  1.04       0.63
+     n d.het sd.het meand meand.tval meand.all over over.tval over.all
+25 400   0.0    0.4  0.95       0.42       0.0  Inf       Inf      NaN
+30 400   0.5    0.4  1.04       0.63       0.5 2.07      1.27        1
 
 $pval2
-     n sd.het pval pval.tval over over.tval
-15 400    0.4 0.05      0.73    1     14.65
+     n sig.level sd.het pval pval.tval over over.tval
+45 400      0.00    0.4 0.00      0.54    1   1086.16
+50 400      0.00    0.4 0.00      0.62    1    124.85
+55 400      0.05    0.4 0.05      0.73    1     14.65
+60 400      0.50    0.4 0.50      0.91    1      1.81
 
 $ci2
-     n sd.het   d ci.lo ci.hi ci.tval.lo ci.tval.hi over
-15 400    0.4 0.0  -0.8   0.8      -0.14       0.14 5.74
-30 400    0.4 0.5  -0.3   1.3       0.36       0.64 5.66
+     n sd.het d.het   lo  hi   ci lo.tval hi.tval ci.tval over
+15 400    0.4   0.0 -0.8 0.8 1.59   -0.14    0.14    0.28 5.74
+30 400    0.4   0.5 -0.3 1.3 1.59    0.36    0.64    0.28 5.66
 
