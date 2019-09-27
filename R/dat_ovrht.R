@@ -21,8 +21,8 @@ dat_ovrht=function() {
   param(n.hetd,m.hetd,d.hetd,sd.hetd);
   dosim_hetd(n.hetd,m.hetd,d.hetd,sd.hetd);
   ## generate pval and ci tables
-  param(n.ovrht,d.ovrht,sd.ovrht);
-  dopval_d2ht(n.ovrht,sd.ovrht);
+  param(n.ovrht,d.ovrht,sd.ovrht,sig.dat);
+  dopval_d2ht(n.ovrht,sd.ovrht,sig.dat);
   doci_d2ht(n.ovrht,d.ovrht,sd.ovrht);
   invisible();
 }
