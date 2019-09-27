@@ -71,7 +71,7 @@ plotdvsd=
     vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
            lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
-    if (legend) pval_legend();
+    if (legend) pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,cex=legend.cex);
   }
 ## plot histogram of (typically) d.sdz colored by pval
 ## sim is data frame of simulation results
@@ -127,7 +127,8 @@ plothist=
    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
           lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
-    if (legend) pval_legend(x0=legend.x0);
+   if (legend)
+     pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,x0=legend.x0,cex=legend.cex);
   }
 ## plot probability distributions vs. d colored by pval
 ## n is sample size (for converting d to t or pval)
@@ -198,14 +199,16 @@ plotpvsd=
     if (is.logical(fill.tail)&fill.tail) fill.tail=cq(upper,lower);
     if (!is.logical(fill.tail)) {
       if ('both' %in% fill.tail) fill.tail=cq(upper,lower);
-      sapply(fill.tail,function(tail) fill_tail(tail));
+      sapply(fill.tail,function(tail) fill_tail(tail,n,d,d0,d.crit));
     }
     ## plot legend if desired
-    if (legend) pval_legend();
+    if (legend) pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,cex=legend.cex);
     }
 ## plot multiple lines - my adaptation of matplot - adapted from repwr/plotratm
-## x is vector of x values
-## y is vector or matrix of y values - like matplot, each line is column of y
+## x is vector or matrix of x values
+## y is vector or matrix of y values
+##   like matplot, each line is column of x or y
+##   unlike matplot, code currently assumes at most one of x,y is matrix - for smoothing to work
 ## col, lty, lwd are the usual line properties
 ## title, cex.title are title and cex for title
 ## xaxt, yaxt control labels on axes - NOT YET IMPLEMENTED
@@ -220,6 +223,8 @@ plotpvsd=
 ##   aspline, spline, loess, none, TRUE, FALSE. default is aspline.
 ##   TRUE means aspline. FALSE means none
 ##   spar is for spline
+## smooth.xy tells which axis is domain of smoothing
+##   default: 'x' if both x and y are vector-like, else whichever is vector-like
 ## legend tells whether and where to draw legend
 ##   TRUE or word like 'right' means draw legend, FALSE or NULL means no legend
 ## legend.title is legend title
@@ -229,29 +234,37 @@ plotm=
            xaxt='s',yaxt='s',
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
-           smooth=c(cq(aspline,spline,loess,none),TRUE,FALSE),spar=NULL,
+           smooth=c(cq(aspline,spline,loess,linear,none),TRUE,FALSE),smooth.xy=cq(x,y),
+           spar=NULL,span=0.75,
            legend=if(is.vector(y)) FALSE else 'right',legend.title=NULL,
            legend.labels=if(is.vector(y)) NULL else colnames(y),
            legend.args=list(where=NULL,x=NULL,y=NULL,cex=0.8,
                             title=legend.title,labels=legend.labels,col=col,lty=lty,lwd=lwd),
            ...) {
-    if (length(x)==0) stop("Nothing to plot: 'x' is empty");
-    if (is.vector(y)) {
-      if (length(x)!=length(y)) stop("'x' and 'y' lengths differ");
-      y=as.matrix(y);
-    }
-    else if (length(dim(y))!=2) {
-      stop("'y' must be vector or 2-dimensional matrix-like object");
-      if (length(x)!=nrow(y)) stop("'x' and 'y' have different number of rows");
-    }
+    if (is.null(x)) stop("Nothing to plot: 'x' is NULL");
+    if (is.null(y)) stop("Nothing to plot: 'y' is NULL");
+    if (is.vector(x)) x=as.matrix(x)
+    else if (length(dim(x))!=2) stop("'x' must be vector or 2-dimensional matrix-like object");
+    if (is.vector(y)) y=as.matrix(y)
+    else if (length(dim(y))!=2) stop("'y' must be vector or 2-dimensional matrix-like object");
+    if (nrow(x)!=nrow(y)) stop("'x' and 'y' have different number of rows");
     if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
-    smooth=if(is.logical(smooth)) if(smooth) 'aspline' else 'none' else match.arg(smooth);
+    smooth=if(is.logical(smooth)&&!smooth) 'none' else smooth;
     if (smooth!='none') {
-      x.smooth=seq(min(x),max(x),len=100);
-      if (smooth=='aspline') y=asplinem(x,y,xout=x.smooth,method='improved')
-      else if (smooth=='spline') y=splinem(x,y,xout=x.smooth,spar=spar)
-      else y=loessm(x,y,xout=x.smooth);
-      x=x.smooth;
+      ## at most one of x,y can be matrix-like for smoothing to work
+      if (dim(x)[2]>1&dim(y)[2]>1)
+        stop("At most one of 'x' or 'y' can have multiple columns for smoothing to work");
+      if (missing(smooth.xy)) smooth.xy=if(dim(x)[2]==1) 'x' else 'y';
+      ## smooth
+      if (smooth.xy=='x') {
+        x.smooth=seq(min(x),max(x),len=100);
+        y=smooth(x,y,xout=x.smooth,method=smooth,spar=spar,span=span);
+        x=x.smooth;
+      } else {
+        y.smooth=seq(min(y),max(y),len=100);
+        x=smooth(x=y,y=x,xout=y.smooth,method=smooth,spar=spar,span=span);
+        y=y.smooth;
+      }
     }
     matplot(x,y,type='l',main=title,cex.main=cex.title,col=col,lty=lty,lwd=lwd,
             xaxt=xaxt,yaxt=yaxt,...);
@@ -282,15 +295,17 @@ plotempty=
 }
 
 ## helper functions to plot horizontal and vertical line segments
-vhline=function(vline=NULL,hline=NULL,vlab=NULL,hlab=NULL,vhdigits=2,col=NA,...) {
+vhline=function(vline=NULL,hline=NULL,vlab=TRUE,hlab=TRUE,vhdigits=2,col=NA,...) {
   xylim=par('usr');
   vline=vline[which(between(vline,xylim[1],xylim[2]))];
   hline=hline[which(between(hline,xylim[3],xylim[4]))];
   abline(v=vline,h=hline,col=col,...);
-  ## write vlinealues along axes
-  if (vlab&length(vline)>0)
+  ## write vhline values along axes
+  vline=vline[vlab];
+  if (length(vline)>0)
     mtext(round(vline,vhdigits),side=1,at=vline,col=col,line=0.25,cex=0.75);
-  if (hlab&length(hline)>0)
+  line=hline[hlab];
+  if (length(hline)>0)
     mtext(round(hline,vhdigits),side=2,at=hline,col=col,line=0.25,cex=0.75);
 }
 hline=
@@ -307,53 +322,50 @@ vline=
   }
 
 ## draw pval legend. works for big picture figure and probability plots
-pval_legend=
-  function(x.scale=parent(legend.xscale,1/8),y.scale=parent(legend.yscale,1/3),x0=NULL,
-           cex=parent(legend.cex,0.75)) {
-    param(brk.pval,col.pval,steps.pvcol,sig.level);
-    ## plt=par('usr');                       # plot region in user coordinates
-    ## names(plt)=cq(left,right,bottom,top);
-    xtkl=par('xaxp');                    # x tick locations
-    ytkl=par('yaxp');                    # y tick locations
-    names(xtkl)=names(ytkl)=cq(lo,hi,num);
-    if (is.null(x0)) x0=xtkl['lo'];
-    width=x.scale*(xtkl['hi']-x0);
-    x1=x0+width;
-    y1=ytkl['hi'];
-    height=y.scale*(y1-ytkl['lo']);
-    y0=y1-height;
-    ## image sometimes leaves blank space when y0 is between tick marks. roundoff problem, I think
-    ## works better to stretch y0 to next lower tick
-    tkl=seq(ytkl['lo'],y1,len=ytkl['num']+1);
-    y0=tkl[findInterval(y0,tkl)];
-    height=y1-y0;                         # adjust height for new y0
-    x=c(x0,x1);
-    y=seq(y0,y1,length.out=2*steps.pvcol+1)[1:(2*steps.pvcol)]
-    z=t(as.matrix(rev(head(brk.pval,-1))));
-    image(x,y,z,add=TRUE,breaks=brk.pval,col=col.pval);
-    ## add legend text
-    x1=x1+strwidth(' ',cex=cex);
-    text(x1,y0,0,adj=c(0,0),cex=cex)
-    text(x1,y0+height/2,sig.level,adj=c(0,0.5),cex=cex)
-    text(x1,y0+height,1,adj=c(0,1),cex=cex)
-    y1=y1+strheight('p-value',cex=cex);
-    text(x0+width/2,y1,"p-value",adj=c(0.5,0.5),cex=cex);
-  }
+pval_legend=function(x.scale,y.scale,x0=NULL,cex) {
+  param(brk.pval,col.pval,steps.pvcol,sig.level);
+  ## plt=par('usr');                       # plot region in user coordinates
+  ## names(plt)=cq(left,right,bottom,top);
+  xtkl=par('xaxp');                    # x tick locations
+  ytkl=par('yaxp');                    # y tick locations
+  names(xtkl)=names(ytkl)=cq(lo,hi,num);
+  if (is.null(x0)) x0=xtkl['lo'];
+  width=x.scale*(xtkl['hi']-x0);
+  x1=x0+width;
+  y1=ytkl['hi'];
+  height=y.scale*(y1-ytkl['lo']);
+  y0=y1-height;
+  ## image sometimes leaves blank space when y0 is between tick marks. roundoff problem, I think
+  ## works better to stretch y0 to next lower tick
+  tkl=seq(ytkl['lo'],y1,len=ytkl['num']+1);
+  y0=tkl[findInterval(y0,tkl)];
+  height=y1-y0;                         # adjust height for new y0
+  x=c(x0,x1);
+  y=seq(y0,y1,length.out=2*steps.pvcol+1)[1:(2*steps.pvcol)]
+  z=t(as.matrix(rev(head(brk.pval,-1))));
+  image(x,y,z,add=TRUE,breaks=brk.pval,col=col.pval);
+  ## add legend text
+  x1=x1+strwidth(' ',cex=cex);
+  text(x1,y0,0,adj=c(0,0),cex=cex)
+  text(x1,y0+height/2,sig.level,adj=c(0,0.5),cex=cex)
+  text(x1,y0+height,1,adj=c(0,1),cex=cex)
+  y1=y1+strheight('p-value',cex=cex);
+  text(x0+width/2,y1,"p-value",adj=c(0.5,0.5),cex=cex);
+}
 ## draw plotm legend. adapted from repwr/mess_legend
 plotm_legend=
   function(where=NULL,x=NULL,y=NULL,cex=0.8,bty='n',
            title=NULL,title.col='black',
-           col='black',lty='solid',lwd=1,labels=NULL) {
+           col='black',lty='solid',lwd=1,labels=NULL,...) {
     if (is.null(labels)) return();      # nothing to draw
     if (is.null(x)) x=where;
     legend(x,y,bty=bty,legend=labels,cex=cex,col=col,lwd=lwd,lty=lty,
-          title=title,title.col=title.col);
+          title=title,title.col=title.col,...);
   }
 
 ## fill tail of probability density
 ## adapted from https://stackoverflow.com/questions/45527077. Thx!
-fill_tail=
-  function(tail=cq(upper,lower),n=parent(n),d=parent(d),d0=parent(d0),d.crit=parent(d.crit)) {
+fill_tail=function(tail=cq(upper,lower),n,d,d0,d.crit) {
   tail=match.arg(tail);
   x=if(tail=='upper') x=d[d>d.crit] else x=d[d<(-d.crit)]
   y=d_d2t(n,x,d0);
