@@ -14,10 +14,10 @@
 ## ---- Data Generation for README ----
 dat_readme=function(...) {
   ## do all types of simulations
+  param(n.rand,m.rand,d.gen,d.args);
+  dosim_rand(n.rand,m.rand,d.gen,d.args);
   param(n.fixd,m.fixd,d.fixd);
   dosim_fixd(n.fixd,m.fixd,d.fixd);
-  param(n.rand,m.rand,d.rand);
-  dosim_rand(n.rand,m.rand,d.rand);
   param(n.hetd,m.hetd,d.hetd,sd.hetd);
   dosim_hetd(n.hetd,m.hetd,d.hetd,sd.hetd);
 
@@ -30,11 +30,12 @@ dat_readme=function(...) {
 
   ## het effect scenario - pval, meand
   ## simulation (hetd)
-  dopval_hetd(n.hetd,sd.hetd);
+  param(sig.dat);
+  dopval_hetd(n.hetd,sd.hetd,sig.dat);
   ## doci_hetd(n.hetd,d.hetd,sd.hetd);
   domeand_hetd(n.hetd,d.hetd,sd.hetd);
   ## theoretical
-  dopval_d2ht(n.hetd,sd.hetd);
+  dopval_d2ht(n.hetd,sd.hetd,sig.dat);
   domeand_d2ht(n.hetd,d.hetd,sd.hetd);
 
   invisible();
