@@ -33,29 +33,29 @@ doc_readmesupp=function(sect=NULL) {
       param(n.fixd,d.fixd);
       ## use small n else all points significant
       cases=data.frame(n=sort(n.fixd)[1:2],d=range(d.fixd),zoom=c(FALSE,FALSE,TRUE,TRUE));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         sim=get_sim_fixd(n=n,d=d);
         figdvsd(sim=sim,stext='fixd',d.crit=d_crit(n),zoom=zoom,n=n,d.pop=d);
-      }));
+      });
     }
     if (sect=='plotdvsd.rand') {
       ## rand
       n=range(param(n.rand));
       cases=data.frame(n=range(param(n.rand)),zoom=c(FALSE,FALSE,TRUE,TRUE));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         sim=get_sim_rand(n=n);
         figdvsd(sim=sim,stext='rand',d.crit=d_crit(n),zoom=zoom,n=n);
-      }));
+      });
       }
     if (sect=='plotdvsd.hetd') {
       ## hetd
       param(n.hetd,d.hetd,sd.hetd);
       cases=data.frame(n=range(n.hetd),d=range(d.hetd),sd=range(sd.hetd[sd.hetd!=0]),
                        zoom=c(FALSE,FALSE,TRUE,TRUE));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         sim=get_sim_hetd(n=n,d=d,sd=sd);
         figdvsd(sim=sim,stext='hetd',d.crit=d_htcrit(n,sd),zoom=zoom,n=n,d.het=d,sd.het=sd);
-      }));
+      });
     }
 ##### plothist
     if (sect=='plothist.fixd') {
@@ -63,30 +63,30 @@ doc_readmesupp=function(sect=NULL) {
       param(n.fixd,d.fixd);
       ## use small n else all points significant
       cases=data.frame(n=sort(n.fixd)[1:2],d=range(d.fixd),zoom=c(FALSE,FALSE,TRUE,TRUE));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         sim=get_sim_fixd(n=n,d=d);
         fighist(sim=sim,stext='fixd',d.crit=d_crit(n),zoom=zoom,n=n,d.pop=d);
-      }));
+      });
     }
     if (sect=='plothist.rand') {
       ## rand
       n=range(param(n.rand));
       cases=data.frame(n=range(param(n.rand)),zoom=c(FALSE,FALSE,TRUE,TRUE));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         sim=get_sim_rand(n=n);
         fighist(sim=sim,stext='rand',d.crit=d_crit(n),zoom=zoom,n=n);
-      }));
+      });
     }
     if (sect=='plothist.hetd') {
       ## hetd
       param(n.hetd,d.hetd,sd.hetd);
       cases=data.frame(n=range(n.hetd),d=range(d.hetd),sd=range(sd.hetd[sd.hetd!=0]),
                        zoom=c(FALSE,FALSE,TRUE,TRUE));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         sim=get_sim_hetd(n=n,d=d,sd=sd);
         fighist(sim=sim,stext='hetd',d.crit=d_htcrit(n,sd),zoom=zoom,zbreaks=25,
                 n=n,d.het=d,sd.het=sd);
-      }));
+      });
     }
 ##### plotpvsd 
     if (sect=='plotpvsd.fixd') {
@@ -94,17 +94,17 @@ doc_readmesupp=function(sect=NULL) {
       param(n.fixd,d.fixd);
       ## use small n else all points significant
       cases=data.frame(n=sort(n.fixd)[1:2],d=range(d.fixd));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         figpvsd(mtext='fixd',d.crit=d_crit(n),n=n,d0=d);
-      }));
+      });
     }
     if (sect=='plotpvsd.hetd') {
       ## hetd
       param(n.hetd,d.hetd,sd.hetd);
       cases=data.frame(n=range(n.hetd),d=range(d.hetd),sd=range(sd.hetd[sd.hetd!=0]));
-      apply(cases,1,function(case) withcase(case, {
+      withrows(cases,case,{
         figpvsd(mtext='hetd',d.crit=d_htcrit(n,sd),n=n,d.het=d,sd.het=sd);
-      }));
+      });
     }
 ##### plotm
     if (sect=='plotm.fixd') {
@@ -119,7 +119,8 @@ doc_readmesupp=function(sect=NULL) {
         figm_simutheo(simu,theo,stat='power',mtext='fixd',smooth=smooth,legend='right');
         ## pval
         simu=get_data(pval.fixd); theo=get_data(pval.d2t);
-        figm_simutheo(simu,theo,stat='pval',mtext='fixd',ylim=c(0,0.1),smooth=smooth);
+        figm_simutheo(simu,theo,stat='pval',mtext='fixd',by='sig.level',ylim=c(0,0.1),
+                      smooth=smooth);
         ## this shows ci coverage for all vs sig
         ci=get_data(ci.fixd); ci=subset(ci,subset=d.pop>0);
         figm_ci(ci,mtext='fixd',legend='right',smooth=smooth);
@@ -132,15 +133,17 @@ doc_readmesupp=function(sect=NULL) {
         ## meand
         simu=get_data(meand.hetd); theo=get_data(meand.d2ht);
         simu=subset(simu,subset=d.het==0); theo=subset(theo,subset=d.het==0); 
-        figm_simutheo(simu,theo,stat='meand',mtext='hetd',smooth=smooth,by='sd.het',d.het=0);
+        figm_simutheo(simu,theo,stat='meand',mtext='hetd',by='sd.het',smooth=smooth,d.het=0);
         ## power
         simu=get_data(power.hetd); theo=get_data(power.d2ht);
         simu=subset(simu,subset=d.het==0.5); theo=subset(theo,subset=d.het==0.5); 
-        figm_simutheo(simu,theo,stat='power',mtext='hetd',smooth=smooth,by='sd.het',
+        figm_simutheo(simu,theo,stat='power',mtext='hetd',by='sd.het',smooth=smooth,
                       legend='right',d.het=0.5);
         ## pval. pval.tval - more interesting
         simu=get_data(pval.hetd); theo=get_data(pval.d2ht);
-        figm_simutheo(simu,theo,stat='pval',mtext='hetd',by='sd.het',ylim=c(0,0.1),smooth=smooth);
+        simu=subset(simu,subset=sd.het==0.2); theo=subset(theo,subset=sd.het==0.2); 
+        figm_simutheo(simu,theo,stat='pval',mtext='hetd',by='sig.level',ylim=c(0,0.1),
+                      smooth=smooth,sd.het=0.2);
         ## this shows ci coverage for all vs sig
         ci=get_data(ci.hetd); ci=subset(ci,subset=d.het==0.5);
         figm_ci(ci,mtext='hetd',legend='bottomright',smooth=smooth,by='sd.het',d.het=0.5);
@@ -165,8 +168,8 @@ doc_readmesupp=function(sect=NULL) {
       n.tbl=min(n.fixd);              # typically 20, hence the variable names below
       flat=do.call(rbind,lapply(cq(meand.fixd,meand.d2t),function(what) {
         meand=get_data(list=what);
-        meand=subset(meand,subset=d0>0);
-        meand.byd=split(meand,meand$d0);
+        meand=subset(meand,subset=d.pop>0);
+        meand.byd=split(meand,meand$d.pop);
         ## make splines that interpolate meand, over
         ##   empirically determined smooth.spline as interp function, and spar=0.3
         spar=0.3;
@@ -265,8 +268,8 @@ figpvsd=function(n,d0=NULL,d.het=NULL,sd.het=NULL,mtext,d.crit,...) {
 ## for fixd model, do it by d0 (same as ovrfx)
 ## for hetd model, do it by sd.het for specific d.het (same as ovrht)
 figm_simutheo=
-  function(simu,theo,stat,mtext,by=cq(d0,d.het,sd.het),smooth='none',
-           d0=NULL,d.het=NULL,sd.het=NULL,
+  function(simu,theo,stat,mtext,by=cq(d.pop,d.het,sd.het,sig.level),smooth='none',
+           d.pop=NULL,d.het=NULL,sd.het=NULL,
            legend='topright',xlab='sample size',ylab=stat,...) {
     n=unique(simu$n);
     if (missing(by)&length(intersect(by,names(simu)))==0) by=NULL;
@@ -292,7 +295,8 @@ figm_simutheo=
     lty=c(rep('dotted',len=ncol),rep('solid',len=ncol));
     lwd=2;
     title=figtitle(c('Line plot of simulated and theoretical',stat),
-                   model=mtext,smooth=smooth,d0=d0,d.het=d.het,sd.het=sd.het);
+                   model=mtext,smooth=smooth,
+                   d.pop=d.pop,d.het=d.het,sd.het=sd.het,sig.level=sig.level);
     figname=paste(collapse='_',c(stat,smooth));
     dofig(plotm,figname,x=n,y=y,col=col,lty=lty,lwd=lwd,smooth=smooth,
           title=title,legend.labels=legend.labels,legend=legend,xlab=xlab,ylab=ylab,...);
@@ -331,13 +335,13 @@ figm_ci=function(ci,mtext,by=cq(d.pop,sd.het),smooth='none',
 plotsmpldist=function(dlim=c(-2,2),...) {
   title=figtitle('Sampling distributions show impact of increasing n and d');
   ## do n=100, d=0.2 first because it's way taller than the others
-  n=c(100,20); d0=c(0.2,0.8); y=c(2.5,0.5); side=cq(left,right);
+  n=c(100,20); d.pop=c(0.2,0.8); y=c(2.5,0.5); side=cq(left,right);
   d.crit=d_crit(n);
-  cases=cbind(expand.grid(n=n,d0=d0),expand.grid(y=y,side=side,stringsAsFactors=FALSE));
+  cases=cbind(expand.grid(n=n,d.pop=d.pop),expand.grid(y=y,side=side,stringsAsFactors=FALSE));
   sapply(seq_len(nrow(cases)),function(i) with(cases[i,], {
-    if (i==1) plotpvsd(n=n,d0=d0,dlim=dlim,add=F,vline=c(-d.crit,d.crit),title=title)
-    else plotpvsd(n=n,d0=d0,dlim=dlim,add=T);
-    dtext(n=n,d0=d0,y=y,side=side);
+    if (i==1) plotpvsd(n=n,d0=d.pop,dlim=dlim,add=F,vline=c(-d.crit,d.crit),title=title)
+    else plotpvsd(n=n,d0=d.pop,dlim=dlim,add=T);
+    dtext(n=n,d0=d.pop,y=y,side=side);
   }));
 }
 ## helper function for placing text on sampling distributions (ovrfx figure 3)
@@ -361,9 +365,9 @@ dtext=function(n,d0,y,label=paste(sep=', ',paste_nv('d',d0),paste_nv('n',n)),sid
 plotmeand=function(col='black',lty='solid',lwd=1,legend.labels,meand20=NULL,nover=NULL,...) {
   title=figtitle('Average observed effect size improves as n increases');
   meand=get_data(meand.d2t);
-  meand=subset(meand,subset=d0>0);
-  n=unique(meand$n); d0=unique(meand$d0);
-  meand.byd=split(meand,meand$d0);
+  meand=subset(meand,subset=d.pop>0);
+  n=unique(meand$n); d.pop=unique(meand$d.pop);
+  meand.byd=split(meand,meand$d.pop);
   ## make splines that interpolate meand, over
   ##   empirically determined smooth.spline as interp function, and spar=0.3
   spar=0.3;
@@ -383,15 +387,15 @@ plotmeand=function(col='black',lty='solid',lwd=1,legend.labels,meand20=NULL,nove
   lwd=2;
   ## draw the main plot
   plotm(x=x,y=y,col=col,lty=lty,lwd=lwd,title=title,legend.labels=legend.labels,smooth=F,
-        ylim=c(min(d0,y),max(d0,y)),xlab='sample size',ylab='effect size');
-  ## horizontal grid-like lines for d0
-  abline(h=d0,col=col,lty='dotted',lwd=1);
+        ylim=c(min(d.pop,y),max(d.pop,y)),xlab='sample size',ylab='effect size');
+  ## horizontal grid-like lines for d.pop
+  abline(h=d.pop,col=col,lty='dotted',lwd=1);
   ## vertical line for n=20
   vline(x=20,y0=0,y=1,col='grey',lty='dotted',lwd=1,text=20);
   ## horizontal & vertical lines for overestimates
   if (!is.null(nover)) {
-    hline(x=nover,y=1.25*d0,col=col,lty='dotted',lwd=2,text=paste(sep='','1.25x',d0));
-    vline(x=nover,y=1.25*d0,col=col,lty='dotted',lwd=2,text=round(nover));
+    hline(x=nover,y=1.25*d.pop,col=col,lty='dotted',lwd=2,text=paste(sep='','1.25x',d.pop));
+    vline(x=nover,y=1.25*d.pop,col=col,lty='dotted',lwd=2,text=round(nover));
   }
 }
 ## histogram and d_d2t distribution (adapted from ovrht figure 1)
@@ -414,10 +418,10 @@ plothist_d2t=
     invisible();
 }
 ## p-value inflation (adapted from ovrht figure 2)
-plotpval_over=function(lwd=2,...) {
+plotpval_over=function(lwd=2,sig=param(sig.level),...) {
   title=figtitle('P-value inflation worsens as sd.het and n increase');
   pval=get_data(pval.d2ht);
-  pval=subset(pval,subset=(sd.het!=0));
+  pval=subset(pval,subset=(sd.het!=0)&(sig.level==sig));
   pval.bysd=split(pval,pval$sd.het);
   n=unique(pval$n);
   y=do.call(cbind,lapply(pval.bysd,function(pval) pval$over.tval));
@@ -431,7 +435,7 @@ plotpval_over=function(lwd=2,...) {
 plotci_over=function(lwd=2,...) {
   title=figtitle('Confidence interval inflation worsens as sd.het and n increase',d.het=0);
   ci=get_data(ci.d2ht);
-  ci=subset(ci,subset=(sd.het!=0&d==0));
+  ci=subset(ci,subset=(sd.het!=0&d.het==0));
   ci.bysd=split(ci,ci$sd.het);
   n=unique(ci$n);
   y=do.call(cbind,lapply(ci.bysd,function(ci) ci$over));
