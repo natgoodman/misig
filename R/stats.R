@@ -259,3 +259,4 @@ r_d2ht_ng=function(ht.interp,m,...) q_d2ht_ng(ht.interp,p=runif(m),...)
 
 ## significance boundary
 d_htcrit_ng=function(sig.level=param(sig.level),...) q_d2ht_ng(ht.interp,q=1-(sig.level/2),...)
+
