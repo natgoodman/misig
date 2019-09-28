@@ -20,7 +20,7 @@
 doc_ovrfx=function(n.fig1=20,d.fig1=0.3,sect=parent(sect,NULL)) {
   param(n.fixd,d.fixd);
   meand.theo=get_data(meand.d2t);
-  meand.t.byd=split(meand.theo,meand.theo$d0);
+  meand.t.byd=split(meand.theo,meand.theo$d.pop);
   ## make splines that interpolate meand, over
   ##   empirically determined smooth.spline as interp function, and spar=0.3
   spar=0.3;
