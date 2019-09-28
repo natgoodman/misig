@@ -27,5 +27,13 @@ dat_ovrhtsupp=function() {
   ## power
   dopower_hetd(n.hetd,d.hetd,sd.hetd);
   dopower_d2ht(n.hetd,d.hetd,sd.hetd);
+  ## pval
+  param(sig.dat);
+  dopval_hetd(n.hetd,sd.hetd,sig.dat);
+  dopval_d2ht(n.hetd,sd.hetd,sig.dat);
+  ## ci
+  doci_hetd(n.hetd,d.hetd,sd.hetd);
+  doci_d2ht(n.hetd,d.hetd,sd.hetd);
+
   invisible();
 }
