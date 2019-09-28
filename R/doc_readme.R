@@ -67,10 +67,9 @@ doc_readme=function(sect=NULL) {
 ##### plotm 
     if (sect=='plotm') {
       param(n.fixd,d.fixd);
-      meand.simu=get_data(meand.fixd);
-      meand.theo=get_data(meand.d2t);
-      meand.s.byd=split(meand.simu,meand.simu$d0);
-      meand.t.byd=split(meand.theo,meand.theo$d0);
+      meand.simu=get_data(meand.fixd); meand.theo=get_data(meand.d2t);
+      meand.s.byd=split(meand.simu,meand.simu$d.pop);
+      meand.t.byd=split(meand.theo,meand.theo$d.pop);
       x=n.fixd;
       y=do.call(cbind,c(lapply(meand.s.byd,function(meand) meand$over),
                         lapply(meand.t.byd,function(meand) meand$over)));
@@ -85,8 +84,7 @@ doc_readme=function(sect=NULL) {
             legend.labels=legend.labels,legend='topright',
             xlab='sample size',ylab='inflation (ratio of actual to correct)');
       param(n.hetd,sd.hetd);
-      pval.simu=get_data(pval.hetd);
-      pval.theo=get_data(pval.d2ht);
+      pval.simu=get_data(pval.hetd); pval.theo=get_data(pval.d2ht);
       pval.s.bysd=split(pval.simu,pval.simu$sd.het);
       pval.t.bysd=split(pval.theo,pval.theo$sd.het);
       x=n.hetd;
@@ -106,8 +104,8 @@ doc_readme=function(sect=NULL) {
     if (sect=='table') {
       param(n.fixd,d.fixd);
       support=do.call(rbind,lapply(cq(meand.fixd,meand.d2t),function(what) {
-        meand=get_data(list=what);
-        meand.byd=split(meand,meand$d0);
+        meand=get_data(list=what);        
+        meand.byd=split(meand,meand$d.pop);
         ## make splines that interpolate meand, over
         ##   empirically determined smooth.spline as interp function, and spar=0.3
         spar=0.3;
