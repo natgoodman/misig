@@ -23,8 +23,8 @@ paste_nv=function(name,value,sep='=') {
   paste(sep=sep,name,value); 
 }
 ## generate list of name=value using values from parent environment. code adapted from base::rm
-## ignore tells whether to ignore NULL and non-existant names
-nvq=function(...,sep=' ',ignore=F) {
+## IGNORE tells whether to ignore NULL and non-existant names
+nvq=function(...,sep=' ',IGNORE=F) {
   dots=match.call(expand.dots=FALSE)$...
    if (length(dots) &&
      !all(vapply(dots,function(x) is.symbol(x) || is.character(x),NA,USE.NAMES=FALSE))) 
@@ -34,13 +34,35 @@ nvq=function(...,sep=' ',ignore=F) {
   names=vapply(dots,as.character,"");
   values=sapply(names,function(name) {
     if (exists(name,envir=env)) get(name,envir=env)
-    else if (!ignore) stop(paste('no value for',name,'in parent environment'));
+    else if (!IGNORE) stop(paste('no value for',name,'in parent environment'));
   });
   ## values=sapply(names,function(name)
   ##   if (exists(name,envir=parent.frame(n=2))) get(name,envir=parent.frame(n=2))
   ##   else stop(paste('no value for',name,'in parent environment')));
   paste(collapse=sep,unlist(mapply(function(name,value)
-    if (!is.null(value)|!ignore) paste(sep='=',name,value) else NULL,names,values)));
+    if (!is.null(value)|!IGNORE) paste(sep='=',name,value) else NULL,names,values)));
+}
+## NG 19-09-25: extend nvq for filenames. also to allow nested calls
+## TODO: merge nvq, nvq_file
+nvq_file=function(...,SEP=',',DOTS,PARENT=1,PRETTY=T,IGNORE=F) {
+  if (missing(DOTS)) DOTS=match.call(expand.dots=FALSE)$...
+  else if (missing(PARENT)) PARENT=2;
+  if (length(DOTS) &&
+     !all(vapply(DOTS,function(x) is.symbol(x) || is.character(x),NA,USE.NAMES=FALSE))) 
+     stop("... must contain names or character strings");
+  env=parent.frame(n=PARENT);
+  names=vapply(DOTS,as.character,"");
+  if (IGNORE) names=names[sapply(names,function(name) exists(name,envir=env))];
+  values=sapply(names,function(name) {
+    if (exists(name,envir=env)) {
+      value=get(name,envir=env);
+      if (PRETTY) value=pretty(name,value);
+      value;
+    }
+    else if (!IGNORE) stop(paste('no value for',name,'in parent environment'));
+  });
+  paste(collapse=SEP,unlist(mapply(function(name,value)
+    if (!is.null(value)|!IGNORE) paste(sep='=',name,value) else NULL,names,values)));
 }
 ## tack id onto filebase if not NULL or NA
 paste_id=function(base,id=NULL,sep='.') {
@@ -49,18 +71,30 @@ paste_id=function(base,id=NULL,sep='.') {
   if (is.na(id)) return(base);
   paste(sep=sep,base,id);
 }  
-## pretty print typical values of n, d, sd & m
+## pretty print typical values of i, n, d, sd & m
+pretty=function(name,value) {
+  fun=switch(name,i=i_pretty,n=n_pretty,d=d_pretty,sd=sd_pretty,m=m_pretty,as.character);
+  fun(value);
+}
+i_pretty=function(i) sprintf("%03i",i)
 n_pretty=function(n) as.character(n);
 d_pretty=function(d) sprintf('%3.2f',d);
 sd_pretty=function(sd) sprintf('%3.2f',sd);
 m_pretty=function(m) {
-  if (round(log10(m))==log10(m)) sub('e\\+0{0,1}','e',sprintf("%0.0e",m),perl=TRUE)
-  else as.character(m);
+  exponent=floor(log10(m));
+  significand=m/10^exponent;
+  paste0(significand,'e',exponent);
 }
-## NG 19-01-31: CAUTION. doesn’t really work
+
+## NG 19-01-31: CAUTION. doesn’t really work.
+## NG 19-06-27: I think above CAUTION is wrong, at least partially
+##   what it does is get value from parent frame. if not present,
+##   searches from parent - this will be static
+##   ----------
 ##   supposed to search dynamic environment tree but does static instead
 ##   seemed to work “back in the day” because params were global and static predecessor
-##   of most functions is the global environment 
+##   of most functions is the global environment
+##   ---------- 
 ## get value of variable from parent or set to default
 ## call with quoted or unquoted variable name
 ## if default missing, throws error if variable not found
@@ -70,6 +104,22 @@ parent=function(what,default) {
   if (!missing(default)) return(default);
   stop(paste(sep='',"object '",what,"' not found"));
 }
+## NG 19-06-27: I think this version does full dynamic lookup
+parent_=function(what,default) {
+  what=as.character(pryr::subs(what));
+  n=2;
+  repeat {
+    env=parent.frame(n=n);
+    if (n>100) stop(paste0('call stack too deep: n=',n));
+    if (exists(what,envir=env,inherit=F)) return(get(what,envir=env));
+    if (identical(env, globalenv())) break;
+    n=n+1;
+  }
+  ## if fall out of loop, 'what' not found
+  if (!missing(default)) return(default);
+  stop(paste0("object '",what,"' not found"));
+}
+
 ## get value of variable from param environment and assign to same named variable in parent
 ## call with quoted or unquoted variable names
 ## adapted from base::rm
@@ -173,7 +223,21 @@ cq=function(...) {
 ## upper case first letter of word. like Perl's ucfirst
 ## from https://stackoverflow.com/questions/18509527/first-letter-to-upper-case/18509816
 ucfirst=function(word) paste0(toupper(substr(word,1,1)),substr(word,2,nchar(word)));
-
+  
+## wrapper for smooth methods
+## TODO 19-07-23: extend for 'x', 'y' both matrices
+smooth=function(x,y,xout,method=cq(aspline,spline,loess,linear,none),
+                spar=NULL,span=0.75) {
+  method=if(is.logical(method)) if(method) 'aspline' else 'none' else match.arg(method);
+  if (method=='none') return(y);
+   y=switch(method,
+           aspline=asplinem(x,y,xout=xout,method='improved'),
+           spline=splinem(x,y,xout=xout,spar=spar),
+           loess=loessm(x,y,xout=xout,spar=spar),
+           linear=approxm(x,y,xout=xout),
+           stop(paste('Invalid smoothing method:',method)));
+  y;
+}
 ## extend akima::aspline for matrix
 asplinem=function(x,y,xout,...) {
   if (is.vector(y)) y=data.frame(y=y);
@@ -191,7 +255,7 @@ asplinem=function(x,y,xout,...) {
   yout;
 }
 ## extend loess.smooth for matrix - probably only useful for plotting
-loessm=function(x,y,xout,...) {
+loessm=function(x,y,xout,span=0.75,...) {
   if (is.vector(y)) y=data.frame(y=y);
   if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
   ## extend y to correct number of rows if necessary
@@ -200,7 +264,7 @@ loessm=function(x,y,xout,...) {
   data=data.frame(x=x,y);
   yout=do.call(data.frame,lapply(colnames(data)[2:ncol(data)],function(name) {
     fmla=as.formula(paste(name,'~ x'));
-    yout=predict(loess(fmla,data=data),xout)
+    yout=suppressWarnings(predict(loess(fmla,data=data),xout,span=span));
   }));
   ## if yout has single row (ie, xout has one element), R turns it into a vector...
   ## if (length(xout)==1) yout=t(yout);
@@ -231,15 +295,57 @@ splinem=function(x,y,xout,spar=NULL,...) {
   colnames(yout)=colnames(y);
   yout;
 }
+## extend approx for matrix - probably only for completeness
+approxm=function(x,y,xout,...) {
+  if (is.vector(y)) y=data.frame(y=y);
+  if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
+  ## extend y to correct number of rows if necessary
+  ## CAUTION: perhaps this should be error...
+  if (nrow(y)<length(x)) y=repr(y,length=length(x));
+  yout=apply(y,2,function(y) {
+    if (all(is.na(y))) rep(NA,length(xout))
+    else if (length(which(!is.na(y)))==1) rep(y[which(!is.na(y))],length(xout))
+    else approx(x,y,xout,...)$y;})
+  ## if yout has single row (ie, xout has one element), R turns it into a vector...
+  if (length(xout)==1) yout=t(yout);
+  yout;
+}
+
 ## with case
 ## like 'with' but works on vectors. I use it inside apply(cases,1,function(case)...)
 ## note that plain 'with' works fine when applied to cases as a whole
 ## withcase=function(case,...) with(data.frame(t(case)),...)
-withcase=function(case,...) {
-  case=data.frame(t(case),stringsAsFactors=FALSE);
-  assign('case',case,envir=parent.frame(n=1)); # so case will be data frame in called code
-  with(case,...);
-}  
+## NG 19-06-27: this version doens't work and isn't used any more...
+## withcase=function(case,...) {
+##   case=data.frame(t(case),stringsAsFactors=FALSE);
+##   assign('case',case,envir=parent.frame(n=1)); # so case will be data frame in called code
+##   with(case,...);
+## }  
+## NG 19-06-27: this version might work...
+## NG 19-07-15: BUG: clobbers 'case' vars in parent framr. sigh...
+withrows=function(cases,case,expr) {
+  var=as.character(pryr::subs(case));
+  expr=pryr::subs(expr);
+  env=parent.frame(n=1);
+  lapply(1:nrow(cases),function(i) {
+    case=cases[i,];
+    ## assign case so it'll be data frame in called code
+    assign(var,case,envir=env);         # so case will be visible in called code
+    list2env(case,envir=env);           # assign vars from case
+    eval(expr,envir=env);               # do it!
+  })}
+## NG 19-07-15: this version might work... famous last words :)
+withrows=function(cases,case,expr) {
+  var=as.character(pryr::subs(case));
+  expr=pryr::subs(expr);
+  parent=parent.frame(n=1);
+  lapply(1:nrow(cases),function(i) {
+    case=cases[i,];
+    ## assign case so it'll be data frame in called code
+    env=list2env(case,parent=parent); # assign vars from case
+    assign(var,case,envir=env);         # so case will be visible in called code
+    eval(expr,envir=env);               # do it!
+  })}
 
 ## round up or down to nearest multiple of u. from https://grokbase.com/t/r/r-help/125c2v4e14/
 round_up=function(x,u) ceiling(x/u)*u;
