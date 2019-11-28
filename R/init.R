@@ -18,7 +18,7 @@
 ## process parameters and store in param environment.
 ## create output directories if necessary.
 ## supp's are placeholders
-doc.all=cq(readme,readmesupp,ovrfx,ovrfxsupp,ovrht,ovrhtsupp,confi);
+doc.all=cq(readme,readmesupp,ovrfx,ovrht,confi);
 init=function(
   ## doc parameters 
   doc='readme',                             # controls sim defaults, data, figure subdirs
@@ -40,14 +40,14 @@ init=function(
                 readme=seq(20,100,by=20),
                 readmesupp=seq(20,100,by=20),
                 ovrfx=seq(20,200,by=20),
-                confi=c(20,60,100,200)), 
+                confi=c(20,40,100,200)), 
   m.fixd=switch(docx,                       # number of studies per d
-                readme=1e3,readmesupp=1e3,ovrfx=1e4,confi=1e6),
+                readme=1e3,readmesupp=1e3,ovrfx=1e4,confi=1e4),
   d.fixd=switch(docx,                       # population effect sizes
                 readme=c(0.2,0.5,0.8),      # Cohen's small, medium, large
                 readmesupp=c(0,0.2,0.5,0.8),# supp needs 0 to compute pvals
                 ovrfx=c(0.3,0.5,0.7),
-                confi=c(0.3,0.5,0.7)),
+                confi=0),
   ## het-d
   n.hetd=switch(docx,                       # sample sizes
                 readme=c(20,seq(100,400,by=100)),readmesupp=c(20,seq(100,400,by=100)),
