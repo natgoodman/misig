@@ -384,7 +384,7 @@ repc=function(x,...) {
 ## not in - based on example in RefMan - more intutive than !%in%
 "%notin%"=function(x,table) match(x,table,nomatch=0)==0
 ## between, near - to subset sim results. closed on bottom, open on top
-between=function(x,lo,hi) x>=lo&x<hi
+between=function(x,lo,hi,tol=0) x>=lo-tol&x<hi+tol;
 near=function(x,target,tol=.01) between(x,target-tol,target+tol)
 
 ## debugging functions
