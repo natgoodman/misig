@@ -37,7 +37,8 @@ plotdvsd=
            distribution=cq(d2t,d2ht),
            title='',cex.title='auto',x='d.sdz',y='d.pop',
            col=NULL,
-           legend=TRUE,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
+           legend=TRUE,legend.xscale=1/8,legend.yscale=1/3,legend.x0=NULL,
+           legend.label='p-value',legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            xlab=switch(x,
@@ -71,7 +72,9 @@ plotdvsd=
     vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
            lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
-    if (legend) pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,cex=legend.cex);
+    if (legend)
+      pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,x0=legend.x0,label=legend.label,
+                  cex=legend.cex);
   }
 ## plot histogram of (typically) d.sdz colored by pval
 ## sim is data frame of simulation results
@@ -97,7 +100,8 @@ plothist=
            distribution=cq(d2t,d2ht),
            title='',cex.title='auto',x='d.sdz',breaks=50,freq=FALSE,add=FALSE,
            col=NULL,border='black',
-           legend=TRUE,legend.x0=NULL,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
+           legend=TRUE,legend.xscale=1/8,legend.yscale=1/3,legend.x0=NULL,
+           legend.label='p-value',legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="density",
@@ -128,12 +132,13 @@ plothist=
           lty=vhlty,col=vhcol,lwd=vhlwd);
     ## plot legend if desired
    if (legend)
-     pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,x0=legend.x0,cex=legend.cex);
+     pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,x0=legend.x0,label=legend.label, cex=legend.cex);
   }
 ## plot probability distributions vs. d colored by pval
 ## n is sample size (for converting d to t or pval)
 ## d, col, lwd - usually missing - can be used when defaults not desired
 ## lwd.sig, lwd.nonsig - lwd for sig vs. non sig
+##   if lwd set, use for both 
 ## dlim is range of d.sdz
 ##   dinc is step-size for extending d across range
 ## d0 is center for noncentral d2t distribution
@@ -155,10 +160,15 @@ plothist=
 ## vhdigits is number of digits for these values
 plotpvsd=
   function(n,d0=NULL,d.het=NULL,sd.het=NULL,distribution=cq(d2t,d2ht),y=cq(density,cumulative),
-           d,col,lwd,lwd.sig=4,lwd.nonsig=lwd.sig/2,dlim=c(-2,2),dinc=.005,
+           d,col,
+           lty.sig='solid',lty.nonsig=lty.sig,
+           lwd=NULL,
+           lwd.sig=if(!is.null(lwd)) lwd else 4,lwd.nonsig=if(!is.null(lwd)) lwd else lwd.sig/2,
+           dlim=c(-2,2),dinc=.005,
            add=FALSE,fill.tail=FALSE,
            title='',cex.title='auto',d.crit=d_crit(n),
-           legend=!add,legend.xscale=1/8,legend.yscale=1/3,legend.cex=0.75,
+           legend=!add,legend.xscale=1/8,legend.yscale=1/3,legend.x0=NULL,
+           legend.label='p-value',legend.cex=0.75,
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
            xlab="observed effect size (Cohen's d)",ylab="probability",
@@ -181,17 +191,21 @@ plotpvsd=
       }}
     if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     if (distribution=='d2t') pval=d2pval(n,d) else pval=d2htpval(n,sd.het,d);
-    if (missing(col)) col=pval2col(pval);
-    if (missing(lwd)) lwd=ifelse(pval<=0.05,lwd.sig,lwd.nonsig);
+    if (missing(col)||is.null(col)) col=pval2col(pval);
+    lty=ifelse(pval<=0.05,lty.sig,lty.nonsig);
+    lwd=ifelse(pval<=0.05,lwd.sig,lwd.nonsig);
     if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
     l=length(d);
-    if (!add) plot(d,y,type='n',xlab=xlab,ylab=ylab,main=title,cex.main=cex.title,...);
+    if (!add) {
+      plot(d,y,type='n',xlab=xlab,ylab=ylab,main=title,cex.main=cex.title,...);
+      grid();
+    }
     if (l==1) points(d,y,col=col,pch=19)
     else {
       x0=d[-l]; y0=y[-l]; x1=d[-1]; y1=y[-1];
-      segments(x0,y0,x1,y1,col=col,lwd=lwd)
+      segments(x0,y0,x1,y1,col=col,lty=lty,lwd=lwd)
     }
-    grid();
+    ## grid();
     ## plot extra lines & values if desired. nop if vline, hline NULL
     vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
            lty=vhlty,col=vhcol,lwd=vhlwd);
@@ -202,8 +216,10 @@ plotpvsd=
       sapply(fill.tail,function(tail) fill_tail(tail,n,d,d0,d.crit));
     }
     ## plot legend if desired
-    if (legend) pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,cex=legend.cex);
-    }
+    if (legend)
+      pval_legend(x.scale=legend.xscale,y.scale=legend.yscale,x0=legend.x0,label=legend.label,
+                  cex=legend.cex);
+  }
 ## plot multiple lines - my adaptation of matplot - adapted from repwr/plotratm
 ## x is vector or matrix of x values
 ## y is vector or matrix of y values
@@ -304,7 +320,7 @@ vhline=function(vline=NULL,hline=NULL,vlab=TRUE,hlab=TRUE,vhdigits=2,col=NA,...)
   vline=vline[vlab];
   if (length(vline)>0)
     mtext(round(vline,vhdigits),side=1,at=vline,col=col,line=0.25,cex=0.75);
-  line=hline[hlab];
+  hline=hline[hlab];
   if (length(hline)>0)
     mtext(round(hline,vhdigits),side=2,at=hline,col=col,line=0.25,cex=0.75);
 }
@@ -322,7 +338,7 @@ vline=
   }
 
 ## draw pval legend. works for big picture figure and probability plots
-pval_legend=function(x.scale,y.scale,x0=NULL,cex) {
+pval_legend=function(x.scale,y.scale,x0=NULL,cex,label='p-value') {
   param(brk.pval,col.pval,steps.pvcol,sig.level);
   ## plt=par('usr');                       # plot region in user coordinates
   ## names(plt)=cq(left,right,bottom,top);
@@ -350,7 +366,7 @@ pval_legend=function(x.scale,y.scale,x0=NULL,cex) {
   text(x1,y0+height/2,sig.level,adj=c(0,0.5),cex=cex)
   text(x1,y0+height,1,adj=c(0,1),cex=cex)
   y1=y1+strheight('p-value',cex=cex);
-  text(x0+width/2,y1,"p-value",adj=c(0.5,0.5),cex=cex);
+  text(x0+width/2,y1,label,adj=c(0.5,0.5),cex=cex);
 }
 ## draw plotm legend. adapted from repwr/mess_legend
 plotm_legend=
@@ -376,6 +392,17 @@ fill_tail=function(tail=cq(upper,lower),n,d,d0,d.crit) {
   y=sapply(y,function(y) max(0,y-1e-3));
   ## do it!
   polygon(x=x,y=y,col='grey',border=NA);
+}
+## TODO: y.gap doesn't really do what I want...
+fill_area=function(n,d0,d,col='grey',y.gap=1e-3) {
+  y=d_d2t(n,d,d0);
+  ## toss in extra x, y values to close polygon
+  x=c(min(d),d,max(d));
+  y=c(0,y,0);
+  ## looks nicer if y stops just short of curve
+  y=sapply(y,function(y) max(0,y-y.gap));
+  ## do it!
+  polygon(x=x,y=y,col=col,border=NA);
 }
 
 pval2col=function(pval) {
