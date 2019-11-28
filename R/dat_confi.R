@@ -17,11 +17,10 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
-## ---- Data Generation for ovrfx ----
-dat_ovrfx=function() {
+## ---- Data Generation for confi ----
+dat_confi=function() {
   ## do simulation
   param(n.fixd,m.fixd,d.fixd);
   dosim_fixd(n.fixd,m.fixd,d.fixd);
-  ## compute whatever TBD. eg, doci_confi,...
   invisible();
 }
