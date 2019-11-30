@@ -13,10 +13,15 @@
 ## file at https://github.com/natgoodman/NewPro/FDR/LICENSE 
 ##
 #################################################################################
+library(wesanderson);                   # for line colors
 ## --- Generate Figures and Tables for confi Blog Post ---
 ## no sections.
+## TRN=T is supposed to create figures that work for Bob Reed's TRN Word format
+##   but DIDN't do the right thing here. The scaling messed up the in-plot text.
+##   Also I didn't figure out how to make the 'devices' work for 1 row, 2 cols
+##   Instead, I used the full-size figures and manually scaled in Word to 40%
 doc_confi=
-  function(sect=NULL,TRN=FALSE,n.fig=40,dobs.fig=0.5,dpop.fig=0.5,conf.fig=0.95) {
+  function(sect=NULL,TRN=FALSE,n.fig=40,dobs.fig=0.5,dpop.fig=0.05,conf.fig=0.95) {
     if (TRN) figdev_start('samp_distr');
     figblk_start();
     dofig(plot_null,'null',n=n.fig,d.obs=dobs.fig);
@@ -27,7 +32,7 @@ doc_confi=
     dofig(plot_plaus,'plaus',d.obs=dobs.fig);
     dofig(plot_confi,'confi',d.obs=dobs.fig);
     figblk_end();
-    if (TRN) figdev_end();
+    if (TRN) figdev_start('cicvr',mfrow=c(1,1));
     dofig(plot_cicvr,'cicvr',d.pop=dpop.fig,conf.level=conf.fig);
     invisible();
   }
@@ -68,12 +73,14 @@ plot_mult=
 ## Figure 2a. plaus vs. d.pop for several values of n
 plot_plaus=
   function(n=c(40,100,400),d.obs=0.5,howmany=c(3,1),
-           xlab='d.pop',ylab='plausibility value (plaus-value)',title=NULL,xlim=c(-0.2,1.2),ylim=c(0,1),
-           lwd=2,smooth='none',
+           xlab='d.pop',ylab='plausibility value (plaus-value)',title=NULL,
+           xlim=c(-0.2,1.2),ylim=c(0,1),
+           col=setNames(wes_palette("Moonrise2",n=length(n),type='continuous'),n),
+           lwd=3,smooth='none',
            dinc=1e-3,d=seq(min(xlim),max(xlim),by=dinc)) {
     if (is.null(title)) title=figtitle('Plausibility-value vs. d.pop',d.obs=d.obs);
     y=do.call(cbind,lapply(n,function(n) y=d2plaus(n=n,d=d.obs,d0=d)));
-    col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),n);
+    ## col=setNames(RColorBrewer::brewer.pal(ncol(y),'Accent'),n);
     legend.labels=paste(sep='=','n',n);
     plotm(x=d,y=y,title=title,lwd=lwd,col=col,smooth=smooth,
           legend='left',legend.labels=legend.labels,
@@ -91,11 +98,12 @@ plot_plaus=
 plot_confi=
   function(n=c(40,100,400),d.obs=0.5,howmany=c(3,1),
            xlab='d.pop',ylab='confidence',title=NULL,xlim=c(-0.2,1.2),ylim=c(0,1),
-           lwd=2,smooth='none',
+           col=setNames(wes_palette("Moonrise2",n=length(n),type='continuous'),n),
+           lwd=3,smooth='none',
            dinc=1e-3,d=seq(min(xlim),max(xlim),by=dinc)) {
     if (is.null(title)) title=figtitle('Confidence vs. d.pop',d.obs=d.obs);
     y=do.call(cbind,lapply(n,function(n) y=1-d2plaus(n=n,d=d.obs,d0=d)));
-    col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),n);
+    ## col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),n);
     legend.labels=paste(sep='=','n',n);
     plotm(x=d,y=y,title=title,lwd=lwd,col=col,smooth=smooth,
           legend='left',legend.labels=legend.labels,
@@ -117,7 +125,9 @@ plot_cicvr=
            d.ci=q_d2t(n=n,d0=d.pop,p=p),
            xlab='d.obs',ylab='probability density',title=NULL,vline='d.pop',
            xlim=d.pop+c(-1,1),lwd=2,
-           ci.col=plaus2col(c(0.1,0.012)),ci.lty=cq(solid,dotted),ci.lwd=c(0.5,1),
+           ci.col=plaus2col(c(0.1,0.012)),ci.lty=cq(solid,dotted),
+           ## ci.lwd=c(0.5,1),
+           ci.lwd=c(1.5,2),
            ci.pch=19,ci.cex=c(0.5,0.75),ci.tol=1e-5,
            dinc=1e-3,d=seq(min(xlim),max(xlim),by=dinc)) {
     if (is.null(title)) title=figtitle('Coverage of confidence intervals',n=n,d.pop=d.pop);
