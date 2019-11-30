@@ -17,7 +17,6 @@
 ## initialization.
 ## process parameters and store in param environment.
 ## create output directories if necessary.
-## supp's are placeholders
 doc.all=cq(readme,readmesupp,ovrfx,ovrht,confi);
 init=function(
   ## doc parameters 
@@ -32,13 +31,11 @@ init=function(
   d.gen=switch(docx,                        # function to generate population effect sizes
                readme=runif,readmesupp=runif,ovrfx=runif),
   d.args=switch(docx,                       # arguments passed to d.gen
-                readme=list(min=-3,max=3),
-                readmesupp=list(min=-3,max=3),
+                readme=list(min=-3,max=3),readmesupp=list(min=-3,max=3),
                 ovrfx=list(min=-3,max=3)),
   ## fixed-d 
   n.fixd=switch(docx,                       # sample sizes
-                readme=seq(20,100,by=20),
-                readmesupp=seq(20,100,by=20),
+                readme=seq(20,100,by=20),readmesupp=seq(20,100,by=20),
                 ovrfx=seq(20,200,by=20),
                 confi=c(20,40,100,200)), 
   m.fixd=switch(docx,                       # number of studies per d
@@ -51,17 +48,13 @@ init=function(
   ## het-d
   n.hetd=switch(docx,                       # sample sizes
                 readme=c(20,seq(100,400,by=100)),readmesupp=c(20,seq(100,400,by=100)),
-                ovrht=200,ovrhtsupp=seq(20,200,by=20)),
+                ovrht=200),
   m.hetd=switch(docx,                       # number of studies per d.het
-                readme=1e3,readmesupp=1e3,ovrht=1e5,ovrhtsupp=1e5),
+                readme=1e3,readmesupp=1e3,ovrht=1e5),
   d.hetd=switch(docx,                       # centers of het pop effect sizes
-                readme=c(0,0.5),readmesupp=c(0,0.5),
-                ovrht=0,
-                ovrhtsupp=c(0,0.3,0.5,0.7)),# CAUTION: doc_ovrhtsupp expects >= 4 values
+                readme=c(0,0.5),readmesupp=c(0,0.5),ovrht=0), 
   sd.hetd=switch(docx,                      # standard deviation of het pop distribution
-                 readme=c(0,0.2,0.4),readmesupp=c(0,0.2,0.4),
-                 ovrht=0.2,
-                 ovrhtsupp=c(0,0.1,0.2,0.4)),# CAUTION: doc_ovrhtsupp expects >= 4 values
+                 readme=c(0,0.2,0.4),readmesupp=c(0,0.2,0.4),ovrht=0.2),
   ## pval & ci tables (ovrht) - others use simulation params
   n.ovrht=switch(docx,                       # sample sizes
                  ovrht=seq(20,400,by=10)),
@@ -69,20 +62,16 @@ init=function(
   sd.ovrht=switch(docx,                     # standard deviation of het pop distribution
                   ovrht=c(0,0.05,0.1,0.2,0.4)),
   ## sig levels for pval tables
-  sig.dat=switch(docx,readme=0.05,readmesupp=5*10^(-4:-1),
-                 ovrfxsupp=5*10^(-4:-1),
-                 ovrht=.05,ovrhtsupp=5*10^(-4:-1)),
+  sig.dat=switch(docx,readme=0.05,readmesupp=5*10^(-4:-1),ovrht=.05),
   ## ci downsample - downsample sim results when computing ci, else too slow
-  m.ci=switch(docx,readmesupp=1e3,ovrfxsupp=1e3,ovrhtsupp=1e3),
+  m.ci=switch(docx,readmesupp=1e3),
   ## low level operation of dosim
   m1=switch(docx,readme=1e2,1e4),           # number of inner-loop iterations
   ## data generation function
   datfun=get(paste(sep='_','dat',docx)),
   ## analysis parameters
   sig.level=0.05,                    # significance level
-  conf.level=switch(docx,            # confidence levels
-                   confi=seq(0.05,0.95,by=0.05),
-                   0.95),                  
+  conf.level=0.95,                   # confidence levels
   ## data directories
   datadir=dirname('data',docx,run.id),       # directory for data files
   sim.rand.dir=dirname(datadir,'sim.rand'),  # directory for sim rand files
@@ -95,7 +84,6 @@ init=function(
                   readmesupp=c(sim.rand.dir,sim.fixd.dir,sim.hetd.dir),
                   ovrfx=c(sim.rand.dir,sim.fixd.dir),
                   ovrht=c(sim.hetd.dir),
-                  ovrhtsupp=c(sim.hetd.dir),
                   confi=c(sim.fixd.dir))),
   
   ## NG 18-10-18: figdir, tbldir moved to init_doc
