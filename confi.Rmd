@@ -1,12 +1,13 @@
 ---
-title: "Confidence Intevals Are About Plausibility, Not Confidence"
+title: "Ladies And Gentlemen, I Introduce To You, “Plausibility Limits”"
 author: "Nathan (Nat) Goodman"
-date: "November 30, 2019"
+date: "December 1, 2019"
 output:
+  word_document: default
+  pdf_document: default
   html_document:
     css: css/html_document.css
     highlight: kate
-  pdf_document: default
 linkcolor: cyan
 citecolor: green
 urlcolor: blue
@@ -25,12 +26,12 @@ knitr::include_graphics('figure/confi/figure_001a_null.png');
 knitr::include_graphics('figure/confi/figure_001b_mult.png');
 ```
 
-Figure 1b shows sampling distributions for $n=40$ and several values of $d_{pop}$. The coloring, analogous to Figure 1a, indicates how plausible we deem $d_{obs}$ given $n$ and $d_{pop}$. The definition of "plausibility value" (*plaus-value*) is the same as p-value but for arbitrary $d_{pop}$. $d_{obs}=0.5$ is in the red for the outer values of $d_{pop}$ but in the blue for the inner ones. This means we deem $d_{obs}=0.5$ implausible for
+Figure 1b shows sampling distributions for $n=40$ and several values of $d_{pop}$. The coloring, analogous to Figure 1a, indicates how plausible we deem $d_{obs}$ given $n$ and $d_{pop}$. The definition of "plausibility value" (*plaus*) is the same as p-value but for arbitrary $d_{pop}$. $d_{obs}=0.5$ is in the red for the outer values of $d_{pop}$ but in the blue for the inner ones. This means we deem $d_{obs}=0.5$ implausible for
 the outer values of $d_{pop}$ but plausible for the inner ones. The transition from implausible to plausible happens somewhere between $d_{pop}=0$ and $0.1$; the transition back happens between $0.9$ and $1$. 
 
 Plausibility is a function of three parameters: $n$, $d_{pop}$, and $d_{obs}$. We can compute and plot plaus-values for any combination of the three parameters. 
 
-Figure 2a plots plaus-value vs. $d_{pop}$ for $d_{obs}=0.5$ and several values of $n$. The figure also shows the limits of plausible $d_{pop}$s at points of interest. As with significance, we can declare "plausibility" at thresholds other than $0.05$. From the figure, we see that the limits gets tighter as we increase $n$ or plausibility cutoff. For $n=40$ and the usual $0.05$ cutoff, the limits are wide: $[0.5, 0.94]$. For $n=400$ and a stringent cutoff of $0.5$, the limits are narrow: $[0.45,0.55]$. This makes perfect sense: (1) all things being equal, bigger samples have greater certainty; (2) a higher cutoff means we demand more certainty before deeming a result plausible, ie, we require that $d_{pop}$ be closer to $d_{obs}$.
+Figure 2a plots *plaus* vs. $d_{pop}$ for $d_{obs}=0.5$ and several values of $n$. The figure also shows the limits of plausible $d_{pop}$s at points of interest. As with significance, we can declare "plausibility" at thresholds other than $0.05$. From the figure, we see that the limits gets tighter as we increase $n$ or the plausibility cutoff. For $n=40$ and the usual $0.05$ cutoff, the limits are wide: $[0.5, 0.94]$. For $n=400$ and a stringent cutoff of $0.5$, the limits are narrow: $[0.45,0.55]$. This makes perfect sense: (1) all things being equal, bigger samples have greater certainty; (2) a higher cutoff means we demand more certainty before deeming a result plausible, ie, we require that $d_{pop}$ be closer to $d_{obs}$.
 
 ```{r out.width="50%",echo=FALSE,fig.show='asis'}
 knitr::include_graphics('figure/confi/figure_002a_plaus.png');
@@ -39,7 +40,7 @@ knitr::include_graphics('figure/confi/figure_002b_confi.png');
 
 The plausibility limits in Figure 2a are consistent with Figure 1b. Both figures say that with $n=40$ and $d_{obs}=0.5$, $d_{pop}$ must be a little more than $0$ and a little less than $1$ to deem the solution plausible.
 
-Let's translate back to standard confidence interval terminology: *confidence level* is 1 minus plaus-value usually stated as a percentage; *confidence intervals* are plausibility limits expressed in terms of confidence levels. Figure 2b restates 2a using the standard terminology. It's the same but upside down. This type of plot is called a *consonance curve*.
+Now I'll translate back to standard confidence interval terminology: *confidence level* is $1 - plaus$ usually stated as a percentage; *confidence intervals* are plausibility limits expressed in terms of confidence levels. Figure 2b restates 2a using the standard terminology. It's the same but upside down. This type of plot is called a *consonance curve*.
 
 A further property of confidence intervals, called the *coverage* property, states that if we repeatedly sample from a fixed $d_{pop}$ and compute the C% confidence intervals, C% of the intervals will contain $d_{pop}$. Figure 3 illustrates the property for 95% confidence intervals, $n=40$, and $d_{pop}=0.05$. The figure shows the sampling distribution colored by plaus-value, and confidence intervals as solid blue or dashed red lines depending on whether the interval covers $d_{pop}$. I arrange the intervals along the sampling distribution for visual separation.
 
