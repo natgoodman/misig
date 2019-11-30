@@ -17,7 +17,7 @@ Major code changes
 
 New files
 
--   `confi.Rmd`, `confi.TRN.Rmd` and related
+-   `confi.Rmd` and related
     -   Source files for `confi` blog post.
 -   `dat_confi.R`, `doc_confi.R`
     -   Data and document generation functions for `confi` blog post
