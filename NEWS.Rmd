@@ -1,17 +1,97 @@
 ---
 title: "Revision history for misig repository"
 author: "Nathan (Nat) Goodman"
-date: "June 12, 2019"
+date: "December 1, 2019"
 output:
-  html_document: default
   github_document:
     html_preview: no
+  html_document: default
   pdf_document: default
 linkcolor: cyan
 citecolor: green
 urlcolor: blue
 ---
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+
+## Release 1.40 2019-12-01
+
+Support posted version of `confi` blog post. 'Ladies And Gentlemen, I Introduce To You, “Plausibility Limits”'.
+
+__CAVEAT:__ TRN needs Word documents, but the Rmd-to-Word converter doesn't handle output scaling of figures. The workaround I devised for the `effit` post didn't work here: the scaling messed up the in-plot text.  Since the scaling didn't work, I didn't bother learning how to adjust the file layout for for 1 row, 2 columns. Instead, I used the same full-size figures as in tge html and pdf versions, and manually scaled the figures in Word to 40% scale.
+
+Major code changes
+
+- Added `withrows` function to iterate over rows of `cases` data frame. Replaces `withcase`
+
+New files
+
+- `confi.Rmd`, `confi.TRN.Rmd` and related
+    - Source files for `confi` blog post.
+
+- `dat_confi.R`, `doc_confi.R`
+    - Data and document generation functions for `confi` blog post
+
+Changed files
+
+- `R/dat.R`
+    - Do simulations in chunks. Much more efficient when `m` is big
+    - Use `withrows` instead of `withcase` to iterate over cases 
+
+- `dat_ovrfx.R`, `doc_ovrfx.R`, `dat_ovrht.R`, `doc_ovrht.R`, `dat_readme.R`, `doc_readme.R`
+    - Minor parameter changes mainly for stylistic consistency
+
+- `dat_readmesupp.R`
+    - Minor parameter changes mainly for stylistic consistency
+
+- `doc_readmesupp.R`
+    - Use `withrows` instead of `withcase` to iterate over cases 
+    - Minor parameter changes mainly for stylistic consistency
+
+- `R/datman.R`
+    - Use `nvq_file` to construct filenames more flexibly. Especially useful for simulation chunks 
+    - Add function to concentate simulation chunks
+    
+- `R/doc.R`
+    - Add support for multiple figures per plot file (`figdev`). Used to generare nicer Word output for TRN
+    - Continue replacing deprecated `parent` function by `param`
+
+- `R/init.R`
+    - Add `tmpdir`. Used mainly for simulation chunks
+    - Only create output directories needed by specific doc
+    - Remove params for obsolete `supp` documents
+    - Add ability to clean specific data types: subdirs and top level files
+    
+- `R/plot.R`
+    - Add `legend.label` to top-level plot functions to control label for `pval_legend`. Used to display plausibility legends in `confi` blog post
+    - Add `plot_empty` function. Was used in now obsolete `ovrhtsupp`. Though not used now, seems worth keeping
+    - Add `fill_area` function to fill abitrary areas
+    - `plotpvsd`: simplify setting of line properties for `confi` blog post
+    - `plotm`: let `x` be matrix; add `linear` smoothing method
+    - `vhline`: generalize `hlab`, `vlab` controls for displaying labels
+    - `pval_legend`: add `label` param to control legend title
+    - `fill-tail`: continue removing deprecated `parent` function
+
+- `R/source.R`
+    - Add `source_ifexists` function to `source` optional files
+    - Only `source` doc-specific files if `param` environment setup; fixes bug in *de novo* startup
+
+- `R/stats.R`
+    - Change `ci.lo`, `ci.hi` variables to `lo`, `hi` for style
+
+- `R/util.R`
+    - Upper-case argument names in functions like `nvq` to avoid conflicts with user-supplied arguments
+    - Add `nvq_file` function to more flexibly generate filenames
+    - Add `i_pretty` function to pretty print `i` (used for simulation chunks)
+    - Add `pretty` wrapper for pretty printing functions
+    - Continue trying to create `parent` function that works :). Not sure I have it yet...
+    - Add `linear` smoothing method
+    - Add `smooth` wrapper for smoothing functions
+    - Add `span` parameter to `loessm` smoothing function
+    - Add `withrows` function to iterate over `cases` data frame; replaces `withcase`
+    - Add rounding functions
+    - Add `pick` function to pick n items approximately evenly spaced
+    - Add `tol` argument to `between` to handle imprecise decimals
+    - Add `tback` function: wrapper for `traceback` with arguments set the way I like them
 
 ## Release 1.30 2019-06-12
 
@@ -21,7 +101,6 @@ Major code changes
 
 - Improve code for figure titles: generic `figtitle` function to generate figure titles instead of doc-specific functions; auto-scaling instead of setting `cex.main`
 - Start cleanup of figure/table numbering scheme
-
 
 New files
 
