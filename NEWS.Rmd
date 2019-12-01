@@ -17,7 +17,7 @@ urlcolor: blue
 
 Support posted version of `confi` blog post. 'Ladies And Gentlemen, I Introduce To You, “Plausibility Limits”'.
 
-__CAVEAT:__ TRN needs Word documents, but the Rmd-to-Word converter doesn't handle output scaling of figures. The workaround I devised for the `effit` post didn't work here: the scaling messed up the in-plot text.  Since the scaling didn't work, I didn't bother learning how to adjust the file layout for for 1 row, 2 columns. Instead, I used the same full-size figures as in the html and pdf versions, and manually scaled the figures in Word to 40% scale.
+__CAVEAT:__ TRN needs Word documents, but the Rmd-to-Word converter doesn't handle output scaling of figures. The workaround I devised for the `effit` post - plotting mutliple figures to the same "device" (output file) - didn't work here: the scaling messed up the in-plot text.  Since the scaling didn't work, I didn't bother learning how to adjust the file layout for for 1 row, 2 columns. Instead, I used the same full-size figures as in the html and pdf versions, and manually scaled the figures in Word to 40% scale.
 
 Major code changes
 

@@ -3,11 +3,10 @@ title: "Ladies And Gentlemen, I Introduce To You, “Plausibility Limits”"
 author: "Nathan (Nat) Goodman"
 date: "December 1, 2019"
 output:
-  word_document: default
-  pdf_document: default
   html_document:
     css: css/html_document.css
     highlight: kate
+  pdf_document: default
 linkcolor: cyan
 citecolor: green
 urlcolor: blue
