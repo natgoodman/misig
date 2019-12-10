@@ -311,7 +311,7 @@ plotempty=
 }
 
 ## helper functions to plot horizontal and vertical line segments
-vhline=function(vline=NULL,hline=NULL,vlab=TRUE,hlab=TRUE,vhdigits=2,col=NA,...) {
+vhline=function(vline=NULL,hline=NULL,vlab=TRUE,hlab=TRUE,vhdigits=2,col=NA,cex=0.75,...) {
   xylim=par('usr');
   vline=vline[which(between(vline,xylim[1],xylim[2]))];
   hline=hline[which(between(hline,xylim[3],xylim[4]))];
@@ -319,20 +319,20 @@ vhline=function(vline=NULL,hline=NULL,vlab=TRUE,hlab=TRUE,vhdigits=2,col=NA,...)
   ## write vhline values along axes
   vline=vline[vlab];
   if (length(vline)>0)
-    mtext(round(vline,vhdigits),side=1,at=vline,col=col,line=0.25,cex=0.75);
+    mtext(round(vline,vhdigits),side=1,at=vline,col=col,line=0.25,cex=cex*par('cex'));
   hline=hline[hlab];
   if (length(hline)>0)
-    mtext(round(hline,vhdigits),side=2,at=hline,col=col,line=0.25,cex=0.75);
+    mtext(round(hline,vhdigits),side=2,at=hline,col=col,line=0.25,cex=cex*par('cex'));
 }
 hline=
   function(y,x0=0,x,col='black',lty='solid',lwd=1,cex=0.75,text=NULL,
-           label=list(text=text,side=2,at=y,col=col,line=0.25,cex=cex,las=1)) {
+           label=list(text=text,side=2,at=y,col=col,line=0.25,cex=cex*par('cex'),las=1)) {
     segments(x0=x0,x1=x,y0=y,y1=y,col=col,lty=lty,lwd=lwd);
     if (!is.null(text)) do.call(mtext,label);
   }
 vline=
   function(x,y0=0,y,col='black',lty='solid',lwd=1,cex=0.75,text=NULL,
-           label=list(text=text,side=1,at=x,col=col,line=0.25,cex=cex,las=1)) {
+           label=list(text=text,side=1,at=x,col=col,line=0.25,cex=cex*par('cex'),las=1)) {
     segments(x0=x,x1=x,y0=y0,y1=y,col=col,lty=lty,lwd=lwd);
     if (!is.null(text)) do.call(mtext,label);
   }
