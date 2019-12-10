@@ -247,7 +247,9 @@ outblk_end=function() {
 ##### Manage multiple plots per device (page)
 ## CAUTION: quick hack for TRN post!
 ##  doesn't worry about user plotting too many figures for the device!
-figdev_start=function(figdev.name=NULL,sect=NULL,mfrow=c(2,2),mfcol=NULL,...) {
+##  sets cex=0.86 except when nrow=ncol=1 - correct for nrow<=2, ncol=2
+##  doesn't scale properly when plotting to both screen and file expect for default nrow, ncol 
+figdev_start=function(figdev.name=NULL,sect=NULL,nrow=2,ncol=2,...) {
   param(figdev,save.fig,figscreen,fignew);
   if (figdev) figdev_end();             # if already in figdev, end it
   file=filename_fig(figdev_label(),sect,figdev.name);
@@ -266,8 +268,8 @@ figdev_start=function(figdev.name=NULL,sect=NULL,mfrow=c(2,2),mfcol=NULL,...) {
     msg=paste(sep=' ',msg,'which means there is no where to plot the figure');
     stop(msg);
   }
-  if (!missing(mfrow)&&!missing(mfcol)) stop("can only specify one of 'mfrow' or 'mfcol'");
-  if (!missing(mfcol)) mfrow=NULL;
+  ## if (!missing(mfrow)&&!missing(mfcol)) stop("can only specify one of 'mfrow' or 'mfcol'");
+  ## if (!missing(mfcol)) mfrow=NULL;
   ##   bg='white' needed else image copied with transparent bg; renders as grey
   if (plot.to.screen) {
     dev.new(bg='white');
@@ -276,10 +278,12 @@ figdev_start=function(figdev.name=NULL,sect=NULL,mfrow=c(2,2),mfcol=NULL,...) {
   if (plot.to.file&!plot.to.screen) {
     ## png parameters found by trial and error. look reasonable
     ## TODO: learn the right way to do this!
-    png(filename=file,height=8,width=8,units='in',res=200,pointsize=12);
+    height=if(nrow==1&&ncol!=1) 4 else 8;
+    png(filename=file,height=height,width=8,units='in',res=200,pointsize=12);
     param(figdev.file=dev.cur());
   }
-  if (!is.null(mfrow)) par(mfrow=mfrow) else par(mfcol=mfcol);
+  ## set mfrow and adjust cex unless nrow=ncol=1
+  if (nrow!=1||ncol!=1) par(mfrow=c(nrow,ncol),cex=0.86);
   param(figdev=TRUE);
 }
 figdev_end=function() {
