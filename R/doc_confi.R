@@ -78,13 +78,13 @@ plot_mult=
 plot_plaus=
   function(n=c(40,100,400),d.obs=0.5,howmany=c(3,1),
            xlab='d.pop',ylab='plausibility value (plaus-value)',title=NULL,
-           xlim=c(-0.2,1.2),ylim=c(0,1),cex.label=0.5,
+           xlim=c(-0.2,1.2),ylim=c(0,1),cex.label=0.75,
            col=setNames(wes_palette("Moonrise2",n=length(n),type='continuous'),n),
+           ## col=setNames(RColorBrewer::brewer.pal(length(n),'Set1'),n),
            lwd=3,smooth='none',
            dinc=1e-3,d=seq(min(xlim),max(xlim),by=dinc)) {
     if (is.null(title)) title=figtitle('Plausibility-value vs. d.pop',d.obs=d.obs);
     y=do.call(cbind,lapply(n,function(n) y=d2plaus(n=n,d=d.obs,d0=d)));
-    ## col=setNames(RColorBrewer::brewer.pal(ncol(y),'Accent'),n);
     legend.labels=paste(sep='=','n',n);
     plotm(x=d,y=y,title=title,lwd=lwd,col=col,smooth=smooth,
           legend='left',legend.labels=legend.labels,
@@ -104,18 +104,18 @@ plot_confi=
            xlab='d.pop',ylab='confidence',title=NULL,
            xlim=c(-0.2,1.2),ylim=c(0,1),cex.label=0.5,
            col=setNames(wes_palette("Moonrise2",n=length(n),type='continuous'),n),
+           ## col=setNames(RColorBrewer::brewer.pal(length(n),'Set1'),n),
            lwd=3,smooth='none',
            dinc=1e-3,d=seq(min(xlim),max(xlim),by=dinc)) {
     if (is.null(title)) title=figtitle('Confidence vs. d.pop',d.obs=d.obs);
     y=do.call(cbind,lapply(n,function(n) y=1-d2plaus(n=n,d=d.obs,d0=d)));
-    ## col=setNames(RColorBrewer::brewer.pal(ncol(y),'Set1'),n);
     legend.labels=paste(sep='=','n',n);
     plotm(x=d,y=y,title=title,lwd=lwd,col=col,smooth=smooth,
           legend='left',legend.labels=legend.labels,
           hline=c(0,0.5,0.95),hlab=c(FALSE,TRUE,TRUE),
           xlab=xlab,ylab=ylab);
     ## draw ci boundaries of interest
-  ci.n=head(n,howmany[1]); ci.col=rep(head(col,howmany[1]),each=2);
+    ci.n=head(n,howmany[1]); ci.col=rep(head(col,howmany[1]),each=2);
     ci=as.vector(ci_d2t(n=ci.n,d=d.obs,conf.level=0.95));
     vline(x=ci,y=0.95,col=ci.col,lty='dotted',lwd=2,cex=cex.label,text=round(ci,digits=2));
     ci.n=tail(n,howmany[2]); ci.col=rep(tail(col,howmany[2]),each=2);
