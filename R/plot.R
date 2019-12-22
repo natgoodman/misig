@@ -239,6 +239,7 @@ plotpvsd=
 ##   aspline, spline, loess, none, TRUE, FALSE. default is aspline.
 ##   TRUE means aspline. FALSE means none
 ##   spar is for spline
+##   span is for loess
 ## smooth.xy tells which axis is domain of smoothing
 ##   default: 'x' if both x and y are vector-like, else whichever is vector-like
 ## legend tells whether and where to draw legend
@@ -250,7 +251,7 @@ plotm=
            xaxt='s',yaxt='s',
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
-           smooth=c(cq(aspline,spline,loess,linear,none),TRUE,FALSE),smooth.xy=cq(x,y),
+           smooth=cq(aspline,spline,loess,linear,none),smooth.xy=cq(x,y),
            spar=NULL,span=0.75,
            legend=if(is.vector(y)) FALSE else 'right',legend.title=NULL,
            legend.labels=if(is.vector(y)) NULL else colnames(y),
@@ -265,7 +266,13 @@ plotm=
     else if (length(dim(y))!=2) stop("'y' must be vector or 2-dimensional matrix-like object");
     if (nrow(x)!=nrow(y)) stop("'x' and 'y' have different number of rows");
     if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
-    smooth=if(is.logical(smooth)&&!smooth) 'none' else smooth;
+    ## NG 19-12-19: if smooth missing, code passes default (cq(..) in arg list) to smooth
+    ##   function which chokes on it. Scary this bug wasn't caught sooner!
+    ## smooth=if(is.logical(smooth)&&!smooth) 'none' else smooth;
+    smooth.dflt='aspline';
+    smooth=if(missing(smooth)) smooth.dflt 
+           else {if(is.logical(smooth)) {if(smooth) smooth.dflt else 'none'}
+                 else match.arg(smooth);}
     if (smooth!='none') {
       ## at most one of x,y can be matrix-like for smoothing to work
       if (dim(x)[2]>1&dim(y)[2]>1)
@@ -296,7 +303,7 @@ plotm=
     }
     if (legend) do.call(plotm_legend,legend.args);
   }
-## empty plot -kust title & axes
+## empty plot - just title & axes
 plotempty=
   function(title='',cex.title='auto',xlab='x',ylab='y',xlim=c(0,1),ylim=c(0,1),
            xaxp=c(xlim,1),yaxp=c(ylim,1),...) {
@@ -368,7 +375,7 @@ pval_legend=function(x.scale,y.scale,x0=NULL,cex,label='p-value') {
   y1=y1+strheight('p-value',cex=cex);
   text(x0+width/2,y1,label,adj=c(0.5,0.5),cex=cex);
 }
-## draw plotm legend. adapted from repwr/mess_legend
+## draw plotm legend. adapted from repwr/mesr_legend
 plotm_legend=
   function(where=NULL,x=NULL,y=NULL,cex=0.8,bty='n',
            title=NULL,title.col='black',
