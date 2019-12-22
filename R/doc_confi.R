@@ -102,7 +102,7 @@ plot_plaus=
 plot_confi=
   function(n=c(40,100,400),d.obs=0.5,howmany=c(3,1),
            xlab='d.pop',ylab='confidence',title=NULL,
-           xlim=c(-0.2,1.2),ylim=c(0,1),cex.label=0.5,
+           xlim=c(-0.2,1.2),ylim=c(0,1),cex.label=0.75,
            col=setNames(wes_palette("Moonrise2",n=length(n),type='continuous'),n),
            ## col=setNames(RColorBrewer::brewer.pal(length(n),'Set1'),n),
            lwd=3,smooth='none',
