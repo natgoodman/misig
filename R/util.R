@@ -347,6 +347,16 @@ withrows=function(cases,case,expr) {
     eval(expr,envir=env);               # do it!
   })}
 
+## replace values in list by defaults. kinda like the way I set defaults in Perl
+## code adapted from stackoverflow.com/questions/33004238, stackoverflow.com/questions/42207235
+##   Thanks!
+## default, actual both lists
+fill_defaults=function(default,actual) {
+  actual=actual[lengths(actual)!= 0];   # remove NULL elements from actual
+  default[names(actual)]=actual;        # replace defaults elements by non-NULL actual
+  default;
+}
+
 ## round up or down to nearest multiple of u. from https://grokbase.com/t/r/r-help/125c2v4e14/
 round_up=function(x,u) ceiling(x/u)*u;
 round_dn=function(x,u) floor(x/u)*u;
