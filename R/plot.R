@@ -303,6 +303,18 @@ plotm=
     }
     if (legend) do.call(plotm_legend,legend.args);
   }
+## wrapper for plotm that pulls values from data.frame
+## x,y,z are column names
+plotm_df=function(data,x,y,z=NULL,xlab=x,ylab=y,zlab=z,...) {
+  force(xlab); force(ylab); force(zlab);
+  xdata=unique(data[,x,drop=F]);
+  ydata=if(is.null(z)) data[,y,drop=F]
+    else {
+      by=split(data,data[,z]);
+      do.call(cbind,lapply(by,function(data) data[,y,drop=F]))
+    }
+  plotm(xdata,ydata,xlab=xlab,ylab=ylab,legend.title=zlab,...);
+}
 ## empty plot - just title & axes
 plotempty=
   function(title='',cex.title='auto',xlab='x',ylab='y',xlim=c(0,1),ylim=c(0,1),
