@@ -385,6 +385,28 @@ plotm_legend=
     legend(x,y,bty=bty,legend=labels,cex=cex,col=col,lwd=lwd,lty=lty,
           title=title,title.col=title.col,...);
   }
+## plot multiple legends. adapted from repwr/ragm_legend
+## legends is list of legend.args - arguments to base::legend
+## where, x, y are starting position
+## others used as defaults in each legend
+multi_legend=
+  function(legends,where='left',x=NULL,y=NULL,cex=0.8,bty='n',
+           title=NULL,title.col='black',col='black',lty='solid',lwd=1,...) {
+    default.args=
+      list(cex=cex,bty=bty,title=title,title.col=title.col,col=col,lty=lty,lwd=lwd,...);
+    if (is.null(x)) x=where;
+    sapply(legends,function(legend.args) {
+      legend.args$x=x;
+      legend.args$y=y;
+      legend.args=fill_defaults(default.args,legend.args);
+      where.next=do.call(legend,legend.args);
+      ## <<- assigns to variables in outer scope, ie, function scope
+      ##   from stackoverflow.com/questions/13640157. Thanks!
+      ## could also use, eg, assign('x',where.next$rect$left,,envir=parent.frame(n=3))
+      x<<-where.next$rect$left;
+      y<<-where.next$rect$top-where.next$rect$h;
+    })
+  }
 
 ## fill tail of probability density
 ## adapted from https://stackoverflow.com/questions/45527077. Thx!
