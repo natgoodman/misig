@@ -228,6 +228,15 @@ ucfirst=function(word) paste0(toupper(substr(word,1,1)),substr(word,2,nchar(word
 ## TODO 19-07-23: extend for 'x', 'y' both matrices
 smooth=function(x,y,xout,method=cq(aspline,spline,loess,linear,none),
                 spar=NULL,span=0.75) {
+  ## smooth methods need x vector, y 2-dimensional matrix-like object
+  if (!is.vector(x)) {
+    if (length(dim(x))!=2&&dim(x)[2]!=1) 
+      stop('x must be vector or 2-dimensional matrix-like object with one column')
+      else x=x[,1];
+  }
+  if (is.vector(y)) y=data.frame(y=y)
+  else if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
+  
   method=if(is.logical(method)) if(method) 'aspline' else 'none' else match.arg(method);
   if (method=='none') return(y);
    y=switch(method,
@@ -240,8 +249,6 @@ smooth=function(x,y,xout,method=cq(aspline,spline,loess,linear,none),
 }
 ## extend akima::aspline for matrix
 asplinem=function(x,y,xout,...) {
-  if (is.vector(y)) y=data.frame(y=y);
-  if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
   ## yout=apply(y,2,function(y) akima::aspline(x,y,xout,...)$y);
   ## extend y to correct number of rows if necessary. not really necessary for aspline
   ## CAUTION: perhaps this should be error...
@@ -256,8 +263,6 @@ asplinem=function(x,y,xout,...) {
 }
 ## extend loess.smooth for matrix - probably only useful for plotting
 loessm=function(x,y,xout,span=0.75,...) {
-  if (is.vector(y)) y=data.frame(y=y);
-  if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
   ## extend y to correct number of rows if necessary
   ## CAUTION: perhaps this should be error...
   if (nrow(y)<length(x)) y=repr(y,length=length(x));
@@ -275,8 +280,6 @@ loessm=function(x,y,xout,span=0.75,...) {
 ## NG 18-11-07: remove NAs (same as akima::aspline) else smooth.spline barfs
 splinem=function(x,y,xout,spar=NULL,...) {
   if (is.null(spar)) spar=0.5;
-  if (is.vector(y)) y=data.frame(y=y);
-  if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
   ## extend y to correct number of rows if necessary
   ## CAUTION: perhaps this should be error...
   if (nrow(y)<length(x)) y=repr(y,length=length(x));
@@ -297,8 +300,6 @@ splinem=function(x,y,xout,spar=NULL,...) {
 }
 ## extend approx for matrix - probably only for completeness
 approxm=function(x,y,xout,...) {
-  if (is.vector(y)) y=data.frame(y=y);
-  if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
   ## extend y to correct number of rows if necessary
   ## CAUTION: perhaps this should be error...
   if (nrow(y)<length(x)) y=repr(y,length=length(x));
@@ -356,6 +357,8 @@ fill_defaults=function(default,actual) {
   default[names(actual)]=actual;        # replace defaults elements by non-NULL actual
   default;
 }
+## test if arg is "real" list, not data frame
+is_list=function(x) is.list(x)&&!is.data.frame(x);
 
 ## round up or down to nearest multiple of u. from https://grokbase.com/t/r/r-help/125c2v4e14/
 round_up=function(x,u) ceiling(x/u)*u;
@@ -399,7 +402,14 @@ near=function(x,target,tol=.01) between(x,target-tol,target+tol)
 
 ## debugging functions
 ## TODO: BREAKPOINT is sooo feeble :(
-BREAKPOINT=browser;
+## BREAKPOINT=browser;
+BREAKPOINT=function(...,text="",condition=NULL,expr=TRUE,skipCalls=0L) {
+  if (!expr) return();
+  if (length(list(...))>0) print(paste(...));
+  parent.env=parent.frame(n=1);
+  with(parent.env,browser(skipCalls=5)); # skipCalls=5 empirically determined
+  ## browser(text=text,condition=condition,skipCalls=skipCalls+1);
+}
 ## traceback with args I like
 tback=function(max.lines=2) traceback(max.lines=max.lines)
 devs.close=function() for (dev in dev.list()) dev.off(dev)
