@@ -230,7 +230,9 @@ plotpvsd=
 ## xaxt, yaxt control labels on axes - NOT YET IMPLEMENTED
 ##   's' or NULL means let R do it
 ##    else list of axis params, eg, at, labels
-##           title='',cex.title='auto',
+##           title='',cex.title='auto'
+## type is plot type - passed to matplot. 'n' also turns off extra lines, legend, grid
+##   TODO: type='p' should cause legend to draw points instead of lines
 ## vline,hline are vectors of x or y positions for extra vertical or horizontal lines
 ## vhlty, vhcol, vhlwd are lty, col, lwd for these extra lines
 ## vlab, hlab contol writing vline, hline values along axes
@@ -247,7 +249,7 @@ plotpvsd=
 ## legend.title is legend title
 ## legend.args are further legend params
 plotm=
-  function(x,y,col='black',lty='solid',lwd=1,title='',cex.title='auto',
+  function(x,y,col='black',lty='solid',lwd=1,title='',cex.title='auto',type='l',
            xaxt='s',yaxt='s',
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
@@ -289,24 +291,31 @@ plotm=
         y=y.smooth;
       }
     }
-    matplot(x,y,type='l',main=title,cex.main=cex.title,col=col,lty=lty,lwd=lwd,
+    matplot(x,y,main=title,cex.main=cex.title,col=col,lty=lty,lwd=lwd,type=type,
             xaxt=xaxt,yaxt=yaxt,...);
-    grid();
-    ## plot extra lines & values if desired. nop if vline, hline NULL
-    vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
-           lty=vhlty,col=vhcol,lwd=vhlwd);
-    ## draw legend if desired
-    if (is.null(legend)) legend=FALSE
-    else if (!is.logical(legend)) {
-      legend.args$where=legend;
-      legend=TRUE;
+    if (type!='n') {
+      grid();
+      ## plot extra lines & values if desired. nop if vline, hline NULL
+      vhline(vline=vline,hline=hline,vlab=vlab,hlab=hlab,vhdigits=vhdigits,
+             lty=vhlty,col=vhcol,lwd=vhlwd);
+      ## draw legend if desired
+      if (is.null(legend)) legend=FALSE
+      else if (!is.logical(legend)) {
+        legend.args$where=legend;
+        legend=TRUE;
+      }
+      if (legend) do.call(plotm_legend,legend.args);
     }
-    if (legend) do.call(plotm_legend,legend.args);
   }
-## wrapper for plotm that pulls values from data.frame
+## wrapper for plotm that pulls values from data frame
 ## x,y,z are column names
 plotm_df=function(data,x,y,z=NULL,xlab=x,ylab=y,zlab=z,...) {
   force(xlab); force(ylab); force(zlab);
+  if (!is.data.frame(data)) stop ('data must be data frame');
+  if ((length(x)!=1)||(x %notin% colnames(data))) stop('x must contain exactly one column name');
+  if ((length(y)!=1)||(y %notin% colnames(data))) stop('y must contain exactly one column name');
+  if (!is.null(z)&&((length(z)!=1)||(z %notin% colnames(data))))
+    stop('z must be NULL or contain exactly one column name');
   xdata=unique(data[,x,drop=F]);
   ydata=if(is.null(z)) data[,y,drop=F]
     else {
@@ -388,36 +397,56 @@ pval_legend=function(x.scale,y.scale,x0=NULL,cex,label='p-value') {
   text(x0+width/2,y1,label,adj=c(0.5,0.5),cex=cex);
 }
 ## draw plotm legend. adapted from repwr/mesr_legend
+## labels and legend are synonyms
 plotm_legend=
   function(where=NULL,x=NULL,y=NULL,cex=0.8,bty='n',
            title=NULL,title.col='black',
-           col='black',lty='solid',lwd=1,labels=NULL,...) {
-    if (is.null(labels)) return();      # nothing to draw
+           col='black',lty='solid',lwd=1,labels=NULL,legend=labels,...) {
+    if (is.null(legend)) return();      # nothing to draw
     if (is.null(x)) x=where;
-    legend(x,y,bty=bty,legend=labels,cex=cex,col=col,lwd=lwd,lty=lty,
+    legend(x,y,bty=bty,legend=legend,cex=cex,col=col,lwd=lwd,lty=lty,
           title=title,title.col=title.col,...);
   }
 ## plot multiple legends. adapted from repwr/ragm_legend
-## legends is list of legend.args - arguments to base::legend
+## legends is list of legend.args - arguments to base::legend or plotm_legend
 ## where, x, y are starting position
 ## others used as defaults in each legend
 multi_legend=
-  function(legends,where='left',x=NULL,y=NULL,cex=0.8,bty='n',
-           title=NULL,title.col='black',col='black',lty='solid',lwd=1,...) {
+  function(legends,legend='right',where=legend,x=NULL,y=NULL,cex=0.8,bty='n',
+           title=NULL,title.col='black',col='black',lty='solid',lwd=1,
+           ## include legend-related plotm args (except legend defined ablove)
+           legend.title=NULL,legend.labels=NULL,labels=NULL,
+           ...) {
     default.args=
-      list(cex=cex,bty=bty,title=title,title.col=title.col,col=col,lty=lty,lwd=lwd,...);
+      list(cex=cex,bty=bty,title=title,title.col=title.col,col=col,lty=lty,lwd=lwd,
+           ## legend-related plotm args
+           legend.title=legend.title,legend.labels=legend.labels,labels=labels,legend=NULL,
+           ...);
     if (is.null(x)) x=where;
     sapply(legends,function(legend.args) {
+      if (is.null(legend.args)) return();
       legend.args$x=x;
       legend.args$y=y;
       legend.args=fill_defaults(default.args,legend.args);
-      where.next=do.call(legend,legend.args);
+    ## handle legend-related plotm args
+      ##   legend.title, legend.labels, labels, legend (when legend or labels not set)
+      legend.args=within(legend.args,{
+        if (is.null(title)) title=legend.title;
+        if (is.null(legend)) {
+          legend=if(is.null(labels)) legend.labels else labels;
+        }
+        rm(legend.title,legend.labels,labels);
+      });
+      if (is.null(legend.args$legend)) return();
+      ## use 'graphics::legend' to avoid collision with legend arg
+      where.next=do.call(graphics::legend,legend.args);
       ## <<- assigns to variables in outer scope, ie, function scope
       ##   from stackoverflow.com/questions/13640157. Thanks!
       ## could also use, eg, assign('x',where.next$rect$left,,envir=parent.frame(n=3))
       x<<-where.next$rect$left;
       y<<-where.next$rect$top-where.next$rect$h;
     })
+    return();
   }
 
 ## fill tail of probability density
