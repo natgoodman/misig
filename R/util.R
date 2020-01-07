@@ -225,91 +225,71 @@ cq=function(...) {
 ucfirst=function(word) paste0(toupper(substr(word,1,1)),substr(word,2,nchar(word)));
   
 ## wrapper for smooth methods
-## TODO 19-07-23: extend for 'x', 'y' both matrices
-smooth=function(x,y,xout,method=cq(aspline,spline,loess,linear,none),
-                spar=NULL,span=0.75) {
-  ## smooth methods need x vector, y 2-dimensional matrix-like object
-  if (!is.vector(x)) {
-    if (length(dim(x))!=2&&dim(x)[2]!=1) 
-      stop('x must be vector or 2-dimensional matrix-like object with one column')
-      else x=x[,1];
-  }
-  if (is.vector(y)) y=data.frame(y=y)
-  else if (length(dim(y))!=2) stop('y must be vector or 2-dimensional matrix-like object');
+## NG 19-12-31: extend for 'x', 'y' both matrices
+##   'x' must be vector or 2-dimensional matrix-like object with same number of columns as y'
+##   'y' must be vector or 2-dimensional matrix-like object
+## NG 20-01-02: replace special-case spar, span by method.args - additional args passed to method
+##    note defaults for aspline, spline, loess
+smooth=
+  function(x,y,method,length=100,
+           method.args=
+             switch(method,
+                    aspline=list(method='improved'),
+                    spline=list(spar=0.5),
+                    loess=list(span=0.75),
+                    list())) {
+    if (is.vector(x)) x=as.matrix(x)
+    else if (length(dim(x))!=2) stop("'x' must be vector or 2-dimensional matrix-like object");
+    if (is.vector(y)) y=as.matrix(y)
+    else if (length(dim(y))!=2) stop("'y' must be vector or 2-dimensional matrix-like object");
+    if (ncol(x)>1&&ncol(x)!=ncol(y))
+      stop("When 'x' has multiple columns, it must have same number of columns as 'y'");
+    if (method=='none') return(list(x=x,y=y));
   
-  method=if(is.logical(method)) if(method) 'aspline' else 'none' else match.arg(method);
-  if (method=='none') return(y);
-   y=switch(method,
-           aspline=asplinem(x,y,xout=xout,method='improved'),
-           spline=splinem(x,y,xout=xout,spar=spar),
-           loess=loessm(x,y,xout=xout,spar=spar),
-           linear=approxm(x,y,xout=xout),
-           stop(paste('Invalid smoothing method:',method)));
-  y;
+    x.smooth=apply(x,2,function(x) seq(min(x),max(x),length=length));
+    y.smooth=do.call(cbind,lapply(seq_len(ncol(y)),function(j)
+      if (ncol(x)==1) smooth_(x[,1],y[,j],x.smooth,method,method.args)
+      else smooth_(x[,j],y[,j],x.smooth[,j],method,method.args)));
+    list(x=x.smooth,y=y.smooth);
 }
-## extend akima::aspline for matrix
-asplinem=function(x,y,xout,...) {
-  ## yout=apply(y,2,function(y) akima::aspline(x,y,xout,...)$y);
-  ## extend y to correct number of rows if necessary. not really necessary for aspline
-  ## CAUTION: perhaps this should be error...
-  if (nrow(y)<length(x)) y=repr(y,length=length(x));
-  yout=apply(y,2,function(y) {
-    if (all(is.na(y))) rep(NA,length(xout))
-    else if (length(which(!is.na(y)))==1) rep(y[which(!is.na(y))],length(xout))
-    else akima::aspline(x,y,xout,...)$y;})
-  ## if yout has single row (ie, xout has one element), R turns it into a vector...
-  if (length(xout)==1) yout=t(yout);
-  yout;
+smooth_=function(x,y,x.smooth,method,method.args) {
+  method.args=c(list(x,y,x.smooth),method.args);
+  method.fun=switch(method,
+                    aspline=aspline_,spline=spline_,loess=loess_,linear=approx_,approx=approx_,
+                    stop(paste('Invalid smoothing method:',method)));
+  y.smooth=do.call(method.fun,method.args);
+  as.matrix(y.smooth);
 }
-## extend loess.smooth for matrix - probably only useful for plotting
-loessm=function(x,y,xout,span=0.75,...) {
-  ## extend y to correct number of rows if necessary
-  ## CAUTION: perhaps this should be error...
-  if (nrow(y)<length(x)) y=repr(y,length=length(x));
-  data=data.frame(x=x,y);
-  yout=do.call(data.frame,lapply(colnames(data)[2:ncol(data)],function(name) {
-    fmla=as.formula(paste(name,'~ x'));
-    yout=suppressWarnings(predict(loess(fmla,data=data),xout,span=span));
-  }));
-  ## if yout has single row (ie, xout has one element), R turns it into a vector...
-  ## if (length(xout)==1) yout=t(yout);
-  colnames(yout)=colnames(y);
-  yout;
+## these functions wrap underlying smoothing methods with consistent API
+## akima::aspline
+aspline_=function(x,y,x.smooth,...) {
+  y.smooth=if(all(is.na(y))) rep(NA,length(x.smooth))
+    else if (length(which(!is.na(y)))==1) rep(y[which(!is.na(y))],length(x.smooth))
+    else akima::aspline(x,y,x.smooth,...)$y;
 }
-## extend smooth.spline for matrix - probably only useful for plotting
+## loess
+loess_=function(x,y,x.smooth,...) {
+  data=data.frame(x,y);
+  ## fmla=as.formula('y~x');
+  y.smooth=suppressWarnings(predict(loess(y~x,data=data,...),data.frame(x=x.smooth)));
+  y.smooth;
+}
+## smooth.spline
 ## NG 18-11-07: remove NAs (same as akima::aspline) else smooth.spline barfs
-splinem=function(x,y,xout,spar=NULL,...) {
-  if (is.null(spar)) spar=0.5;
-  ## extend y to correct number of rows if necessary
-  ## CAUTION: perhaps this should be error...
-  if (nrow(y)<length(x)) y=repr(y,length=length(x));
-  yout=apply(y,2,function(y) {
-    ## remove NAs. code adapted from akima::aspline
-    ## CAUTION: must use '<-' not '=' or place assignment in extra parens ((na=is.na(y)))
-    ##   see stackoverflow.com/questions/1741820 for explanation. gotta love R...
-    if (any(na<-is.na(y))) {
-      x=x[!na]; y=y[!na];
-    }
-    yout=predict(smooth.spline(x,y,spar=spar),xout)$y    
-  });
-  ## if yout has single row (ie, xout has one element), R turns it into a vector...
-  ## if (length(xout)==1) yout=t(yout);
-  if (length(xout)==1) yout=t(yout);
-  colnames(yout)=colnames(y);
-  yout;
+spline_=function(x,y,x.smooth,...) {
+  ## remove NAs. code adapted from akima::aspline
+  ## CAUTION: must use '<-' not '=' or place assignment in extra parens ((na=is.na(y)))
+  ##   see stackoverflow.com/questions/1741820 for explanation. gotta love R...
+  if (any(na<-is.na(y))) x=x[!na]; y=y[!na];
+  y.smooth=predict(smooth.spline(x,y,...),x.smooth)$y    
+  y.smooth;
 }
-## extend approx for matrix - probably only for completeness
-approxm=function(x,y,xout,...) {
-  ## extend y to correct number of rows if necessary
-  ## CAUTION: perhaps this should be error...
-  if (nrow(y)<length(x)) y=repr(y,length=length(x));
-  yout=apply(y,2,function(y) {
-    if (all(is.na(y))) rep(NA,length(xout))
-    else if (length(which(!is.na(y)))==1) rep(y[which(!is.na(y))],length(xout))
-    else approx(x,y,xout,...)$y;})
-  ## if yout has single row (ie, xout has one element), R turns it into a vector...
-  if (length(xout)==1) yout=t(yout);
-  yout;
+## approx - probably only for completeness
+approx_=function(x,y,x.smooth,...) {
+  y.smooth=if (all(is.na(y))) rep(NA,length(x.smooth))
+    else if (length(which(!is.na(y)))==1) rep(y[which(!is.na(y))],length(x.smooth))
+    else approx(x,y,x.smooth,...)$y;
+  y.smooth;
 }
 
 ## with case
@@ -359,6 +339,9 @@ fill_defaults=function(default,actual) {
 }
 ## test if arg is "real" list, not data frame
 is_list=function(x) is.list(x)&&!is.data.frame(x);
+## test if x is subset of y. from stackoverflow.com/questions/26831041. thx!
+is_subset=function(x,y) all(x %in% y)
+is_superset=function(x,y) all(y %in% x)
 
 ## round up or down to nearest multiple of u. from https://grokbase.com/t/r/r-help/125c2v4e14/
 round_up=function(x,u) ceiling(x/u)*u;
