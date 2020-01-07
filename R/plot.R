@@ -238,12 +238,13 @@ plotpvsd=
 ## vlab, hlab contol writing vline, hline values along axes
 ## vhdigits is number of digits for these values
 ## smooth whether to smooth data to make plot prettier
-##   aspline, spline, loess, none, TRUE, FALSE. default is aspline.
-##   TRUE means aspline. FALSE means none
-##   spar is for spline
-##   span is for loess
+##   aspline, spline, loess, linear, approx (sames as linear) none
+##   default aspline
+##   TRUE means aspline, FALSE means none
 ## smooth.xy tells which axis is domain of smoothing
 ##   default: 'x' if both x and y are vector-like, else whichever is vector-like
+## smooth.args are additional args passed to smooth method.
+##   note defaults for aspline, spline, loess
 ## legend tells whether and where to draw legend
 ##   TRUE or word like 'right' means draw legend, FALSE or NULL means no legend
 ## legend.title is legend title
@@ -253,42 +254,51 @@ plotm=
            xaxt='s',yaxt='s',
            vline=NULL,hline=NULL,vhlty='dashed',vhcol='grey50',
            vhlwd=1,vlab=TRUE,hlab=TRUE,vhdigits=2,
-           smooth=cq(aspline,spline,loess,linear,none),smooth.xy=cq(x,y),
-           spar=NULL,span=0.75,
+           ## NG 20-01-02: redo 'smooth' logic again to set smooth.args default
+           smooth=cq(aspline,spline,loess,linear,approx,none),
+           smoothx=if(is.logical(smooth)) {
+                     if (smooth) 'aspline' else 'none';
+                   } else match.arg(smooth),
+           smooth.args=
+             switch(smoothx,
+                    aspline=list(method='improved'),spline=list(spar=0.5),loess=list(span=0.75),
+                    list()),
+           smooth.xy=cq(x,y),
            legend=if(is.vector(y)) FALSE else 'right',legend.title=NULL,
            legend.labels=if(is.vector(y)) NULL else colnames(y),
            legend.args=list(where=NULL,x=NULL,y=NULL,cex=0.8,
                             title=legend.title,labels=legend.labels,col=col,lty=lty,lwd=lwd),
            ...) {
+    smooth=smoothx;                  # to avoid confusion later
     if (is.null(x)) stop("Nothing to plot: 'x' is NULL");
     if (is.null(y)) stop("Nothing to plot: 'y' is NULL");
     if (is.vector(x)) x=as.matrix(x)
     else if (length(dim(x))!=2) stop("'x' must be vector or 2-dimensional matrix-like object");
     if (is.vector(y)) y=as.matrix(y)
     else if (length(dim(y))!=2) stop("'y' must be vector or 2-dimensional matrix-like object");
-    if (nrow(x)!=nrow(y)) stop("'x' and 'y' have different number of rows");
+    if (nrow(x)!=nrow(y)) stop("'x' and 'y' must have same number of rows");
+    ## NG 19-12-31: allow both x,y to be matrix-like as in matplot
+    ##   like matplot, if both have multiple columns, must be same number of columns
+    if (ncol(x)>1&&ncol(y)>1&&ncol(x)!=ncol(y))
+      stop("When 'x' and 'y' both have multiple columns, must have same number of columns");
     if (is.null(cex.title)|cex.title=='auto') cex.title=cex_title(title);
-    ## NG 19-12-19: if smooth missing, code passes default (cq(..) in arg list) to smooth
-    ##   function which chokes on it. Scary this bug wasn't caught sooner!
-    ## smooth=if(is.logical(smooth)&&!smooth) 'none' else smooth;
-    smooth.dflt='aspline';
-    smooth=if(missing(smooth)) smooth.dflt 
-           else {if(is.logical(smooth)) {if(smooth) smooth.dflt else 'none'}
-                 else match.arg(smooth);}
+    ## NG 20-01-02: redo 'smooth' logic. start with TRUE. match choices if not logical
     if (smooth!='none') {
-      ## at most one of x,y can be matrix-like for smoothing to work
-      if (dim(x)[2]>1&dim(y)[2]>1)
-        stop("At most one of 'x' or 'y' can have multiple columns for smoothing to work");
-      if (missing(smooth.xy)) smooth.xy=if(dim(x)[2]==1) 'x' else 'y';
+      if (missing(smooth.xy))
+        smooth.xy=if(ncol(x)==1) 'x' else if (ncol(y)==1) 'y' else 'x';
       ## smooth
       if (smooth.xy=='x') {
-        x.smooth=seq(min(x),max(x),len=100);
-        y=smooth(x,y,xout=x.smooth,method=smooth,spar=spar,span=span);
-        x=x.smooth;
+        xy=smooth(x,y,method=smooth,method.args=smooth.args);
+        x=xy$x; y=xy$y;
+        ## x.smooth=seq(min(x),max(x),len=100);
+        ## y=smooth(x,y,xout=x.smooth,method=smooth,spar=spar,span=span);
+        ## x=x.smooth;
       } else {
-        y.smooth=seq(min(y),max(y),len=100);
-        x=smooth(x=y,y=x,xout=y.smooth,method=smooth,spar=spar,span=span);
-        y=y.smooth;
+        xy=smooth(y,x,method=smooth,method.args=smooth.args);
+        x=xy$y; y=xy$x;
+        ## y.smooth=seq(min(y),max(y),len=100);
+        ## x=smooth(x=y,y=x,xout=y.smooth,method=smooth,spar=spar,span=span);
+        ## y=y.smooth;
       }
     }
     matplot(x,y,main=title,cex.main=cex.title,col=col,lty=lty,lwd=lwd,type=type,
@@ -309,21 +319,161 @@ plotm=
   }
 ## wrapper for plotm that pulls values from data frame
 ## x,y,z are column names
-plotm_df=function(data,x,y,z=NULL,xlab=x,ylab=y,zlab=z,...) {
+plotm_df=
+  function(data,x,y,z=NULL,
+           xlab=if(length(x)==1) x else 'x',
+           ylab=if(length(y)==1) y else 'y',
+           zlab=if(length(z)==1) z else 'z',
+           ...) {
   force(xlab); force(ylab); force(zlab);
   if (!is.data.frame(data)) stop ('data must be data frame');
-  if ((length(x)!=1)||(x %notin% colnames(data))) stop('x must contain exactly one column name');
-  if ((length(y)!=1)||(y %notin% colnames(data))) stop('y must contain exactly one column name');
+  ## NG 20-01-05: allow both x,y to have multiple columns as in matplot
+  ##   like matplot, if both have multiple columns, must be same number of columns
+  if (length(x)>1&&length(y)>1&&length(x)!=length(y))
+    stop("When 'x' and 'y' both have multiple columns, must have same number of columns");
+  if (!is_subset(x,colnames(data))) stop("'x' must contain column names");
+  if (!is_subset(y,colnames(data))) stop("'y' must contain column names");
   if (!is.null(z)&&((length(z)!=1)||(z %notin% colnames(data))))
     stop('z must be NULL or contain exactly one column name');
-  xdata=unique(data[,x,drop=F]);
-  ydata=if(is.null(z)) data[,y,drop=F]
-    else {
-      by=split(data,data[,z]);
-      do.call(cbind,lapply(by,function(data) data[,y,drop=F]))
-    }
+  if (is.null(z)) {
+    ## if no 'z', pass 'x', 'y' columns directly to plotm
+    xdata=data[,x,drop=F];
+    ydata=data[,y,drop=F];
+  } else {
+    ## split by 'z'
+    by=split(data,data[,z]);
+    xdata=do.call(cbind,lapply(by,function(data) data[,x,drop=F]));
+    ydata=do.call(cbind,lapply(by,function(data) data[,y,drop=F]));
+    ## simplify if all columns identical
+    if (length(x)==1&&ncol(xdata)>1&&all(sapply(xdata,identical,xdata[,1])))
+      xdata=xdata[,x,drop=F];
+    if (length(y)==1&&ncol(ydata)>1&&all(sapply(ydata,identical,ydata[,1])))
+      ydata=ydata[,y,drop=F];
+  }
   plotm(xdata,ydata,xlab=xlab,ylab=ylab,legend.title=zlab,...);
 }
+## wrapper for plotm with multiple line groups. adapted from repwr/plot_ragm and others
+## plotms is list of plotm arguments
+## if plotms set
+##   x or y may be vectors of x or y values used in all plotm.args
+## if plotms not set  
+##   x is vector or matrix of x values or list of same
+##   y is vector or matrix of y values or list of same
+## other args used a defaults in each group
+## legend tells whether and where to draw legend
+##   TRUE or word like 'right' means draw legend, FALSE or NULL means no legend
+## legends is list of legend.args passed to multi_legend
+
+plotmg=
+  function(plotms=NULL,x=NULL,y=NULL,col='black',lty='solid',lwd=1,
+           ## NG 20-01-02: redo 'smooth' logic again to set smooth.args default
+           smooth=cq(aspline,spline,loess,linear,approx,none),
+           smoothx=if(is.logical(smooth)) {
+                     if (smooth) 'aspline' else 'none';
+                   } else match.arg(smooth),
+           smooth.args=
+             switch(smoothx,
+                    aspline=list(method='improved'),spline=list(spar=0.5),loess=list(span=0.75),
+                    list()),
+           smooth.xy=cq(x,y),
+           legend='right',legends=list(),
+           ...) {
+    smooth=smoothx;                  # to avoid confusion later
+    default.args=list(x=x,y=y,col=col,lty=lty,lwd=lwd,
+                      smooth=smooth,smooth.args=smooth.args,legend=FALSE,...);
+    if (!is.null(plotms)) 
+      if (is_list(x)||is_list(y))
+        stop("When plotms is set, 'x' and 'y' cannot have multiple groups");
+    if (is.null(plotms)) {
+      if (is_list(x)&&is_list(y))
+        stop("At most one of 'x' or 'y' can have multiple groups");
+      ## create plotms from x, y
+      if (is_list(x)) plotms=lapply(x,function(x) list(x=x,y=y))
+      else if (is_list(y)) plotms=lapply(y,function(y) list(x=x,y=y))
+      else plotms=list(list(x=x,y=y));
+    }
+    ## fill defaults
+    plotms=lapply(plotms,function(plotm.args) fill_defaults(default.args,plotm.args));
+    ## if plotms is singleton, just call plotm
+    if (length(plotms)==1) {
+      do.call(plotm,plotms[[1]]);
+    } else {
+      ## general case: plotms has multiple groups
+      ## setup plot: calculate range, then call plotm with type='n'
+      x.range=range(sapply(plotms,function(plotm.args) range(plotm.args$x)));
+      y.range=range(sapply(plotms,function(plotm.args) range(plotm.args$y)));
+      plotm(x=x.range,y=y.range,type='n',smooth='none',...);
+      ## do plot! w/ add=T, w/o legend
+      lapply(plotms,function(plotm.args) {
+        plotm.args$add=TRUE;
+        do.call(plotm,plotm.args);
+      });
+    }
+    ## draw legend if desired
+    if (is.null(legend)) legend=FALSE;
+    if (is.logical(legend)&&legend) legend='right';
+    if (!is.logical(legend)) multi_legend(legends=legends,legend=legend);
+    return();
+  }
+## wrapper for plotmg that pulls values from data frames
+## interface optimized for common case:
+##   all groups use same colors; each group may use different lty, lwd
+## data is data frame
+## x,y,z are column names
+##   x,y must be singleton or have same length as list of data frames
+##   z must be singleton
+## col, lty, lwd are vectors
+##   col applies to all groups
+##   elements of lty, lwd apply to each group in turn
+## legend TBD
+plotmg_df=
+  function(data,x,y,z=NULL,
+           xlab=if(length(x)==1) x else 'x',
+           ylab=if(length(y)==1) y else 'y',
+           zlab=if(length(z)==1) z else 'z',
+           col='black',lty='solid',lwd=1,
+           ...) {
+    force(xlab); force(ylab); force(zlab);
+    if (!is.data.frame(data)) stop ('data must be data frame');
+    ##   like matplot, if both have multiple columns, must be same number of columns
+    if (length(x)>1&&length(y)>1&&length(x)!=length(y))
+      stop("When 'x' and 'y' both have multiple columns, must have same number of columns");
+
+    if (!is_subset(x,colnames(data))) stop("'x' must contain column names");
+    if (!is_subset(y,colnames(data))) stop("'y' must contain column names");
+    if (!is.null(z)&&((length(z)!=1)||(z %notin% colnames(data))))
+      stop('z must be NULL or contain exactly one column name');
+
+    ngroup=max(length(x),length(y));
+    x=rep(x,length=ngroup);
+    y=rep(y,length=ngroup);
+    lty=rep(lty,length=ngroup);
+    lwd=rep(lwd,length=ngroup);
+
+    plotms=lapply(1:ngroup,function(i) {
+      x=x[i]; y=y[i]; lty=lty[i]; lwd=lwd[i]; 
+      if (is.null(z)) {
+        ## if no 'z', construct plotms from 'x', 'y' columns
+        xdata=data[,x,drop=F];
+        ydata=data[,y,drop=F];
+        col=col[1];
+      } else {
+        ## split by 'z'
+        by=split(data,data[,z]);
+        xdata=do.call(cbind,lapply(by,function(data) data[,x,drop=F]));
+        ydata=do.call(cbind,lapply(by,function(data) data[,y,drop=F]));
+        col=rep(col,length=length(by));
+        ## simplify if all columns identical
+        if (length(x)==1&&ncol(xdata)>1&&all(sapply(xdata,identical,xdata[,1])))
+          xdata=xdata[,x,drop=F];
+        if (length(y)==1&&ncol(ydata)>1&&all(sapply(ydata,identical,ydata[,1])))
+          ydata=ydata[,y,drop=F];
+      }
+      list(x=xdata,y=ydata,col=col,lwd=lwd,lty=lty);
+      });
+    plotmg(plotms,xlab=xlab,ylab=ylab,col=col,lty=lty,lwd=lwd,...);
+    return()
+  }
 ## empty plot - just title & axes
 plotempty=
   function(title='',cex.title='auto',xlab='x',ylab='y',xlim=c(0,1),ylim=c(0,1),
